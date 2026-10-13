@@ -37,5 +37,3 @@ See [open-questions.md](open-questions.md).
 - **Licence.** `Cargo.toml` says MIT; there is no `LICENSE` file.
 - **Third-party notices.** SwiftTerm and the Rust crates.
 - Run a secret scan over the full history, not only the working tree.
-- GitHub does not play a repo's `.mp4` inline in a README. For inline playback, upload the
-  video through GitHub's web editor and use the attachment URL it gives.
