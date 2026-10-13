@@ -1,0 +1,31 @@
+version: 1
+name: States Demo
+color: "#E0434C"
+commands:
+  - id: idle
+    name: never started
+    run: echo hi
+    autostart: false
+groups:
+  - id: svc
+    name: Services
+    cwd: /tmp
+    commands:
+      - id: worker
+        name: worker
+        run: 'while true; do echo "tick $(date +%T)"; sleep 2; done'
+      - id: flaky
+        name: flaky api
+        run: 'echo "boot…"; sleep 1; echo "fatal: connection refused" >&2; exit 1'
+        restart_on_crash: true
+  - id: tasks
+    name: Tasks
+    cwd: /tmp
+    commands:
+      - id: build
+        name: build
+        run: 'for i in 1 2 3; do echo "step $i/3"; sleep 0.3; done; echo done'
+      - id: nowhere
+        name: missing folder
+        run: echo hi
+        cwd: ~/Documents/does-not-exist
