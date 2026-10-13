@@ -111,6 +111,9 @@ private struct ThemedShell: View {
         }
         .background(p.window)
         .frame(minWidth: SBMetrics.windowMinimum.width, minHeight: SBMetrics.windowMinimum.height)
+        // The title bar is hidden; our chrome owns the full height and makes its own room
+        // for the traffic lights (rail / sidebar top strips).
+        .ignoresSafeArea(.container, edges: .top)
         .background(WindowConfigurator())
     }
 

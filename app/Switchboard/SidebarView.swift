@@ -28,7 +28,7 @@ struct SidebarView: View {
                 if !useRail { trafficLightSpacer }
                 sidebarHeader(projects)
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
                         rows(projects)
                     }
                     .padding(.horizontal, 8)
@@ -53,17 +53,25 @@ struct SidebarView: View {
         } isTargeted: { dropTargeted = $0 && context.scope == .all }
     }
 
-    /// Room for the traffic lights when the title bar is hidden and there is no rail.
+    /// Room for the traffic lights when the title bar is hidden and there is no rail:
+    /// 52 pt in tree mode (with the add button), 40 pt in a project window.
     private var trafficLightSpacer: some View {
         HStack {
             Spacer()
             if context.scope == .all {
-                IconButton("plus", help: "Add Project… (⌘O)") { store.addProjectViaPanel() }
-                    .foregroundStyle(look.p.text3)
+                Button { store.addProjectViaPanel() } label: {
+                    Image(systemName: "plus").font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(look.p.text2)
+                        .frame(width: 26, height: 26)
+                        .background(look.p.button, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                        .overlay { RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(look.p.buttonLine) }
+                }
+                .buttonStyle(.plain)
+                .help("Add Project… (⌘O)")
             }
         }
-        .frame(height: 38)
-        .padding(.horizontal, 10)
+        .frame(height: context.scope == .all ? 52 : 40)
+        .padding(.horizontal, 14)
     }
 
     // MARK: Header
@@ -85,7 +93,10 @@ struct SidebarView: View {
     @ViewBuilder
     private func rows(_ projects: [ProjectInfo]) -> some View {
         if projects.isEmpty, context.scope == .all {
-            if store.projects.isEmpty { EmptySidebar() } else { AllExtractedSidebar() }
+            Group {
+                if store.projects.isEmpty { EmptySidebar() } else { AllExtractedSidebar() }
+            }
+            .padding(.top, useRail ? 40 : 0)
         } else if useRail {
             if let project = projects.first(where: { $0.slug == context.railProject }) ?? projects.first {
                 if let error = project.error {
@@ -119,8 +130,10 @@ struct SidebarView: View {
 
     @ViewBuilder
     private func projectContents(_ project: ProjectInfo, indent: CGFloat) -> some View {
+        // Ids are prefixed with the project so two projects' `frontend/dev` rows never share identity.
         ForEach(project.commands, id: \.address) { cmd in
             CommandRow(project: project.slug, command: cmd, indent: indent)
+                .id("\(project.slug):\(cmd.address)")
         }
         ForEach(project.groups, id: \.id) { group in
             let key = "\(project.slug)/\(group.id)"
@@ -128,9 +141,11 @@ struct SidebarView: View {
             GroupRow(project: project.slug, group: group, collapsed: collapsed, indent: indent) {
                 if collapsed { collapsedGroups.remove(key) } else { collapsedGroups.insert(key) }
             }
+            .id("\(project.slug):group:\(group.id)")
             if !collapsed {
                 ForEach(group.commands, id: \.address) { cmd in
                     CommandRow(project: project.slug, command: cmd, indent: indent + SBMetrics.commandIndent)
+                        .id("\(project.slug):\(cmd.address)")
                 }
             }
         }
@@ -151,7 +166,7 @@ struct RailView: View {
         let look = Look(theme: theme, scheme: scheme)
         let p = look.p
         VStack(spacing: 14) {
-            Color.clear.frame(height: 24) // traffic lights
+            Color.clear.frame(height: 11) // traffic lights row (margin-bottom 14 = the stack gap)
             ForEach(projects, id: \.slug) { project in
                 RailTile(project: project, selected: context.railProject == project.slug)
                     .onTapGesture { context.railProject = project.slug }
@@ -265,8 +280,8 @@ struct BoardProjectHeader: View {
             .font(SBType.secondary)
         }
         .padding(.horizontal, 14)
-        .padding(.top, 30)
-        .padding(.bottom, 8)
+        .padding(.top, 44)
+        .padding(.bottom, 12)
         .contextMenu { ProjectMenu(project: project) }
     }
 }
@@ -316,9 +331,10 @@ struct ProjectWindowHeader: View {
                 .foregroundStyle(p.text3)
             }
         }
-        .padding(12)
-        .background(hovering ? p.hover : .clear, in: RoundedRectangle(cornerRadius: look.s.cardRadius, style: .continuous))
-        .padding(.horizontal, 6)
+        .padding(.top, 12).padding(.bottom, 12).padding(.leading, 12).padding(.trailing, 10)
+        .background(hovering ? p.hover : .clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(hovering ? p.line : .clear) }
+        .padding(.horizontal, 8).padding(.bottom, 8)
         .onHover { hovering = $0 }
         .contextMenu { ProjectMenu(project: project) }
     }
