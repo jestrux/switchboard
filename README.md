@@ -4,7 +4,7 @@ A native Mac app that starts, watches and stops a project's dev commands from on
 A project is a logical group of commands, not a directory, so one project can span your
 API, web app and e2e repos, with each command running in its own folder.
 
-[![Watch the walkthrough](docs/media/poster.png)](docs/media/walkthrough.mp4)
+https://github.com/user-attachments/assets/f5857738-879c-42da-b913-c22b9c89c70e
 
 **[Watch the 73-second narrated walkthrough](docs/media/walkthrough.mp4)**
 ([subtitles](docs/media/walkthrough.srt))
