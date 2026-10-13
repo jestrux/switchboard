@@ -1,0 +1,28 @@
+1
+00:00:00,000 --> 00:00:10,475
+This is Switchboard. One window that starts, watches and stops every dev command for a project, even when that project is spread across several folders.
+
+2
+00:00:11,177 --> 00:00:20,542
+One click starts the whole project. Every command runs in a real terminal, and its marker shows what is running, what finished, and what crashed.
+
+3
+00:00:26,936 --> 00:00:33,656
+Links in the output are live. Hold Command, and they underline. Click, and they open in your browser.
+
+4
+00:00:34,357 --> 00:00:40,629
+To watch two things at once, drag a command onto the edge of a pane. It opens right beside it.
+
+5
+00:00:43,219 --> 00:00:51,006
+Need a quick shell? Command T opens a terminal in that group's folder. It will still be here the next time you open the app.
+
+6
+00:00:53,671 --> 00:01:02,973
+Give a project its own window, and it can wear its own colours. Here, CityBuild uses its brand theme, while the main board keeps yours.
+
+7
+00:01:05,663 --> 00:01:10,229
+When you are done, stop everything. Nothing is left running in the background.
+

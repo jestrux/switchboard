@@ -4,6 +4,25 @@ A native Mac app that starts, watches and stops a project's dev commands from on
 window, with each command running in its own folder. A project is a logical grouping
 of commands, not a directory. See `handoff/PRD.md` for the full spec.
 
+## Walkthrough
+
+[![Watch the 70-second walkthrough](docs/media/poster.png)](docs/media/walkthrough.mp4)
+
+**[Watch the narrated walkthrough](docs/media/walkthrough.mp4)** (73 s, with
+[subtitles](docs/media/walkthrough.srt)). It starts a project, shows live links, splits
+the view by dragging, opens a terminal, gives a project its own themed window, and stops
+everything.
+
+| | |
+|---|---|
+| ![Board with a project running](docs/media/board-running.png) Start a whole project in one click | ![Two panes side by side](docs/media/split-panes.png) Drag a command onto a pane edge to split |
+| ![A terminal in a group](docs/media/terminal.png) ⌘T opens a shell in a group's folder | ![A project in its own themed window](docs/media/project-window.png) A project's own window, in its own theme |
+| ![Appearance settings](docs/media/settings.png) Three themes, light and dark, with a live preview | |
+
+The video is recorded from the real app by `scripts/walkthrough/record.py`: it drives the
+UI, captures the window, and narrates with a local Kokoro voice. `--dry` runs the beats
+without recording.
+
 ```
 crates/sb-core      Rust engine: config, supervisor, PTY sessions, file watcher
 crates/sb-cli       `sb` command-line front end

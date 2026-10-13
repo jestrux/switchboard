@@ -80,7 +80,7 @@ struct SwitchboardApp: App {
             Button("Stop All in Project") { if let s = selection { store.stopAll(project: s.project) } }
                 .disabled(selection == nil)
             Button("Stop Everything") { store.engine.stopEverything() }
-                .disabled(!store.engine.anyAlive())
+                .disabled(store.totalRunning == 0)
         }
         CommandMenu("View") {
             Button("Split Right") { focus?.context.split(axis: .horizontal) }

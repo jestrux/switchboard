@@ -518,6 +518,12 @@ struct PaneBody: View {
             if command?.isTerminal == true, state.status == .stopped, state.pid == nil { store.start(ref) }
         }
         .onDisappear { store.release(ref, token: token) }
+        // Choosing a command for this pane moves its terminal here, even when another
+        // pane or window was showing it.
+        .onChange(of: ref) { old, new in
+            store.release(old, token: token)
+            store.claim(new, pane: leaf.id, window: context, token: token)
+        }
         .onChange(of: store.paneOwners[ref]) { _, owner in
             if owner == nil { store.claim(ref, pane: leaf.id, window: context, token: token) }
         }

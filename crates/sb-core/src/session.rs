@@ -64,11 +64,13 @@ pub struct SpawnSpec {
     pub run: String,
     pub cwd: Option<std::path::PathBuf>,
     pub env: std::collections::BTreeMap<String, String>,
+    /// An interactive shell: stopped with SIGHUP, like closing a terminal window.
+    pub terminal: bool,
 }
 
 impl SpawnSpec {
     pub fn of(cmd: &ResolvedCommand) -> Self {
-        SpawnSpec { run: cmd.run.clone(), cwd: cmd.cwd.clone(), env: cmd.env.clone() }
+        SpawnSpec { run: cmd.run.clone(), cwd: cmd.cwd.clone(), env: cmd.env.clone(), terminal: cmd.terminal }
     }
     pub fn matches(&self, cmd: &ResolvedCommand) -> bool {
         self.run == cmd.run && self.cwd == cmd.cwd && self.env == cmd.env
@@ -386,12 +388,20 @@ impl Session {
     pub fn stop_blocking(&self) {
         self.stop_requested.store(true, Ordering::SeqCst);
         if !self.has_exited() {
+            // Interactive shells ignore SIGINT and SIGTERM; a hangup is what ends them.
+            if self.spec.terminal {
+                let _ = self.signal(Signal::SIGHUP);
+                self.wait_exited(Duration::from_millis(1500));
+            }
             let steps = [
                 (Signal::SIGINT, Duration::from_secs(3)),
                 (Signal::SIGTERM, Duration::from_secs(3)),
                 (Signal::SIGKILL, Duration::from_secs(5)),
             ];
             for (sig, wait) in steps {
+                if self.has_exited() {
+                    break;
+                }
                 if self.signal(sig).is_err() && self.has_exited() {
                     break;
                 }

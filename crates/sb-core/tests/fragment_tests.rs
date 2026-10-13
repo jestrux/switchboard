@@ -170,6 +170,12 @@ fn adopting_a_home_writes_the_seed_and_fragments_promote_terminals() {
     assert!(projects.join("demo/terminals.yaml").exists());
     assert!(!std::fs::read_to_string(projects.join("demo/config.yaml")).unwrap().contains("@terminal"));
 
+    // Stopping a terminal is quick: shells get a hangup rather than waiting for SIGKILL.
+    let t = std::time::Instant::now();
+    engine.stop_blocking(&key);
+    assert!(t.elapsed() < Duration::from_secs(3), "terminal stop took {:?}", t.elapsed());
+    assert!(!engine.state_of(&key).is_alive());
+
     engine.rename_terminal("demo", &t_none, "scratch").unwrap();
     assert_eq!(engine.project("demo").unwrap().terminals[2].name, "scratch");
 
