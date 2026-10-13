@@ -138,6 +138,20 @@ final class WindowContext: ObservableObject, Identifiable {
         setFocus(layout.leaves[0].id)
     }
 
+    /// Split `pane` and show `ref` in the new half; `newFirst` puts the new pane on the
+    /// left/top instead of the right/bottom. Refusals show a toast like `split`.
+    func splitAndShow(_ pane: UUID, axis: SplitAxis, newFirst: Bool, ref: CommandRef) {
+        if let existing = layout.leaf(showing: ref), existing.id != pane {
+            // Already on screen: just move it into this pane's new half by swapping later.
+            layout = layout.updatingLeaf(existing.id) { $0.ref = nil }
+        }
+        if let why = splitRefusal(pane, axis: axis) { showToast(why); return }
+        maximizedPane = nil
+        let newLeaf = PaneLeaf(id: UUID(), ref: ref)
+        layout = layout.splitting(pane, axis: axis, newLeaf: newLeaf, newFirst: newFirst)
+        setFocus(newLeaf.id)
+    }
+
     func closePane(_ pane: UUID? = nil) {
         let target = pane ?? focusedPane
         guard canClosePane, let next = layout.closing(target) else { return }

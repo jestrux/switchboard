@@ -94,7 +94,6 @@ struct PaneView: View {
     @Environment(\.colorScheme) private var scheme
     let leaf: PaneLeaf
     @State private var hoveringBar = false
-    @State private var dropTargeted = false
 
     private var focused: Bool { context.focusedPane == leaf.id }
 
@@ -121,10 +120,6 @@ struct PaneView: View {
                 if look.s.paneInset > 0 {
                     RoundedRectangle(cornerRadius: look.s.paneRadius, style: .continuous).strokeBorder(p.line)
                 }
-                if dropTargeted {
-                    RoundedRectangle(cornerRadius: look.s.paneRadius, style: .continuous).strokeBorder(p.accent, lineWidth: 2)
-                        .background(p.accentSoft.opacity(0.35)).allowsHitTesting(false)
-                }
             }
             .shadow(color: look.s.paneInset > 0 ? .black.opacity(look.isDark ? 0.3 : 0.05) : .clear, radius: 12, y: 6)
             .padding(look.s.paneInset)
@@ -133,11 +128,117 @@ struct PaneView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture { context.setFocus(leaf.id) }
-        .dropDestination(for: String.self) { items, _ in
-            guard let ref = items.compactMap(CommandRef.fromDragString).first else { return false }
-            context.show(ref, in: leaf.id)
-            return true
-        } isTargeted: { dropTargeted = $0 }
+        .overlay { DropZones(leaf: leaf, zone: $dropZone, size: paneSize) }
+        .background(GeometryReader { g in Color.clear.onAppear { paneSize = g.size }.onChange(of: g.size) { _, v in paneSize = v } })
+    }
+
+    @State private var dropZone: DropZone?
+    @State private var paneSize: CGSize = .zero
+}
+
+/// Where a dragged command would land: the centre replaces, an edge splits on that side.
+enum DropZone: Equatable { case center, left, right, top, bottom }
+
+/// Invisible drop targets over a pane plus the highlight for the zone under the cursor.
+struct DropZones: View {
+    @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    let leaf: PaneLeaf
+    @Binding var zone: DropZone?
+    let size: CGSize
+    @State private var dragging = false
+
+    var body: some View {
+        let p = theme.palette(scheme)
+        ZStack {
+            // Highlight of the zone the drop would use.
+            if let zone {
+                let r = rect(for: zone)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(p.accentSoft.opacity(0.55))
+                    .overlay { RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(p.accent, lineWidth: 2) }
+                    .frame(width: r.width, height: r.height)
+                    .position(x: r.midX, y: r.midY)
+                    .overlay {
+                        Text(label(zone)).font(SBType.secondary).foregroundStyle(p.text)
+                            .padding(.horizontal, 10).padding(.vertical, 6)
+                            .background(p.button, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                            .hairline(p.line, radius: 7)
+                            .position(x: r.midX, y: r.midY)
+                    }
+                    .allowsHitTesting(false)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        .onDrop(of: [.plainText, .utf8PlainText, .text], delegate: PaneDropDelegate(leaf: leaf, context: context, zone: $zone, size: size))
+    }
+
+    private var edge: CGFloat { max(40, min(size.width, size.height) * 0.22) }
+
+    private func rect(for z: DropZone) -> CGRect {
+        switch z {
+        case .center: return CGRect(x: edge, y: edge, width: size.width - 2 * edge, height: size.height - 2 * edge)
+        case .left: return CGRect(x: 0, y: 0, width: size.width / 2, height: size.height)
+        case .right: return CGRect(x: size.width / 2, y: 0, width: size.width / 2, height: size.height)
+        case .top: return CGRect(x: 0, y: 0, width: size.width, height: size.height / 2)
+        case .bottom: return CGRect(x: 0, y: size.height / 2, width: size.width, height: size.height / 2)
+        }
+    }
+
+    private func label(_ z: DropZone) -> String {
+        switch z {
+        case .center: return leaf.ref == nil ? "Show here" : "Replace this pane"
+        case .left: return "Split left"
+        case .right: return "Split right"
+        case .top: return "Split up"
+        case .bottom: return "Split down"
+        }
+    }
+}
+
+/// Tracks the cursor over a pane during a drag and performs replace or split on drop.
+struct PaneDropDelegate: DropDelegate {
+    let leaf: PaneLeaf
+    let context: WindowContext
+    @Binding var zone: DropZone?
+    let size: CGSize
+
+    private func zone(at point: CGPoint) -> DropZone {
+        let edge = max(40, min(size.width, size.height) * 0.22)
+        if point.x < edge { return .left }
+        if point.x > size.width - edge { return .right }
+        if point.y < edge { return .top }
+        if point.y > size.height - edge { return .bottom }
+        return .center
+    }
+
+    func validateDrop(info: DropInfo) -> Bool { info.hasItemsConforming(to: [.plainText, .utf8PlainText, .text]) }
+    func dropEntered(info: DropInfo) { zone = zone(at: info.location) }
+    func dropUpdated(info: DropInfo) -> DropProposal? { zone = zone(at: info.location); return DropProposal(operation: .move) }
+    func dropExited(info: DropInfo) { zone = nil }
+
+    func performDrop(info: DropInfo) -> Bool {
+        let target = zone(at: info.location)
+        zone = nil
+        guard let provider = info.itemProviders(for: [.plainText, .utf8PlainText, .text]).first else { return false }
+        provider.loadItem(forTypeIdentifier: "public.utf8-plain-text", options: nil) { item, _ in
+            let text: String? = (item as? String) ?? (item as? Data).flatMap { String(data: $0, encoding: .utf8) }
+            guard let text, let ref = CommandRef.fromDragString(text) else { return }
+            Task { @MainActor in
+                switch target {
+                case .center:
+                    context.show(ref, in: leaf.id)
+                case .left, .right:
+                    context.splitAndShow(leaf.id, axis: .horizontal, newFirst: target == .left, ref: ref)
+                case .top, .bottom:
+                    context.splitAndShow(leaf.id, axis: .vertical, newFirst: target == .top, ref: ref)
+                }
+            }
+        }
+        return true
     }
 }
 

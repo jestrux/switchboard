@@ -26,16 +26,18 @@ indirect enum PaneLayout: Codable, Equatable {
 
     func leaf(showing ref: CommandRef) -> PaneLeaf? { leaves.first { $0.ref == ref } }
 
-    /// Replace the leaf `id` with a split holding it and a new empty pane.
-    func splitting(_ id: UUID, axis: SplitAxis, newLeaf: PaneLeaf) -> PaneLayout {
+    /// Replace the leaf `id` with a split holding it and a new pane (after it, or before
+    /// it when `newFirst`).
+    func splitting(_ id: UUID, axis: SplitAxis, newLeaf: PaneLeaf, newFirst: Bool = false) -> PaneLayout {
         switch self {
         case .leaf(let l) where l.id == id:
-            return .split(PaneSplit(id: UUID(), axis: axis, fraction: 0.5, first: .leaf(l), second: .leaf(newLeaf)))
+            let (a, b) = newFirst ? (PaneLayout.leaf(newLeaf), PaneLayout.leaf(l)) : (PaneLayout.leaf(l), PaneLayout.leaf(newLeaf))
+            return .split(PaneSplit(id: UUID(), axis: axis, fraction: 0.5, first: a, second: b))
         case .leaf:
             return self
         case .split(var s):
-            s.first = s.first.splitting(id, axis: axis, newLeaf: newLeaf)
-            s.second = s.second.splitting(id, axis: axis, newLeaf: newLeaf)
+            s.first = s.first.splitting(id, axis: axis, newLeaf: newLeaf, newFirst: newFirst)
+            s.second = s.second.splitting(id, axis: axis, newLeaf: newLeaf, newFirst: newFirst)
             return .split(s)
         }
     }
