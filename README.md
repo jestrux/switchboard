@@ -85,6 +85,12 @@ What the app does:
   its own window showing only that project, with its own selection. A command's terminal
   lives in one window at a time; selecting it elsewhere moves it there and the previous
   window offers "Show Here" to take it back. ⌘0 brings back the all-projects window.
+- **Themes**: Settings (⌘,) has Graphite, Patch Bay and Paper, each with a light and a dark
+  palette, and an Appearance control (System · Light · Dark). A project can pin its own look
+  for its own window with `theme: patch-bay` and `appearance: dark` in `config.yaml`
+  (values: `graphite` · `patch-bay` · `paper`, `system` · `light` · `dark`); the board keeps
+  the global setting. The Project rail setting switches between a rail of project tiles
+  with one project in the sidebar and a full tree.
 - **Split panes**: Pane > Split Right (⌘D) or Split Down (⇧⌘D) shows up to four
   terminals in one window, each with a header that picks its command (or pick from the
   sidebar: selection always targets the focused pane). Drag the divider to resize, ⌘]

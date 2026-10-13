@@ -154,6 +154,7 @@ fn restart_on_crash_backs_off_and_stop_cancels_it() {
     engine.start(&key).unwrap();
     let st = wait_for(&engine, &key, |s| s.status == Status::Crashed, Duration::from_secs(10));
     assert_eq!(st.message.as_deref(), Some("crashed, restarting in 1 s"));
+    assert!(st.restart_at.is_some(), "backoff deadline is reported");
     // After ~1 s it restarts (start #2), crashes, schedules 2 s (start #3 at ~3 s).
     wait_for(&engine, &key, |s| s.message.as_deref() == Some("crashed, restarting in 2 s"), Duration::from_secs(5));
     assert_eq!(*starts.lock().unwrap(), 2);

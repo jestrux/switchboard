@@ -103,8 +103,7 @@ final class EngineStore: ObservableObject {
     }
 
     func state(_ ref: CommandRef) -> CommandState {
-        states[ref] ?? CommandState(status: .stopped, pid: nil, exitCode: nil, signal: nil,
-                                    startedAt: nil, endedAt: nil, message: nil, needsRestart: false)
+        states[ref] ?? .idle
     }
 
     func refreshProjects() {
@@ -141,6 +140,14 @@ final class EngineStore: ObservableObject {
     func restartAll(project: String, group: String? = nil) {
         try? engine.restartAll(project: project, group: group)
     }
+
+    func crashedCount(project: String) -> Int {
+        guard let p = self.project(project) else { return 0 }
+        return p.allCommands.filter { state(CommandRef(project: project, address: $0.address)).status == .crashed }.count
+    }
+
+    var totalRunning: Int { states.values.filter(\.isAlive).count }
+    var totalCrashed: Int { states.values.filter { $0.status == .crashed }.count }
 
     func runningCount(project: String, group: String? = nil) -> Int {
         guard let p = self.project(project) else { return 0 }
@@ -179,22 +186,31 @@ final class EngineStore: ObservableObject {
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: path)
     }
 
-    func deleteProject(_ slug: String) {
+    func deleteProject(_ slug: String, window: UUID? = nil) {
         guard let p = project(slug) else { return }
-        let alert = NSAlert()
-        alert.messageText = "Delete “\(p.name)”?"
-        alert.informativeText = "This stops its commands and moves the project folder\n\(p.dir.abbreviatingHome)\nto the Trash. The command folders themselves are not touched."
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Delete")
-        alert.addButton(withTitle: "Cancel")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        try? engine.stopAll(project: slug, group: nil)
-        // Trash rather than rm so a mistake is recoverable; the watcher reloads.
-        do {
-            try FileManager.default.trashItem(at: URL(fileURLWithPath: p.dir), resultingItemURL: nil)
-            engine.reload()
-        } catch {
-            try? engine.deleteProject(slug: slug)
+        Task { @MainActor in
+            let live = p.allCommands.filter { state(CommandRef(project: slug, address: $0.address)).isAlive }
+            let facts = live.map { c in
+                DialogFact(icon: "circle.fill", text: c.displayName, detail: nil, tint: .running)
+            }
+            let choice = await DialogCenter.shared.ask(DialogRequest(
+                kind: .deleteProject,
+                title: "Delete “\(p.name)”?",
+                subtitle: live.isEmpty
+                    ? "Its folder moves to the Trash. Put it back from the Trash and it returns to the board."
+                    : "Its \(live.count) running command\(live.count == 1 ? "" : "s") stop and its folder moves to the Trash. Put it back from the Trash and it returns to the board.",
+                facts: facts,
+                buttons: [DialogButton(label: "Cancel", kbd: "↩", style: .defaultSecondary, value: 0),
+                          DialogButton(label: "Delete Project", style: .danger, value: 1)],
+                window: window))
+            guard choice == 1 else { return }
+            try? engine.stopAll(project: slug, group: nil)
+            do {
+                try FileManager.default.trashItem(at: URL(fileURLWithPath: p.dir), resultingItemURL: nil)
+                engine.reload()
+            } catch {
+                try? engine.deleteProject(slug: slug)
+            }
         }
     }
 
@@ -215,32 +231,50 @@ final class EngineStore: ObservableObject {
 
     /// Validate, resolve name conflicts, copy into the Projects directory and select it.
     @discardableResult
-    func addProject(from url: URL) -> Bool {
+    func addProject(from url: URL, window: UUID? = nil) -> Bool {
+        Task { @MainActor in await addProjectAsync(from: url, window: window) }
+        return true
+    }
+
+    func addProjectAsync(from url: URL, window: UUID? = nil) async {
         let source = url.path
         let preview: InstallPreview
         do {
             preview = try engine.previewInstall(source: source)
         } catch {
-            let alert = NSAlert()
-            alert.messageText = "This folder is not a valid Switchboard project"
-            alert.informativeText = "\(source.abbreviatingHome)\n\n\(error.readableMessage)\n\nNothing was copied."
-            alert.alertStyle = .warning
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-            return false
+            let choice = await DialogCenter.shared.ask(DialogRequest(
+                kind: .invalidFolder,
+                title: "This folder isn’t a Switchboard project",
+                subtitle: "Nothing was copied. A project folder needs a config.yaml at its top level.",
+                facts: [DialogFact(icon: "folder", text: source.abbreviatingHome, mono: true),
+                        DialogFact(icon: "exclamationmark.triangle.fill", text: error.readableMessage, tint: .error)],
+                alt: DialogButton(label: "Reveal in Finder", value: 2),
+                buttons: [DialogButton(label: "OK", kbd: "↩", style: .primary, value: 0)],
+                window: window))
+            if choice == 2 { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+            return
         }
         var policy = ConflictPolicy.fail
         if preview.exists {
-            let alert = NSAlert()
-            alert.messageText = "A project named “\(preview.name)” already exists"
-            alert.informativeText = "Replace the existing “\(preview.slug)” folder, or keep both and add this one as “\(preview.slug)-2”?"
-            alert.addButton(withTitle: "Replace")
-            alert.addButton(withTitle: "Keep Both")
-            alert.addButton(withTitle: "Cancel")
-            switch alert.runModal() {
-            case .alertFirstButtonReturn: policy = .replace
-            case .alertSecondButtonReturn: policy = .keepBoth
-            default: return false
+            let running = runningCount(project: preview.slug)
+            let choice = await DialogCenter.shared.ask(DialogRequest(
+                kind: .nameConflict,
+                title: "A project named “\(preview.name)” is already here",
+                subtitle: "You’re adding another folder with the same name. Pick what should happen.",
+                facts: [
+                    DialogFact(text: "Keep Both", detail: "Adds this one as “\(preview.slug)-2”. Nothing changes for the existing \(preview.name)."),
+                    DialogFact(text: "Replace", detail: running > 0
+                               ? "Stops \(preview.name)’s \(running) running command\(running == 1 ? "" : "s") and moves its folder to the Trash."
+                               : "Moves the existing folder to the Trash and installs this one in its place.", tint: .crashed),
+                ],
+                buttons: [DialogButton(label: "Cancel", kbd: "esc", value: 0),
+                          DialogButton(label: "Replace", style: .dangerOutline, value: 1),
+                          DialogButton(label: "Keep Both", kbd: "↩", style: .primary, value: 2)],
+                window: window))
+            switch choice {
+            case 1: policy = .replace
+            case 2: policy = .keepBoth
+            default: return
             }
             if policy == .replace { try? engine.stopAll(project: preview.slug, group: nil) }
         }
@@ -248,14 +282,10 @@ final class EngineStore: ObservableObject {
             let slug = try engine.install(source: source, conflict: policy)
             refreshProjects()
             lastInstalled = slug
-            return true
         } catch {
-            let alert = NSAlert()
-            alert.messageText = "Could not add project"
-            alert.informativeText = error.readableMessage
-            alert.alertStyle = .critical
-            alert.runModal()
-            return false
+            _ = await DialogCenter.shared.ask(DialogRequest(
+                kind: .invalidFolder, title: "Could not add project", subtitle: error.readableMessage,
+                buttons: [DialogButton(label: "OK", kbd: "↩", style: .primary, value: 0)], window: window))
         }
     }
 
@@ -277,14 +307,23 @@ final class EngineStore: ObservableObject {
         offeredLeftovers = true
         let leftovers = engine.leftoverSessions()
         guard !leftovers.isEmpty else { return }
-        let alert = NSAlert()
-        alert.messageText = "Switchboard left \(leftovers.count) session\(leftovers.count == 1 ? "" : "s") running"
-        alert.informativeText = "A previous run did not quit cleanly. These processes are still alive:\n\n"
-            + leftovers.map { "• \($0.project) / \($0.address) (pid \($0.pid))" }.joined(separator: "\n")
-        alert.addButton(withTitle: "Stop Them")
-        alert.addButton(withTitle: "Leave Running")
-        if alert.runModal() == .alertFirstButtonReturn {
-            _ = engine.killLeftovers()
+        Task { @MainActor in
+            let n = leftovers.count
+            let facts = leftovers.map { l -> DialogFact in
+                let name = project(l.project).map { p in
+                    (p.allCommands.first { $0.address == l.address }?.displayName ?? l.address) + " · " + p.name
+                } ?? "\(l.project) / \(l.address)"
+                return DialogFact(icon: "circle.fill", text: name, detail: "pid \(l.pid)", tint: .running)
+            }
+            let choice = await DialogCenter.shared.ask(DialogRequest(
+                kind: .leftoverSessions,
+                title: n == 1 ? "1 command is still running from last time" : "\(n) commands are still running from last time",
+                subtitle: "Switchboard didn’t quit cleanly, so \(n == 1 ? "this process" : "these processes") outlived it.",
+                facts: facts,
+                note: "Left running, \(n == 1 ? "it keeps its port" : "they keep their ports") but Switchboard can’t show \(n == 1 ? "its" : "their") output. Start the command again later to replace \(n == 1 ? "it" : "them").",
+                buttons: [DialogButton(label: "Leave Running", value: 0),
+                          DialogButton(label: n == 1 ? "Stop It" : "Stop Them", kbd: "↩", style: .primary, value: 1)]))
+            if choice == 1 { _ = engine.killLeftovers() }
         }
     }
 

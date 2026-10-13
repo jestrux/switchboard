@@ -24,6 +24,7 @@ extension CommandStatus {
 
 extension CommandState {
     var isAlive: Bool { status.isAlive }
+    static let idle = CommandState(status: .stopped, pid: nil, exitCode: nil, signal: nil, startedAt: nil, endedAt: nil, message: nil, needsRestart: false, restartAt: nil)
 
     /// Short text for footers and tooltips.
     var summary: String {

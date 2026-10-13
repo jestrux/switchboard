@@ -48,6 +48,8 @@ pub struct CommandState {
     pub ended_at: Option<f64>,
     pub message: Option<String>,
     pub needs_restart: bool,
+    /// Seconds since the Unix epoch when a scheduled crash restart fires.
+    pub restart_at: Option<f64>,
 }
 
 fn secs(t: Option<SystemTime>) -> Option<f64> {
@@ -65,6 +67,7 @@ impl From<sb_core::CommandState> for CommandState {
             ended_at: secs(s.ended_at),
             message: s.message,
             needs_restart: s.needs_restart,
+            restart_at: secs(s.restart_at),
         }
     }
 }
@@ -108,6 +111,10 @@ pub struct ProjectInfo {
     pub config_path: String,
     pub icon_path: Option<String>,
     pub color: Option<String>,
+    /// Per-project look for its own window (`graphite`, `patch-bay`, `paper`), if pinned.
+    pub theme: Option<String>,
+    /// `system`, `light` or `dark` for its own window, if pinned.
+    pub appearance: Option<String>,
     /// Set when the config does not parse or validate; groups and commands are then empty.
     pub error: Option<String>,
     pub commands: Vec<CommandInfo>,
@@ -201,6 +208,8 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
         config_path: project.config_path().display().to_string(),
         icon_path: project.icon_path.as_ref().map(|p| p.display().to_string()),
         color: None,
+        theme: None,
+        appearance: None,
         error: None,
         commands: vec![],
         groups: vec![],
@@ -224,7 +233,14 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
                         .collect(),
                 })
                 .collect();
-            ProjectInfo { color: cfg.color.clone(), commands, groups, ..base }
+            ProjectInfo {
+                color: cfg.color.clone(),
+                theme: cfg.theme.clone(),
+                appearance: cfg.appearance.clone(),
+                commands,
+                groups,
+                ..base
+            }
         }
     }
 }

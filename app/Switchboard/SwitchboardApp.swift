@@ -5,6 +5,7 @@ struct SwitchboardApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var store = EngineStore.shared
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
 
     @FocusedValue(\.windowFocus) private var focus
 
@@ -16,6 +17,7 @@ struct SwitchboardApp: App {
             ContentView(scope: .all)
                 .environmentObject(store)
         }
+        .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1180, height: 720)
         .commands { appCommands }
 
@@ -26,7 +28,12 @@ struct SwitchboardApp: App {
                     .environmentObject(store)
             }
         }
+        .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 980, height: 680)
+
+        Settings {
+            SettingsView()
+        }
     }
 
     @CommandsBuilder
@@ -43,7 +50,7 @@ struct SwitchboardApp: App {
                 .disabled(selection == nil || selectedIsAlive)
             Button("Stop") { if let s = selection { store.stop(s) } }
                 .keyboardShortcut(".", modifiers: [.command])
-                .disabled(!selectedIsAlive)
+                .disabled(!selectedIsAlive && !(selection.map { store.state($0).restartAt != nil } ?? false))
             Button("Restart") { if let s = selection { store.restart(s) } }
                 .keyboardShortcut("r", modifiers: [.command])
                 .disabled(selection == nil)
@@ -61,28 +68,39 @@ struct SwitchboardApp: App {
             Button("Stop Everything") { store.engine.stopEverything() }
                 .disabled(!store.engine.anyAlive())
         }
-        CommandMenu("Pane") {
+        CommandMenu("View") {
             Button("Split Right") { focus?.context.split(axis: .horizontal) }
                 .keyboardShortcut("d", modifiers: [.command])
-                .disabled(!(focus?.canSplit ?? false))
             Button("Split Down") { focus?.context.split(axis: .vertical) }
                 .keyboardShortcut("d", modifiers: [.command, .shift])
-                .disabled(!(focus?.canSplit ?? false))
-            Divider()
-            Button("Focus Next Pane") { focus?.context.focusNextPane() }
-                .keyboardShortcut("]", modifiers: [.command])
+            Button("Maximize Pane") { focus?.context.toggleMaximize() }
+                .keyboardShortcut(.return, modifiers: [.command, .shift])
                 .disabled(!(focus?.canClosePane ?? false))
             Button("Close Pane") { focus?.context.closePane() }
                 .keyboardShortcut("w", modifiers: [.command, .shift])
+                .disabled(!(focus?.canClosePane ?? false))
+            Divider()
+            Button("Next Pane") { focus?.context.focusNextPane() }
+                .keyboardShortcut("]", modifiers: [.command])
+                .disabled(!(focus?.canClosePane ?? false))
+            Button("Previous Pane") { focus?.context.focusPreviousPane() }
+                .keyboardShortcut("[", modifiers: [.command])
+                .disabled(!(focus?.canClosePane ?? false))
+            Divider()
+            Button("Reset Layout") { focus?.context.resetLayout() }
                 .disabled(!(focus?.canClosePane ?? false))
         }
         CommandMenu("Project") {
             Button("Open in New Window") {
                 if let s = selection { openWindow(id: "project", value: s.project) }
             }
-            .keyboardShortcut("n", modifiers: [.command, .option])
-            .disabled(selection == nil)
-            Button("Show All Projects") { openWindow(id: "main") }
+            .keyboardShortcut("n", modifiers: [.command, .shift])
+            .disabled(selection == nil || focus?.context.scope != .all)
+            Button("Move to Board") {
+                if case .project(let slug)? = focus?.context.scope { dismissWindow(id: "project", value: slug) }
+            }
+            .disabled(focus.map { if case .project = $0.context.scope { return false } else { return true } } ?? true)
+            Button("Show Board") { openWindow(id: "main") }
                 .keyboardShortcut("0", modifiers: [.command])
             Divider()
             Button("Edit Config") { if let s = selection { store.editConfig(s.project) } }

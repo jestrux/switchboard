@@ -15,6 +15,13 @@ pub struct ProjectConfig {
     pub icon: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
+    /// Look for this project's own window: `graphite`, `patch-bay` or `paper`.
+    /// The main board keeps the app-wide setting.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub theme: Option<String>,
+    /// `system`, `light` or `dark`, for this project's own window.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub appearance: Option<String>,
     /// Ungrouped commands, shown above the groups.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub commands: Vec<CommandConfig>,
@@ -170,6 +177,16 @@ impl ProjectConfig {
                 errors.push(format!("color must look like \"#RRGGBB\" (found {color:?})"));
             }
         }
+        if let Some(t) = &self.theme {
+            if !THEMES.contains(&t.as_str()) {
+                errors.push(format!("theme must be one of {} (found {t:?})", THEMES.join(", ")));
+            }
+        }
+        if let Some(a) = &self.appearance {
+            if !APPEARANCES.contains(&a.as_str()) {
+                errors.push(format!("appearance must be one of {} (found {a:?})", APPEARANCES.join(", ")));
+            }
+        }
         let mut seen_groups = HashSet::new();
         validate_commands(&self.commands, None, &mut errors);
         for group in &self.groups {
@@ -224,6 +241,11 @@ impl ProjectConfig {
         self.groups.iter().find(|g| g.id == group_id)
     }
 }
+
+/// Theme ids a project may pin for its own window.
+pub const THEMES: [&str; 3] = ["graphite", "patch-bay", "paper"];
+/// Appearance values a project may pin for its own window.
+pub const APPEARANCES: [&str; 3] = ["system", "light", "dark"];
 
 fn validate_commands(cmds: &[CommandConfig], group: Option<&str>, errors: &mut Vec<String>) {
     let scope = match group {

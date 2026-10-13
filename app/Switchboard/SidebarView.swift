@@ -1,263 +1,477 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Projects → groups → commands, with status dots and hover actions. Accepts dropped folders.
+/// Board sidebar (rail + one project, or the full tree) and project-window sidebar.
 struct SidebarView: View {
     @EnvironmentObject var store: EngineStore
     @EnvironmentObject var context: WindowContext
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.openWindow) private var openWindow
+    @AppStorage(ThemeSettings.railKey) private var railOn = true
     @State private var dropTargeted = false
     @State private var collapsedProjects: Set<String> = []
     @State private var collapsedGroups: Set<String> = []
 
+    private var look: Look { Look(theme: theme, scheme: scheme) }
+    private var useRail: Bool { context.scope == .all && railOn }
+
     var body: some View {
+        let p = look.p
         let projects = context.projects(in: store)
-        List(selection: $context.selection) {
-            if projects.isEmpty {
-                emptyState
+        HStack(spacing: 0) {
+            if useRail {
+                RailView(projects: projects, collapsedProjects: $collapsedProjects)
+                Rectangle().fill(p.line).frame(width: 1)
             }
-            ForEach(projects, id: \.slug) { project in
-                if let error = project.error {
-                    ProjectErrorRow(project: project, error: error)
-                } else if context.scope == .all {
-                    projectSection(project)
-                } else {
-                    // The window is the project: groups and commands at the top level.
-                    projectContents(project)
+            VStack(spacing: 0) {
+                if !useRail { trafficLightSpacer }
+                sidebarHeader(projects)
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        rows(projects)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
                 }
+                Spacer(minLength: 0)
+                SidebarFoot()
             }
-        }
-        .listStyle(.sidebar)
-        .safeAreaInset(edge: .top, spacing: 0) {
-            if case .project = context.scope, let project = projects.first {
-                ProjectWindowHeader(project: project)
-            }
+            .frame(width: useRail ? SBMetrics.sidebarWidthRail : (context.scope == .all ? SBMetrics.sidebarWidthTree : 268))
+            .background(p.sidebar)
         }
         .overlay {
             if dropTargeted {
-                RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(Color.accentColor, lineWidth: 2)
-                    .background(Color.accentColor.opacity(0.08))
-                    .padding(4)
-                    .allowsHitTesting(false)
+                RoundedRectangle(cornerRadius: 8).strokeBorder(p.accent, lineWidth: 2)
+                    .background(p.accentSoft.opacity(0.5)).padding(4).allowsHitTesting(false)
             }
         }
         .dropDestination(for: URL.self) { urls, _ in
             guard context.scope == .all else { return false }
-            var added = false
-            for url in urls where url.isFileURL {
-                if store.addProject(from: url) { added = true }
-            }
-            return added
+            for url in urls where url.isFileURL { store.addProject(from: url, window: context.id) }
+            return !urls.isEmpty
         } isTargeted: { dropTargeted = $0 && context.scope == .all }
     }
 
-    private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("No projects yet").font(.headline)
-            Text("Drop a folder containing config.yaml here, or use Add Project… (⌘O).")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Button("Add Project…") { store.addProjectViaPanel() }
-                .buttonStyle(.link)
+    /// Room for the traffic lights when the title bar is hidden and there is no rail.
+    private var trafficLightSpacer: some View {
+        HStack {
+            Spacer()
+            if context.scope == .all {
+                IconButton("plus", help: "Add Project… (⌘O)") { store.addProjectViaPanel() }
+                    .foregroundStyle(look.p.text3)
+            }
         }
-        .padding(.vertical, 8)
-        .selectionDisabled()
+        .frame(height: 38)
+        .padding(.horizontal, 10)
+    }
+
+    // MARK: Header
+
+    @ViewBuilder
+    private func sidebarHeader(_ projects: [ProjectInfo]) -> some View {
+        switch context.scope {
+        case .project:
+            if let project = projects.first { ProjectWindowHeader(project: project) }
+        case .all:
+            if useRail, let project = projects.first(where: { $0.slug == context.railProject }) ?? projects.first {
+                BoardProjectHeader(project: project)
+            }
+        }
+    }
+
+    // MARK: Rows
+
+    @ViewBuilder
+    private func rows(_ projects: [ProjectInfo]) -> some View {
+        if projects.isEmpty, context.scope == .all {
+            EmptySidebar()
+        } else if useRail {
+            if let project = projects.first(where: { $0.slug == context.railProject }) ?? projects.first {
+                if let error = project.error {
+                    BrokenProjectCard(project: project, error: error)
+                } else {
+                    projectContents(project, indent: 0)
+                }
+            }
+        } else if case .project = context.scope {
+            if let project = projects.first {
+                if let error = project.error {
+                    BrokenProjectCard(project: project, error: error)
+                } else {
+                    projectContents(project, indent: 0)
+                }
+            }
+        } else {
+            ForEach(projects, id: \.slug) { project in
+                if let error = project.error {
+                    BrokenProjectCard(project: project, error: error)
+                } else {
+                    let collapsed = collapsedProjects.contains(project.slug)
+                    TreeProjectRow(project: project, collapsed: collapsed) {
+                        if collapsed { collapsedProjects.remove(project.slug) } else { collapsedProjects.insert(project.slug) }
+                    }
+                    if !collapsed { projectContents(project, indent: 12) }
+                }
+            }
+        }
     }
 
     @ViewBuilder
-    private func projectSection(_ project: ProjectInfo) -> some View {
-        DisclosureGroup(isExpanded: expandedBinding(for: project.slug, in: $collapsedProjects)) {
-            projectContents(project)
-        } label: {
-            ProjectRow(project: project)
-        }
-    }
-
-    @ViewBuilder
-    private func projectContents(_ project: ProjectInfo) -> some View {
+    private func projectContents(_ project: ProjectInfo, indent: CGFloat) -> some View {
         ForEach(project.commands, id: \.address) { cmd in
-            CommandRow(project: project.slug, command: cmd)
+            CommandRow(project: project.slug, command: cmd, indent: indent)
         }
         ForEach(project.groups, id: \.id) { group in
-            DisclosureGroup(isExpanded: expandedBinding(for: "\(project.slug)/\(group.id)", in: $collapsedGroups)) {
+            let key = "\(project.slug)/\(group.id)"
+            let collapsed = collapsedGroups.contains(key)
+            GroupRow(project: project.slug, group: group, collapsed: collapsed, indent: indent) {
+                if collapsed { collapsedGroups.remove(key) } else { collapsedGroups.insert(key) }
+            }
+            if !collapsed {
                 ForEach(group.commands, id: \.address) { cmd in
-                    CommandRow(project: project.slug, command: cmd)
+                    CommandRow(project: project.slug, command: cmd, indent: indent + SBMetrics.commandIndent)
                 }
-            } label: {
-                GroupRow(project: project.slug, group: group)
             }
         }
-    }
-
-    private func expandedBinding(for key: String, in set: Binding<Set<String>>) -> Binding<Bool> {
-        Binding(
-            get: { !set.wrappedValue.contains(key) },
-            set: { expanded in
-                if expanded { set.wrappedValue.remove(key) } else { set.wrappedValue.insert(key) }
-            }
-        )
     }
 }
 
-// MARK: - Rows
+// MARK: - Rail
 
-/// Top of a project window's sidebar: the project is the window, so its identity and
-/// whole-project actions sit here instead of in a collapsible row.
-struct ProjectWindowHeader: View {
+struct RailView: View {
     @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    let projects: [ProjectInfo]
+    @Binding var collapsedProjects: Set<String>
+
+    var body: some View {
+        let look = Look(theme: theme, scheme: scheme)
+        let p = look.p
+        VStack(spacing: 14) {
+            Color.clear.frame(height: 24) // traffic lights
+            ForEach(projects, id: \.slug) { project in
+                RailTile(project: project, selected: context.railProject == project.slug)
+                    .onTapGesture { context.railProject = project.slug }
+                    .contextMenu { ProjectMenu(project: project) }
+            }
+            Rectangle().fill(p.line).frame(width: 28, height: 1)
+            Button { store.addProjectViaPanel() } label: {
+                Image(systemName: "plus").font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(p.text3)
+                    .frame(width: 32, height: 32)
+                    .overlay { RoundedRectangle(cornerRadius: 9).strokeBorder(p.line, style: StrokeStyle(lineWidth: 1, dash: [3, 3])) }
+            }
+            .buttonStyle(.plain)
+            .help("Add Project… (⌘O)")
+            Spacer()
+        }
+        .padding(.top, 18)
+        .frame(width: SBMetrics.railWidth)
+        .frame(maxHeight: .infinity)
+        .background(p.rail)
+    }
+}
+
+struct RailTile: View {
+    @EnvironmentObject var store: EngineStore
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    let project: ProjectInfo
+    let selected: Bool
+
+    var body: some View {
+        let look = Look(theme: theme, scheme: scheme)
+        let p = look.p
+        let running = store.runningCount(project: project.slug)
+        let crashed = store.crashedCount(project: project.slug)
+        ZStack(alignment: .bottomTrailing) {
+            if project.error != nil {
+                RoundedRectangle(cornerRadius: look.s.tileRadius, style: .continuous)
+                    .fill(p.errorSoft)
+                    .overlay { RoundedRectangle(cornerRadius: look.s.tileRadius, style: .continuous).strokeBorder(p.error, style: StrokeStyle(lineWidth: 1, dash: [3, 2])) }
+                    .overlay { Text(String(project.name.prefix(2)).lowercased()).font(.system(size: 11, weight: .bold)).foregroundStyle(p.error) }
+                    .frame(width: SBMetrics.railTile, height: SBMetrics.railTile)
+            } else {
+                ProjectIcon(project: project, size: SBMetrics.railTile, radius: look.s.tileRadius)
+            }
+            if project.error != nil {
+                badge("!", bg: p.error, fg: Color(hex: 0x1A1208), look: look)
+            } else if running > 0 {
+                badge("\(running)", bg: p.running, fg: look.isDark ? Color(hex: 0x0B0C0E) : .white, look: look)
+            }
+            if crashed > 0 && project.error == nil {
+                Circle().fill(p.crashed).frame(width: 7, height: 7)
+                    .shadow(color: look.glows ? p.crashed : .clear, radius: 3)
+                    .offset(x: 2, y: -SBMetrics.railTile + 6)
+            }
+        }
+        .padding(4)
+        .background {
+            if selected {
+                RoundedRectangle(cornerRadius: look.s.tileRadius + 4, style: .continuous)
+                    .strokeBorder(p.accent, lineWidth: 2)
+            }
+        }
+        .help(project.name)
+        .animation(SBMotion.railSettle, value: selected)
+    }
+
+    private func badge(_ text: String, bg: Color, fg: Color, look: Look) -> some View {
+        Text(text).font(.system(size: 9, weight: .bold)).monospacedDigit()
+            .foregroundStyle(fg)
+            .padding(.horizontal, 4).frame(minWidth: 15, minHeight: 15)
+            .background(bg, in: Capsule())
+            .overlay(Capsule().strokeBorder(look.p.rail, lineWidth: 2))
+            .shadow(color: look.glows ? bg : .clear, radius: 3)
+            .offset(x: 4, y: 4)
+    }
+}
+
+// MARK: - Headers
+
+/// Rail mode: the selected project's name, Open in New Window and Start all, plus a sub line.
+struct BoardProjectHeader: View {
+    @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.openWindow) private var openWindow
     let project: ProjectInfo
 
     var body: some View {
+        let p = theme.palette(scheme)
         let running = store.runningCount(project: project.slug)
-        VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                ProjectIcon(project: project, size: 28)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(project.name).font(.headline).lineLimit(1)
-                    Text(running == 0 ? "Nothing running" : "\(running) running")
-                        .font(.caption)
-                        .foregroundStyle(running == 0 ? Color.secondary : Color.green)
-                }
+        let crashed = store.crashedCount(project: project.slug)
+        let total = project.allCommands.count
+        let panes = context.layout.leaves.filter { $0.ref?.project == project.slug }.count
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+                Text(project.name).font(SBType.sidebarTitle).foregroundStyle(p.text).lineLimit(1)
                 Spacer(minLength: 4)
-                RunControls(
-                    anyRunning: running > 0,
-                    start: { store.startAll(project: project.slug) },
-                    stop: { store.stopAll(project: project.slug) },
-                    restart: { store.restartAll(project: project.slug) }
-                )
+                IconButton("macwindow.on.rectangle", help: "Open in New Window (⌘⇧N)") {
+                    openWindow(id: "project", value: project.slug)
+                }
+                .foregroundStyle(p.text3)
+                SmallButton(label: "Start all", icon: "play.fill") { store.startAll(project: project.slug) }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            Divider()
+            HStack(spacing: 4) {
+                Text("\(running) of \(total) running").foregroundStyle(p.text3)
+                if crashed > 0 { Text("·").foregroundStyle(p.text4); Text("\(crashed) crashed").foregroundStyle(p.crashed) }
+                if panes > 0 { Text("·").foregroundStyle(p.text4); Text("\(panes) pane\(panes == 1 ? "" : "s")").foregroundStyle(p.text3) }
+            }
+            .font(SBType.secondary)
         }
-        .background(.bar)
-        .contextMenu {
-            Button("Start All") { store.startAll(project: project.slug) }
-            Button("Stop All") { store.stopAll(project: project.slug) }
-            Button("Restart All") { store.restartAll(project: project.slug) }
-            Divider()
-            Button("Edit Config") { store.editConfig(project.slug) }
-            Button("Reveal in Finder") { store.revealInFinder(project.slug) }
-            Divider()
-            Button("Delete Project…") { store.deleteProject(project.slug) }
-        }
-        .help("Close this window to put \(project.name) back on the main board")
+        .padding(.horizontal, 14)
+        .padding(.top, 30)
+        .padding(.bottom, 8)
+        .contextMenu { ProjectMenu(project: project) }
     }
 }
 
-struct ProjectRow: View {
+/// Project window: the project is the window. Icon, name, running count and whole-project actions.
+struct ProjectWindowHeader: View {
     @EnvironmentObject var store: EngineStore
     @EnvironmentObject var context: WindowContext
-    @Environment(\.openWindow) private var openWindow
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.dismissWindow) private var dismissWindow
     let project: ProjectInfo
     @State private var hovering = false
 
     var body: some View {
+        let look = Look(theme: theme, scheme: scheme)
+        let p = look.p
         let running = store.runningCount(project: project.slug)
-        HStack(spacing: 8) {
-            ProjectIcon(project: project, size: 22)
-            Text(project.name).fontWeight(.semibold).lineLimit(1)
-            if running > 0 {
-                Text("\(running)")
-                    .font(.caption2.monospacedDigit())
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 1)
-                    .background(Capsule().fill(Color.green.opacity(0.2)))
-                    .foregroundStyle(.green)
+        let total = project.allCommands.count
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                ProjectIcon(project: project, size: SBMetrics.projectHeaderIcon, radius: look.s.tileRadius)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(project.name).font(SBType.projectWindowTitle).tracking(-0.4).foregroundStyle(p.text).lineLimit(1)
+                    HStack(spacing: 4) {
+                        Circle().fill(running > 0 ? p.running : p.stopped).frame(width: 6, height: 6)
+                        Text("\(running) running").foregroundStyle(running > 0 ? p.running : p.text3)
+                        Text("of \(total)").foregroundStyle(p.text3)
+                    }
+                    .font(SBType.secondary)
+                }
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 4)
-            if hovering {
-                RunControls(
-                    anyRunning: running > 0,
-                    start: { store.startAll(project: project.slug) },
-                    stop: { store.stopAll(project: project.slug) },
-                    restart: { store.restartAll(project: project.slug) }
-                )
+            HStack(spacing: 4) {
+                headerButton("play.fill", "Start all", bordered: hovering) { store.startAll(project: project.slug) }
+                headerButton("stop.fill", "Stop all", bordered: hovering) { store.stopAll(project: project.slug) }
+                    .disabled(running == 0)
+                headerButton("arrow.clockwise", "Restart all", bordered: hovering) { store.restartAll(project: project.slug) }
+                Spacer(minLength: 0)
+                Menu {
+                    ProjectMenu(project: project)
+                } label: {
+                    Image(systemName: "ellipsis").font(.system(size: 12, weight: .semibold))
+                        .frame(width: 26, height: 24)
+                }
+                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                .foregroundStyle(p.text3)
             }
         }
-        .frame(height: 24)
-        .contentShape(Rectangle())
+        .padding(12)
+        .background(hovering ? p.hover : .clear, in: RoundedRectangle(cornerRadius: look.s.cardRadius, style: .continuous))
+        .padding(.horizontal, 6)
         .onHover { hovering = $0 }
-        .contextMenu { projectMenu }
-        .help(project.dir.abbreviatingHome)
+        .contextMenu { ProjectMenu(project: project) }
     }
 
-    @ViewBuilder
-    private var projectMenu: some View {
+    private func headerButton(_ icon: String, _ label: String, bordered: Bool, action: @escaping () -> Void) -> some View {
+        let p = theme.palette(scheme)
+        return Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: icon).font(.system(size: 8, weight: .bold))
+                Text(label).font(.system(size: 11))
+            }
+            .fixedSize()
+            .foregroundStyle(p.text2)
+            .padding(.horizontal, 7).frame(height: 24)
+            .background(bordered ? p.button : .clear, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .overlay { if bordered { RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(p.buttonLine) } }
+        }
+        .buttonStyle(.plain)
+        .help(label)
+    }
+}
+
+/// Shared project context menu.
+struct ProjectMenu: View {
+    @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
+    let project: ProjectInfo
+
+    var body: some View {
         Button("Start All") { store.startAll(project: project.slug) }
         Button("Stop All") { store.stopAll(project: project.slug) }
         Button("Restart All") { store.restartAll(project: project.slug) }
         Divider()
         if context.scope == .all {
             Button("Open in New Window") { openWindow(id: "project", value: project.slug) }
+        } else {
+            Button("Move to Board") { dismissWindow(id: "project", value: project.slug) }
         }
         Button("Edit Config") { store.editConfig(project.slug) }
         Button("Reveal in Finder") { store.revealInFinder(project.slug) }
         Divider()
-        Button("Delete Project…") { store.deleteProject(project.slug) }
+        Button("Delete Project…") { store.deleteProject(project.slug, window: context.id) }
     }
 }
 
-struct ProjectErrorRow: View {
+// MARK: - Rows
+
+/// Tree mode: a project row with icon, name, run count; collapsed shows a row of LEDs.
+struct TreeProjectRow: View {
     @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
     let project: ProjectInfo
-    let error: String
+    let collapsed: Bool
+    let toggle: () -> Void
+    @State private var hovering = false
 
     var body: some View {
+        let look = Look(theme: theme, scheme: scheme)
+        let p = look.p
+        let running = store.runningCount(project: project.slug)
+        let crashed = store.crashedCount(project: project.slug)
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
-                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-                Text(project.name).fontWeight(.semibold)
-                Spacer()
-                Button("Edit Config") { store.editConfig(project.slug) }
-                    .buttonStyle(.link)
-                    .font(.caption)
+                Image(systemName: collapsed ? "chevron.right" : "chevron.down")
+                    .font(.system(size: 9, weight: .bold)).foregroundStyle(p.text4).frame(width: 10)
+                ProjectIcon(project: project, size: 20, radius: 6)
+                Text(project.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(running > 0 ? p.text : p.text2).lineLimit(1)
+                if crashed > 0 { Text("\(crashed) crashed").font(SBType.meta).foregroundStyle(p.crashed) }
+                Spacer(minLength: 4)
+                if hovering {
+                    RunControls(anyRunning: running > 0,
+                                start: { store.startAll(project: project.slug) },
+                                stop: { store.stopAll(project: project.slug) },
+                                restart: { store.restartAll(project: project.slug) })
+                } else if running > 0 {
+                    HStack(spacing: 4) {
+                        Circle().fill(p.running).frame(width: 6, height: 6)
+                        Text("\(running)").font(SBType.meta).foregroundStyle(p.text2)
+                    }
+                } else {
+                    Text("\(project.allCommands.count) idle").font(SBType.meta).foregroundStyle(p.text3)
+                }
             }
-            Text(error)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(6)
-                .fixedSize(horizontal: false, vertical: true)
-                .textSelection(.enabled)
+            .frame(height: SBMetrics.projectRow)
+            if collapsed {
+                HStack(spacing: 4) {
+                    ForEach(project.allCommands, id: \.address) { cmd in
+                        let st = store.state(CommandRef(project: project.slug, address: cmd.address)).status
+                        Circle().fill(ledColour(st, p)).frame(width: 5, height: 5)
+                    }
+                }
+                .padding(.leading, 38).padding(.bottom, 6)
+            }
         }
-        .padding(.vertical, 4)
-        .contextMenu {
-            Button("Edit Config") { store.editConfig(project.slug) }
-            Button("Reveal in Finder") { store.revealInFinder(project.slug) }
-            Divider()
-            Button("Delete Project…") { store.deleteProject(project.slug) }
+        .padding(.horizontal, 6)
+        .contentShape(Rectangle())
+        .onTapGesture { toggle() }
+        .onHover { hovering = $0 }
+        .contextMenu { ProjectMenu(project: project) }
+    }
+
+    private func ledColour(_ s: CommandStatus, _ p: SBPalette) -> Color {
+        switch s {
+        case .running: return p.running
+        case .starting: return p.starting
+        case .crashed: return p.crashed
+        case .error: return p.error
+        case .exited: return p.text2
+        case .stopped: return p.stoppedSoft
         }
     }
 }
 
 struct GroupRow: View {
     @EnvironmentObject var store: EngineStore
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
     let project: String
     let group: GroupInfo
+    let collapsed: Bool
+    let indent: CGFloat
+    let toggle: () -> Void
     @State private var hovering = false
 
     var body: some View {
+        let look = Look(theme: theme, scheme: scheme)
+        let p = look.p
         let running = store.runningCount(project: project, group: group.id)
+        let label = look.s.groupLabelUppercase ? group.name.uppercased() : group.name
         HStack(spacing: 6) {
-            Text(group.name.uppercased())
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+            Image(systemName: collapsed ? "chevron.right" : "chevron.down")
+                .font(.system(size: 8, weight: .bold)).foregroundStyle(p.text4).frame(width: 10)
+            Text(label).font(SBType.groupLabel(look.s)).tracking(look.s.groupLabelTracking).foregroundStyle(p.text3)
             Spacer(minLength: 4)
             if hovering {
-                RunControls(
-                    anyRunning: running > 0,
-                    start: { store.startAll(project: project, group: group.id) },
-                    stop: { store.stopAll(project: project, group: group.id) },
-                    restart: { store.restartAll(project: project, group: group.id) }
-                )
+                RunControls(anyRunning: running > 0,
+                            start: { store.startAll(project: project, group: group.id) },
+                            stop: { store.stopAll(project: project, group: group.id) },
+                            restart: { store.restartAll(project: project, group: group.id) })
+            } else if collapsed {
+                Text(running > 0 ? "\(running) running" : "\(group.commands.count) idle").font(SBType.meta).foregroundStyle(p.text3)
             }
         }
-        .frame(height: 20)
+        .frame(height: SBMetrics.groupRow)
+        .padding(.leading, indent + 4)
+        .padding(.trailing, 6)
         .contentShape(Rectangle())
+        .onTapGesture { toggle() }
         .onHover { hovering = $0 }
-        .help(group.cwd ?? "")
         .contextMenu {
             Button("Start All") { store.startAll(project: project, group: group.id) }
             Button("Stop All") { store.stopAll(project: project, group: group.id) }
@@ -268,58 +482,241 @@ struct GroupRow: View {
 
 struct CommandRow: View {
     @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
     let project: String
     let command: CommandInfo
+    let indent: CGFloat
     @State private var hovering = false
 
     private var ref: CommandRef { CommandRef(project: project, address: command.address) }
 
     var body: some View {
+        let look = Look(theme: theme, scheme: scheme)
+        let p = look.p
         let state = store.state(ref)
+        let selected = context.selection == ref
+        let live = state.isAlive
         HStack(spacing: 8) {
-            StatusDot(status: state.status)
-            Text(command.name).lineLimit(1)
-            if !command.cwdExists {
-                Image(systemName: "folder.badge.questionmark")
-                    .foregroundStyle(.orange)
-                    .help("Folder not found: \(command.cwd ?? "")")
-            }
+            StatusGlyph(status: state.status, restartAt: state.restartAt, restartTotal: backoffTotal(state))
+            Text(command.name)
+                .font(.system(size: 13, weight: selected ? .semibold : .regular))
+                .foregroundStyle(selected ? p.selectionText : (state.status == .stopped && !command.cwdExists ? p.text2 : (state.status == .stopped ? p.text2 : p.text)))
+                .lineLimit(1)
             if state.needsRestart {
-                Image(systemName: "arrow.clockwise.circle")
-                    .foregroundStyle(.secondary)
-                    .help("Config changed; restart to apply")
+                Text("↻ apply").font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(p.accentSoftText)
+                    .padding(.horizontal, 5).frame(height: 16)
+                    .background(p.accentSoft, in: Capsule())
             }
             Spacer(minLength: 4)
             if hovering {
                 HStack(spacing: 2) {
-                    if state.isAlive {
-                        IconButton("stop.fill", help: "Stop") { store.stop(ref) }
-                        IconButton("arrow.clockwise", help: "Restart") { store.restart(ref) }
+                    if live {
+                        IconButton("stop.fill", help: "Stop (⌘.)") { store.stop(ref) }
+                        IconButton("arrow.clockwise", help: "Restart (⌘R)") { store.restart(ref) }
                     } else {
-                        IconButton("play.fill", help: "Start") { store.start(ref) }
+                        IconButton("play.fill", help: command.cwdExists ? "Start" : "Folder not found") { store.start(ref) }
                             .disabled(!command.cwdExists)
                     }
                 }
+                .foregroundStyle(selected ? p.selectionText : p.text2)
+            } else {
+                MetaText(state: state, command: command)
+                if let n = context.paneNumber(of: ref), context.layout.leafCount > 1 {
+                    Text("\(n)").font(.system(size: 10, weight: .semibold)).monospacedDigit()
+                        .foregroundStyle(p.text3)
+                        .frame(width: 16, height: 16)
+                        .background(p.hover, in: RoundedRectangle(cornerRadius: 4))
+                        .help("Shown in pane \(n)")
+                }
             }
         }
-        .frame(height: 22)
+        .frame(height: SBMetrics.commandRow)
+        .padding(.leading, indent + 6)
+        .padding(.trailing, 8)
+        .background {
+            if selected {
+                switch look.s.selection {
+                case .accentBar:
+                    RoundedRectangle(cornerRadius: look.s.rowRadius, style: .continuous).fill(p.selection)
+                        .overlay(alignment: .leading) { Rectangle().fill(p.accent).frame(width: 2).padding(.vertical, 6).padding(.leading, 2) }
+                case .card:
+                    RoundedRectangle(cornerRadius: look.s.rowRadius, style: .continuous).fill(p.selection)
+                        .shadow(color: .black.opacity(0.08), radius: 2, y: 1)
+                        .overlay { RoundedRectangle(cornerRadius: look.s.rowRadius, style: .continuous).strokeBorder(p.line) }
+                }
+            } else if hovering {
+                RoundedRectangle(cornerRadius: look.s.rowRadius, style: .continuous).fill(p.hover)
+            }
+        }
         .contentShape(Rectangle())
+        .onTapGesture { context.selection = ref }
         .onHover { hovering = $0 }
-        .tag(ref)
+        .draggable(ref.dragString)
         .help(state.summary)
         .contextMenu {
-            if state.isAlive {
+            if live {
                 Button("Stop") { store.stop(ref) }
                 Button("Restart") { store.restart(ref) }
             } else {
                 Button("Start") { store.start(ref) }.disabled(!command.cwdExists)
             }
             Divider()
-            Text(command.run).font(.system(.caption, design: .monospaced))
+            Text(command.run)
             if let path = command.cwdPath {
                 Button("Reveal Folder in Finder") { store.revealFolder(path) }.disabled(!command.cwdExists)
             }
         }
+    }
+}
+
+/// Total backoff seconds, recovered from the "restarting in N s" message.
+func backoffTotal(_ state: CommandState) -> Double? {
+    guard let m = state.message, let range = m.range(of: #"restarting in (\d+) s"#, options: .regularExpression) else { return nil }
+    let digits = m[range].filter(\.isNumber)
+    return Double(digits)
+}
+
+/// Row meta: uptime, `↻ 16s`, `exit 0`, `no folder`, mono 11.
+struct MetaText: View {
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    let state: CommandState
+    let command: CommandInfo
+
+    var body: some View {
+        let p = theme.palette(scheme)
+        switch state.status {
+        case .running:
+            if let s = state.startedAt {
+                TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                    Text(Fmt.uptime(since: s, now: ctx.date)).font(SBType.meta).monospacedDigit().foregroundStyle(p.text3)
+                }
+            }
+        case .starting:
+            Text("starting").font(SBType.meta).foregroundStyle(p.starting)
+        case .exited:
+            Text("exit 0").font(SBType.meta).foregroundStyle(p.text3)
+        case .crashed:
+            if let at = state.restartAt {
+                TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                    let left = max(0, Int(at - ctx.date.timeIntervalSince1970.rounded()))
+                    Text("↻ \(left)s").font(SBType.meta).monospacedDigit().foregroundStyle(p.crashed)
+                }
+            } else {
+                Text(state.exitCode.map { "exit \($0)" } ?? "crashed").font(SBType.meta).foregroundStyle(p.crashed)
+            }
+        case .error:
+            Text("no folder").font(SBType.meta).foregroundStyle(p.error)
+        case .stopped:
+            if !command.cwdExists { Text("no folder").font(SBType.meta).foregroundStyle(p.error) }
+        }
+    }
+}
+
+// MARK: - Cards, foot, empty
+
+struct BrokenProjectCard: View {
+    @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    let project: ProjectInfo
+    let error: String
+
+    var body: some View {
+        let look = Look(theme: theme, scheme: scheme)
+        let p = look.p
+        let lines = error.split(separator: "\n").map(String.init)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                TriangleGlyph().fill(p.error).frame(width: 12, height: 12)
+                Text(project.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(p.text)
+                Spacer()
+                Button("Edit Config") { store.editConfig(project.slug) }.buttonStyle(.plain)
+                    .font(.system(size: 12)).foregroundStyle(p.accentSoftText)
+            }
+            Text(lines.count > 1 ? "\(lines.count) problems · \(lines[0])" : (lines.first ?? ""))
+                .font(SBType.secondary).foregroundStyle(p.text2).lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(10)
+        .background(p.errorSoft, in: RoundedRectangle(cornerRadius: look.s.cardRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: look.s.cardRadius, style: .continuous)
+                .strokeBorder(p.error.opacity(0.6), style: StrokeStyle(lineWidth: 1, dash: look.s.dashedWarningBorder ? [4, 3] : []))
+        }
+        .padding(.vertical, 4)
+        .contextMenu { ProjectMenu(project: project) }
+    }
+}
+
+struct SidebarFoot: View {
+    @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
+
+    var body: some View {
+        let p = theme.palette(scheme)
+        let away = store.openProjectWindows.sorted()
+        VStack(spacing: 0) {
+            if context.scope == .all, !away.isEmpty {
+                Menu {
+                    ForEach(away, id: \.self) { slug in
+                        let name = store.project(slug)?.name ?? slug
+                        Button("Show \(name) window") { openWindow(id: "project", value: slug) }
+                        Button("Bring \(name) back") { dismissWindow(id: "project", value: slug) }
+                        Divider()
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "macwindow.on.rectangle").font(.system(size: 11))
+                        Text("\(away.count) project\(away.count == 1 ? "" : "s") in its own window").font(SBType.secondary)
+                        Spacer()
+                        Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
+                    }
+                    .foregroundStyle(p.text3)
+                    .padding(.horizontal, 14).frame(height: 28)
+                }
+                .menuStyle(.borderlessButton).menuIndicator(.hidden)
+                Rectangle().fill(p.line).frame(height: 1)
+            }
+            HStack(spacing: 6) {
+                Circle().fill(store.totalRunning > 0 ? p.running : p.stopped).frame(width: 6, height: 6)
+                Text("\(store.totalRunning) running").foregroundStyle(p.text2)
+                if store.totalCrashed > 0 {
+                    Text("·").foregroundStyle(p.text4)
+                    Text("\(store.totalCrashed) crashed").foregroundStyle(p.crashed)
+                }
+                Spacer()
+                if store.totalRunning > 0 {
+                    Button("Stop all") { store.engine.stopEverything() }.buttonStyle(.plain).foregroundStyle(p.text3)
+                }
+            }
+            .font(SBType.secondary)
+            .padding(.horizontal, 14).frame(height: 30)
+        }
+        .background(p.sidebar)
+        .overlay(alignment: .top) { Rectangle().fill(p.line).frame(height: 1) }
+    }
+}
+
+struct EmptySidebar: View {
+    @EnvironmentObject var store: EngineStore
+    @Environment(\.sbPalette) private var p
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("No projects yet").font(.system(size: 13, weight: .semibold)).foregroundStyle(p.text)
+            Text("Drop a folder containing config.yaml here, or use Add Project… (⌘O).")
+                .font(SBType.secondary).foregroundStyle(p.text3).fixedSize(horizontal: false, vertical: true)
+            Button("Add Project…") { store.addProjectViaPanel() }.buttonStyle(.plain).foregroundStyle(p.accentSoftText).font(SBType.secondary)
+        }
+        .padding(12)
     }
 }
 
@@ -344,6 +741,8 @@ struct IconButton: View {
     let symbol: String
     let help: String
     let action: () -> Void
+    @State private var hovering = false
+    @Environment(\.sbPalette) private var p
 
     init(_ symbol: String, help: String, action: @escaping () -> Void) {
         self.symbol = symbol; self.help = help; self.action = action
@@ -353,31 +752,57 @@ struct IconButton: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 10, weight: .semibold))
-                .frame(width: 18, height: 18)
+                .frame(width: 20, height: 20)
+                .background(hovering ? p.hover : .clear, in: RoundedRectangle(cornerRadius: 5))
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
         .help(help)
     }
 }
 
-/// `icon.png` when present, otherwise initials on the project's color.
+struct SmallButton: View {
+    let label: String
+    var icon: String? = nil
+    var primary = false
+    let action: () -> Void
+    @Environment(\.sbPalette) private var p
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                if let icon { Image(systemName: icon).font(.system(size: 8, weight: .bold)) }
+                Text(label).font(.system(size: 12, weight: primary ? .semibold : .regular))
+            }
+            .foregroundStyle(primary ? p.onAccent : p.text)
+            .padding(.horizontal, 9).frame(height: 24)
+            .background(primary ? p.accent : p.button, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .overlay { RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(primary ? p.accent : p.buttonLine) }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// `icon.png` when present, otherwise initials on the project's colour.
 struct ProjectIcon: View {
     let project: ProjectInfo
     var size: CGFloat = 22
+    var radius: CGFloat? = nil
 
     var body: some View {
+        let r = radius ?? size * 0.22
         if let path = project.iconPath, let image = NSImage(contentsOfFile: path) {
             Image(nsImage: image)
                 .resizable()
                 .interpolation(.high)
                 .frame(width: size, height: size)
-                .clipShape(RoundedRectangle(cornerRadius: size * 0.22, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: r, style: .continuous))
         } else {
             let color = project.color.flatMap(Color.init(hex:)) ?? Color.fallback(for: project.name)
             ZStack {
-                RoundedRectangle(cornerRadius: size * 0.22, style: .continuous).fill(color)
+                RoundedRectangle(cornerRadius: r, style: .continuous).fill(color)
                 Text(initials(project.name))
-                    .font(.system(size: size * 0.45, weight: .bold, design: .rounded))
+                    .font(.system(size: size * 0.42, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
             }
             .frame(width: size, height: size)
@@ -388,5 +813,16 @@ struct ProjectIcon: View {
         let words = name.split(whereSeparator: { $0 == " " || $0 == "-" || $0 == "_" })
         let letters = words.prefix(2).compactMap { $0.first }.map { String($0).uppercased() }
         return letters.isEmpty ? "?" : letters.joined()
+    }
+}
+
+extension CommandRef {
+    /// Transferable form for dragging rows onto panes.
+    var dragString: String { "sbcmd:\(project)|\(address)" }
+    static func fromDragString(_ s: String) -> CommandRef? {
+        guard s.hasPrefix("sbcmd:") else { return nil }
+        let parts = s.dropFirst(6).split(separator: "|", maxSplits: 1).map(String.init)
+        guard parts.count == 2 else { return nil }
+        return CommandRef(project: parts[0], address: parts[1])
     }
 }

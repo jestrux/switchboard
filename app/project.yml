@@ -49,7 +49,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.waky.switchboard
         PRODUCT_NAME: Switchboard
-        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_OBJC_BRIDGING_HEADER: ""
         OTHER_SWIFT_FLAGS: "$(inherited) -Xfrontend -warn-long-expression-type-checking=500"
         DEAD_CODE_STRIPPING: YES

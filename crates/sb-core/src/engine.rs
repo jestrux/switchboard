@@ -36,6 +36,8 @@ pub struct CommandState {
     pub message: Option<String>,
     /// The session was started with a different run/cwd/env than the config now has.
     pub needs_restart: bool,
+    /// When a crash restart is scheduled (backoff), the moment it will fire.
+    pub restart_at: Option<SystemTime>,
 }
 
 impl Default for CommandState {
@@ -49,6 +51,7 @@ impl Default for CommandState {
             ended_at: None,
             message: None,
             needs_restart: false,
+            restart_at: None,
         }
     }
 }
@@ -324,12 +327,16 @@ impl Engine {
     pub fn start(&self, key: &CommandKey) -> Result<(), EngineError> {
         let cmd = self.lookup(key)?;
         let size = {
-            let st = self.state.lock().unwrap();
+            let mut st = self.state.lock().unwrap();
             if let Some(s) = st.sessions.get(key) {
                 if !s.has_exited() {
                     return Ok(());
                 }
             }
+            // A manual start supersedes a pending crash restart ("Start now").
+            let token = st.next_token;
+            st.next_token += 1;
+            st.restart_tokens.insert(key.clone(), token);
             st.default_size
         };
         self.set_state(key, |s| {
@@ -398,6 +405,7 @@ impl Engine {
                 if let Some(state) = st.states.get_mut(key) {
                     if state.status == Status::Crashed && state.message.is_some() {
                         state.message = None;
+                        state.restart_at = None;
                         let state = state.clone();
                         drop(st);
                         self.emit(Event::Status { key: key.clone(), state });
@@ -604,7 +612,9 @@ impl Engine {
         }
 
         let delay_msg = restart_delay.map(|d| format!("crashed, restarting in {} s", d.as_secs()));
+        let restart_at = restart_delay.map(|d| SystemTime::now() + d);
         self.set_state(key, |s| {
+            s.restart_at = restart_at;
             // A stop the user asked for is "stopped", however the process chose to die.
             s.status = if stop_requested {
                 Status::Stopped

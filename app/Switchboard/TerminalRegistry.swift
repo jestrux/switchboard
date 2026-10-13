@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import SwiftTerm
+import SwiftUI
 
 /// One SwiftTerm view per command, kept alive for the life of the app so switching
 /// panes reattaches with scrollback and alternate screen intact (like tmux windows).
@@ -84,11 +85,6 @@ final class TerminalRegistry {
         return hosts[ref]
     }
 
-    @MainActor
-    func applyAppearance() {
-        lock.lock(); let all = Array(hosts.values); lock.unlock()
-        all.forEach { $0.applyTheme() }
-    }
 }
 
 /// Owns one `TerminalView` and wires its delegate to the engine.
@@ -105,28 +101,28 @@ final class TerminalHost: NSObject, TerminalViewDelegate {
         options.termName = "xterm-256color"
         terminal = TerminalView(frame: NSRect(x: 0, y: 0, width: 800, height: 500), font: nil, options: options)
         super.init()
-        terminal.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
+        terminal.font = SBType.terminal
         terminal.terminalDelegate = self
         terminal.allowMouseReporting = true
         terminal.optionAsMetaKey = true
         terminal.translatesAutoresizingMaskIntoConstraints = false
-        applyTheme()
     }
 
-    /// Light/dark palette following the system appearance.
-    func applyTheme() {
-        let dark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        if dark {
-            terminal.nativeBackgroundColor = NSColor(srgbRed: 0.11, green: 0.11, blue: 0.125, alpha: 1)
-            terminal.nativeForegroundColor = NSColor(srgbRed: 0.87, green: 0.87, blue: 0.88, alpha: 1)
-            terminal.caretColor = NSColor(srgbRed: 0.87, green: 0.87, blue: 0.88, alpha: 1)
-            terminal.installColors(Self.palette(Self.darkAnsi))
-        } else {
-            terminal.nativeBackgroundColor = NSColor(srgbRed: 0.99, green: 0.99, blue: 0.985, alpha: 1)
-            terminal.nativeForegroundColor = NSColor(srgbRed: 0.16, green: 0.17, blue: 0.19, alpha: 1)
-            terminal.caretColor = NSColor(srgbRed: 0.16, green: 0.17, blue: 0.19, alpha: 1)
-            terminal.installColors(Self.palette(Self.lightAnsi))
-        }
+    private var appliedLook: (SBThemeID, ColorScheme)?
+
+    /// Apply the window's theme palette to the terminal (background, text, cursor, ANSI).
+    func applyTheme(_ look: Look) {
+        let key = (look.theme.id, look.scheme)
+        if let a = appliedLook, a == key { return }
+        appliedLook = key
+        let p = look.p
+        terminal.nativeBackgroundColor = NSColor(p.terminal)
+        terminal.nativeForegroundColor = NSColor(p.terminalText)
+        terminal.caretColor = NSColor(p.accent)
+        terminal.installColors(p.ansi.map { c in
+            let rgb = c.usingColorSpace(.sRGB) ?? c
+            return SwiftTerm.Color(red8: UInt16(rgb.redComponent * 255), green8: UInt16(rgb.greenComponent * 255), blue8: UInt16(rgb.blueComponent * 255))
+        })
     }
 
     /// Clear screen and scrollback (Cmd+K).
@@ -183,20 +179,4 @@ final class TerminalHost: NSObject, TerminalViewDelegate {
     func iTermContent(source: TerminalView, content: ArraySlice<UInt8>) {}
     func rangeChanged(source: TerminalView, startY: Int, endY: Int) {}
 
-    // MARK: Palettes (16 ANSI colors as 0xRRGGBB)
-
-    private static func palette(_ hex: [UInt32]) -> [SwiftTerm.Color] {
-        hex.map { v in
-            SwiftTerm.Color(red8: UInt16((v >> 16) & 0xff), green8: UInt16((v >> 8) & 0xff), blue8: UInt16(v & 0xff))
-        }
-    }
-
-    private static let darkAnsi: [UInt32] = [
-        0x3b3b43, 0xff6b6b, 0x8fd18a, 0xf2d073, 0x7fb4ff, 0xd39cff, 0x6ad3d8, 0xd0d0d4,
-        0x6c6c76, 0xff8585, 0xa6e3a1, 0xf9e2af, 0x9ecbff, 0xe2b8ff, 0x8ee4e8, 0xf5f5f7,
-    ]
-    private static let lightAnsi: [UInt32] = [
-        0x2b2d33, 0xc8313a, 0x2f8a3c, 0xa36d00, 0x1f63c6, 0x8a3fc1, 0x0b7f87, 0x8a8a94,
-        0x5c5f68, 0xe0434c, 0x3aa549, 0xbf8300, 0x3b7be0, 0xa65de0, 0x1a9ba3, 0x3a3a3f,
-    ]
 }

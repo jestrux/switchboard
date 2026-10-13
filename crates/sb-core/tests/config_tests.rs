@@ -262,3 +262,16 @@ fn broken_project_folder_still_loads_with_an_error() {
     assert_eq!(projects[0].name(), "broken");
     assert!(matches!(projects[0].config, Err(ConfigError::Parse(_))));
 }
+
+#[test]
+fn theme_and_appearance_overrides_are_validated() {
+    let ok = ProjectConfig::from_yaml("version: 1\nname: X\ntheme: patch-bay\nappearance: dark\ncommands:\n  - {id: a, run: a}\n").unwrap();
+    ok.validate().unwrap();
+    assert_eq!(ok.theme.as_deref(), Some("patch-bay"));
+    let bad = ProjectConfig::from_yaml("version: 1\nname: X\ntheme: neon\nappearance: auto\n").unwrap();
+    let Err(ConfigError::Invalid(errors)) = bad.validate() else { panic!() };
+    assert!(errors[0].contains("theme must be one of graphite, patch-bay, paper"), "{errors:?}");
+    assert!(errors[1].contains("appearance must be one of system, light, dark"), "{errors:?}");
+    let yaml = ok.to_yaml().unwrap();
+    assert!(yaml.contains("theme: patch-bay") && yaml.contains("appearance: dark"));
+}
