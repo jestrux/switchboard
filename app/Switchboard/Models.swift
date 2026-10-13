@@ -87,3 +87,13 @@ extension Color {
         return palette[abs(h) % palette.count]
     }
 }
+
+extension Error {
+    /// The engine's errors carry a plain message; show that instead of the enum dump.
+    var readableMessage: String {
+        if let e = self as? SbError {
+            switch e { case .Message(let m): return m }
+        }
+        return localizedDescription
+    }
+}

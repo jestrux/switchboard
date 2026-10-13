@@ -160,7 +160,7 @@ final class EngineStore: ObservableObject {
         } catch {
             let alert = NSAlert()
             alert.messageText = "This folder is not a valid Switchboard project"
-            alert.informativeText = "\(source.abbreviatingHome)\n\n\(error.localizedDescription)\n\nNothing was copied."
+            alert.informativeText = "\(source.abbreviatingHome)\n\n\(error.readableMessage)\n\nNothing was copied."
             alert.alertStyle = .warning
             alert.addButton(withTitle: "OK")
             alert.runModal()
@@ -191,7 +191,7 @@ final class EngineStore: ObservableObject {
         } catch {
             let alert = NSAlert()
             alert.messageText = "Could not add project"
-            alert.informativeText = error.localizedDescription
+            alert.informativeText = error.readableMessage
             alert.alertStyle = .critical
             alert.runModal()
             return false

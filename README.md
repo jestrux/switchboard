@@ -54,7 +54,11 @@ Requires Xcode 15+ and [xcodegen](https://github.com/yonaskolb/XcodeGen) (`brew 
 ```sh
 scripts/build-app.sh             # builds everything and writes dist/Switchboard.app
 open dist/Switchboard.app
+scripts/package.sh               # build, install to /Applications, relaunch (add Release or --no-build)
 ```
+
+`scripts/dev/uidrive.swift` is a small helper used for automated screenshots (window
+sizing, synthetic hover/click/keys, composite captures of menus and alerts).
 
 Or open `app/Switchboard.xcodeproj` in Xcode after `scripts/build-core.sh --debug` and
 `cd app && xcodegen generate`. The project file and the generated framework are build

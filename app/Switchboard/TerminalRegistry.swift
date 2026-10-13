@@ -38,11 +38,13 @@ final class TerminalRegistry {
         lock.unlock()
     }
 
-    /// Called when a session (re)starts: leave any alternate screen, reset modes and
-    /// print a separator so consecutive runs are easy to tell apart.
+    /// Called when a session (re)starts: print a separator so consecutive runs are easy
+    /// to tell apart.
     func noteStart(_ ref: CommandRef) {
         let time = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
-        let reset = "\u{1b}[?1049l\u{1b}[?1000l\u{1b}[?1002l\u{1b}[?1003l\u{1b}[?1006l\u{1b}[?2004l\u{1b}[?25h\u{1b}[0m"
+        // Mode resets (alt screen, mouse, paste) are emitted by the engine on exit, only
+        // when the program left them on; here we just normalise attributes.
+        let reset = "\u{1b}[0m"
         let hasHistory: Bool = {
             lock.lock(); defer { lock.unlock() }
             return !started.insert(ref).inserted

@@ -257,6 +257,17 @@ impl Session {
                 s.exited.store(true, Ordering::SeqCst);
                 // Give the reader a moment to drain the last bytes before status flips.
                 std::thread::sleep(Duration::from_millis(30));
+                // Undo modes the program left switched on, so the next run (or the user's
+                // view) starts from a normal screen. Only what is actually set is reset.
+                let cleanup = s.mode_cleanup_bytes();
+                if !cleanup.is_empty() {
+                    {
+                        let mut inner = s.inner.lock().unwrap();
+                        inner.parser.process(&cleanup);
+                        inner.raw_tail.extend_from_slice(&cleanup);
+                    }
+                    s.observer.on_output(&s.key, &cleanup);
+                }
                 s.observer.on_exit(&s.key, exit);
                 s.exit_reported.store(true, Ordering::SeqCst);
             })
@@ -272,6 +283,37 @@ impl Session {
         });
 
         Ok(session)
+    }
+
+    /// Escape sequences that return the terminal to a plain state, based on the parsed
+    /// screen: leave the alternate screen, stop mouse reporting and bracketed paste,
+    /// show the cursor, reset attributes. Empty when nothing is switched on.
+    pub fn mode_cleanup_bytes(&self) -> Vec<u8> {
+        let inner = self.inner.lock().unwrap();
+        let screen = inner.parser.screen();
+        let mut out = Vec::new();
+        if screen.alternate_screen() {
+            out.extend_from_slice(b"\x1b[?1049l");
+        }
+        if screen.mouse_protocol_mode() != vt100::MouseProtocolMode::None {
+            out.extend_from_slice(b"\x1b[?1000l\x1b[?1002l\x1b[?1003l\x1b[?1006l");
+        }
+        if screen.bracketed_paste() {
+            out.extend_from_slice(b"\x1b[?2004l");
+        }
+        if screen.hide_cursor() {
+            out.extend_from_slice(b"\x1b[?25h");
+        }
+        if screen.application_cursor() {
+            out.extend_from_slice(b"\x1b[?1l");
+        }
+        if screen.application_keypad() {
+            out.extend_from_slice(b"\x1b>");
+        }
+        if !out.is_empty() {
+            out.extend_from_slice(b"\x1b[0m");
+        }
+        out
     }
 
     fn mark_running(&self) {
