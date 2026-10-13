@@ -40,6 +40,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: store.projects) { _, _ in context.reconcile(with: store) }
+        .onChange(of: store.openProjectWindows) { _, _ in context.reconcile(with: store) }
         .onChange(of: store.lastInstalled) { _, slug in
             // The window that added a project selects it; only the main window qualifies.
             guard context.scope == .all, let slug, let p = store.project(slug), let c = p.allCommands.first else { return }

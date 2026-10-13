@@ -18,12 +18,20 @@ struct SidebarView: View {
             ForEach(projects, id: \.slug) { project in
                 if let error = project.error {
                     ProjectErrorRow(project: project, error: error)
-                } else {
+                } else if context.scope == .all {
                     projectSection(project)
+                } else {
+                    // The window is the project: groups and commands at the top level.
+                    projectContents(project)
                 }
             }
         }
         .listStyle(.sidebar)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if case .project = context.scope, let project = projects.first {
+                ProjectWindowHeader(project: project)
+            }
+        }
         .overlay {
             if dropTargeted {
                 RoundedRectangle(cornerRadius: 8)
@@ -60,20 +68,25 @@ struct SidebarView: View {
     @ViewBuilder
     private func projectSection(_ project: ProjectInfo) -> some View {
         DisclosureGroup(isExpanded: expandedBinding(for: project.slug, in: $collapsedProjects)) {
-            ForEach(project.commands, id: \.address) { cmd in
-                CommandRow(project: project.slug, command: cmd)
-            }
-            ForEach(project.groups, id: \.id) { group in
-                DisclosureGroup(isExpanded: expandedBinding(for: "\(project.slug)/\(group.id)", in: $collapsedGroups)) {
-                    ForEach(group.commands, id: \.address) { cmd in
-                        CommandRow(project: project.slug, command: cmd)
-                    }
-                } label: {
-                    GroupRow(project: project.slug, group: group)
-                }
-            }
+            projectContents(project)
         } label: {
             ProjectRow(project: project)
+        }
+    }
+
+    @ViewBuilder
+    private func projectContents(_ project: ProjectInfo) -> some View {
+        ForEach(project.commands, id: \.address) { cmd in
+            CommandRow(project: project.slug, command: cmd)
+        }
+        ForEach(project.groups, id: \.id) { group in
+            DisclosureGroup(isExpanded: expandedBinding(for: "\(project.slug)/\(group.id)", in: $collapsedGroups)) {
+                ForEach(group.commands, id: \.address) { cmd in
+                    CommandRow(project: project.slug, command: cmd)
+                }
+            } label: {
+                GroupRow(project: project.slug, group: group)
+            }
         }
     }
 
@@ -88,6 +101,51 @@ struct SidebarView: View {
 }
 
 // MARK: - Rows
+
+/// Top of a project window's sidebar: the project is the window, so its identity and
+/// whole-project actions sit here instead of in a collapsible row.
+struct ProjectWindowHeader: View {
+    @EnvironmentObject var store: EngineStore
+    @Environment(\.openWindow) private var openWindow
+    let project: ProjectInfo
+
+    var body: some View {
+        let running = store.runningCount(project: project.slug)
+        VStack(spacing: 0) {
+            HStack(spacing: 10) {
+                ProjectIcon(project: project, size: 28)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(project.name).font(.headline).lineLimit(1)
+                    Text(running == 0 ? "Nothing running" : "\(running) running")
+                        .font(.caption)
+                        .foregroundStyle(running == 0 ? Color.secondary : Color.green)
+                }
+                Spacer(minLength: 4)
+                RunControls(
+                    anyRunning: running > 0,
+                    start: { store.startAll(project: project.slug) },
+                    stop: { store.stopAll(project: project.slug) },
+                    restart: { store.restartAll(project: project.slug) }
+                )
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            Divider()
+        }
+        .background(.bar)
+        .contextMenu {
+            Button("Start All") { store.startAll(project: project.slug) }
+            Button("Stop All") { store.stopAll(project: project.slug) }
+            Button("Restart All") { store.restartAll(project: project.slug) }
+            Divider()
+            Button("Edit Config") { store.editConfig(project.slug) }
+            Button("Reveal in Finder") { store.revealInFinder(project.slug) }
+            Divider()
+            Button("Delete Project…") { store.deleteProject(project.slug) }
+        }
+        .help("Close this window to put \(project.name) back on the main board")
+    }
+}
 
 struct ProjectRow: View {
     @EnvironmentObject var store: EngineStore

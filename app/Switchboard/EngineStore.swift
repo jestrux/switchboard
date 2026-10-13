@@ -18,8 +18,9 @@ final class EngineStore: ObservableObject {
     @Published private(set) var paneOwners: [CommandRef: UUID] = [:]
     private var windowNames: [UUID: String] = [:]
     private var offeredLeftovers = false
-    /// Project windows currently open, so they can be reopened on the next launch.
-    private(set) var openProjectWindows: Set<String> = []
+    /// Projects pulled out of the main board into their own window. The main window
+    /// hides these; they come back when their window closes.
+    @Published private(set) var openProjectWindows: Set<String> = []
     private var terminating = false
     private var reopenedWindows = false
     private static let reopenKey = "reopenProjectWindows"

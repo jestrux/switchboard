@@ -39,17 +39,19 @@ final class WindowContext: ObservableObject, Identifiable {
         }
     }
 
-    /// Projects visible in this window.
+    /// Projects visible in this window. The main board hides projects that are open in
+    /// their own window.
     func projects(in store: EngineStore) -> [ProjectInfo] {
         switch scope {
-        case .all: return store.projects
+        case .all: return store.projects.filter { !store.openProjectWindows.contains($0.slug) }
         case .project(let slug): return store.projects.filter { $0.slug == slug }
         }
     }
 
     /// Drop a selection that no longer exists; pick a default when nothing is selected.
     func reconcile(with store: EngineStore) {
-        if let sel = selection, store.command(sel) == nil {
+        let visible = projects(in: store)
+        if let sel = selection, !visible.contains(where: { $0.slug == sel.project }) || store.command(sel) == nil {
             selection = nil
         }
         if selection == nil, let p = projects(in: store).first(where: \.isValid), let c = p.allCommands.first {
