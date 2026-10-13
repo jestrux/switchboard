@@ -46,6 +46,20 @@ struct SwitchboardApp: App {
             #endif
         }
         CommandMenu("Command") {
+            Button("New Terminal") {
+                guard let ctx = focus?.context else { return }
+                let project: String? = {
+                    if let s = selection { return s.project }
+                    if case .project(let slug) = ctx.scope { return slug }
+                    return ctx.railProject
+                }()
+                guard let project else { return }
+                let group = selection.flatMap { store.command($0)?.groupId }
+                if let ref = store.newTerminal(project: project, group: group) { ctx.selection = ref }
+            }
+            .keyboardShortcut("t", modifiers: [.command])
+            .disabled(focus == nil)
+            Divider()
             Button("Start") { if let s = selection { store.start(s) } }
                 .disabled(selection == nil || selectedIsAlive)
             Button("Stop") { if let s = selection { store.stop(s) } }
@@ -108,6 +122,8 @@ struct SwitchboardApp: App {
                 .disabled(selection == nil)
             Button("Reveal in Finder") { if let s = selection { store.revealInFinder(s.project) } }
                 .disabled(selection == nil)
+            Button("Keep Settings in Repo…") { if let s = selection { store.keepSettingsInRepo(s.project) } }
+                .disabled(selection == nil || selection.flatMap { store.project($0.project)?.home } != nil)
             Divider()
             Button("Reload Projects") { store.engine.reload() }
             Button("Open Projects Folder") {
@@ -122,6 +138,13 @@ struct SwitchboardApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         LinkHandling.install()
+    }
+
+    /// Folders dropped on the Dock icon, or `open -a Switchboard <folder>`.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls where url.hasDirectoryPath || url.pathExtension == "yaml" {
+            EngineStore.shared.addProject(from: url)
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }

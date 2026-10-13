@@ -99,9 +99,66 @@ What the app does:
 - **Links**: ⌘-hover underlines a link and ⌘-click opens it. Plain URLs, Markdown links
   (`[text](url)`, the way Claude Code prints them; clicking the text or the URL both work)
   and OSC 8 terminal hyperlinks are all supported.
+- **Terminals**: ⌘T, a group's hover button or context menu, or the empty-pane picker
+  opens a login shell in that group's folder. Terminals are per-device working state:
+  they persist across relaunches in the project's `terminals.yaml` in Application Support
+  and go away with the project. Rename one, or Save as Command… to turn it into a real
+  command in its group.
 - **Split panes**: Pane > Split Right (⌘D) or Split Down (⇧⌘D) shows up to four
   terminals in one window, each with a header that picks its command (or pick from the
   sidebar: selection always targets the focused pane). Drag a sidebar row onto a pane: the centre replaces that pane's command, an edge splits
   on that side. Drag the divider to resize, ⌘] cycles focus, ⇧⌘W closes a pane. The layout is remembered per window.
 - **Quit** stops every session (SIGINT → SIGTERM → SIGKILL per process group) before
   exiting. On the next launch, sessions left behind by a crash are offered for cleanup.
+
+## Versioning a project with its repos (`.switchboard/`)
+
+A project spans folders, so its settings are split the same way and composed.
+
+```
+~/code/acme-app/.switchboard/
+  commands.yaml     # this folder's commands (cwd is the folder)
+  project.yaml      # the project: name, icon, theme, and its member folders
+  icon.png
+~/code/acme-api/.switchboard/
+  commands.yaml
+```
+
+```yaml
+# acme-app/.switchboard/commands.yaml
+name: Web
+commands:
+  - { id: dev, run: npm run dev }
+  - { id: storybook, run: npm run storybook, autostart: false }
+```
+
+```yaml
+# acme-app/.switchboard/project.yaml   (the "home" folder)
+version: 1
+name: Acme
+groups:
+  - id: web
+    from: .                 # this folder's commands.yaml
+  - id: api
+    from: ../acme-api       # a sibling repo; relative to the home folder
+    overrides:
+      migrate: { hidden: true }
+      dev: { autostart: true, env: { PORT: "8080" } }
+```
+
+- **A group with `from:`** takes its commands from that folder's `commands.yaml`. `overrides`
+  tweak them per command (`name`, `autostart`, `restart_on_crash`, `env`, `hidden`) without
+  touching the other repo. Inline `commands:` still work and are appended. A missing folder
+  or fragment marks that one group unavailable; the rest of the project loads.
+- **New device**: drop any member folder on the sidebar or the Dock icon (or
+  `sb import <folder>`). Switchboard finds the `project.yaml`, in that folder or in a sibling
+  repo that lists it, shows which folders resolved, and installs the project. If several
+  copies exist, the newest is proposed and the others can be chosen.
+- **Write-back**: the live config stays in Application Support. Once a project has a home
+  folder, every change is mirrored to that folder's `project.yaml`, so git always has the
+  current settings. If the repo's copy changes underneath (a pull), the sidebar shows
+  "Settings changed in the repo · Apply" instead of overwriting anything.
+- **Existing projects** get a one-time offer to keep their settings in a repo folder
+  (Project › Keep Settings in Repo… does it later).
+- Fragments are watched: editing a repo's `commands.yaml` updates the sidebar live.
+- `sb validate <repo folder>` checks a `project.yaml` and names every fragment it reads.

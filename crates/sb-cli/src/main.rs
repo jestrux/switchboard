@@ -47,6 +47,15 @@ enum Cmd {
         #[arg(long, conflicts_with = "replace")]
         keep_both: bool,
     },
+    /// Set a project up from a repo folder's .switchboard/project.yaml
+    Import {
+        /// Any member folder of the project (the newest project.yaml found wins)
+        path: PathBuf,
+        #[arg(long)]
+        replace: bool,
+        #[arg(long, conflicts_with = "replace")]
+        keep_both: bool,
+    },
     /// Kill sessions left behind by a crashed app or CLI
     Cleanup,
 }
@@ -59,6 +68,7 @@ fn main() {
         Cmd::Validate { path } => validate(&path),
         Cmd::Run { project, target } => run(&projects_dir, &project, target.as_deref()),
         Cmd::Install { path, replace, keep_both } => install(&projects_dir, &path, replace, keep_both),
+        Cmd::Import { path, replace, keep_both } => import(&projects_dir, &path, replace, keep_both),
         Cmd::Cleanup => cleanup(&projects_dir),
     };
     match code {
@@ -85,7 +95,7 @@ fn list(projects_dir: &Path) -> Result<i32> {
         .collect();
 
     for p in &projects {
-        match &p.config {
+        match &p.effective {
             Err(e) => {
                 println!("{}  {}", p.slug.bold(), "invalid config".red());
                 for line in e.messages() {
@@ -126,9 +136,34 @@ fn list(projects_dir: &Path) -> Result<i32> {
 // ----- validate ---------------------------------------------------------------
 
 fn validate(path: &Path) -> Result<i32> {
-    let file = if path.is_dir() { path.join(project::CONFIG_FILE) } else { path.to_path_buf() };
+    use sb_core::fragment::{DOT_DIR, PROJECT_FILE};
+    // A folder with config.yaml, a repo folder with .switchboard/project.yaml, or a file.
+    let file = if path.is_dir() {
+        let seed = path.join(DOT_DIR).join(PROJECT_FILE);
+        if !path.join(project::CONFIG_FILE).is_file() && seed.is_file() { seed } else { path.join(project::CONFIG_FILE) }
+    } else {
+        path.to_path_buf()
+    };
+    let is_seed = file.file_name().map(|n| n == PROJECT_FILE).unwrap_or(false)
+        && file.parent().and_then(|p| p.file_name()).map(|n| n == DOT_DIR).unwrap_or(false);
     match ProjectConfig::load(&file) {
-        Ok(cfg) => {
+        Ok(raw) => {
+            // A seed's relative paths resolve from its home folder (the one holding .switchboard).
+            let base = if is_seed {
+                file.parent().and_then(Path::parent).map(Path::to_path_buf).unwrap_or_default()
+            } else {
+                file.parent().map(Path::to_path_buf).unwrap_or_default()
+            };
+            let composed = raw.compose(&base);
+            let cfg = composed.config;
+            for pr in &composed.problems {
+                println!("  {} group {}: {}", "warning".yellow(), pr.group, pr.message);
+            }
+            for src in &composed.sources {
+                if src.is_file() {
+                    println!("  {} {}", "fragment".dimmed(), sb_core::config::collapse_tilde(src));
+                }
+            }
             let cmds = cfg.resolve_commands();
             println!(
                 "{} {}: {} ({} group{}, {} command{})",
@@ -201,6 +236,39 @@ fn install(projects_dir: &Path, path: &Path, replace: bool, keep_both: bool) -> 
     }
 }
 
+fn import(projects_dir: &Path, path: &Path, replace: bool, keep_both: bool) -> Result<i32> {
+    let found = sb_core::fragment::discover_seeds(path);
+    let Some(best) = found.first() else {
+        eprintln!("no .switchboard/project.yaml in {} (or the folders it references)", path.display());
+        return Ok(1);
+    };
+    if found.len() > 1 {
+        println!("found {} project.yaml files; using the newest:", found.len());
+        for c in &found {
+            println!("  {} {}", if std::ptr::eq(c, best) { "*" } else { " " }, sb_core::config::collapse_tilde(&c.home));
+        }
+    }
+    for (group, folder, exists) in &best.members {
+        let mark = if *exists { "ok".green().to_string() } else { "missing".yellow().to_string() };
+        println!("  {group:<20} {} {mark}", sb_core::config::collapse_tilde(folder));
+    }
+    let conflict = if replace { Conflict::Replace } else if keep_both { Conflict::KeepBoth } else { Conflict::Fail };
+    match sb_core::fragment::install_seed(best, projects_dir, conflict) {
+        Ok(dest) => {
+            println!("{} imported {} as {}", "ok".green().bold(), best.seed.config.name, dest.display());
+            Ok(0)
+        }
+        Err(project::InstallError::Exists(slug)) => {
+            eprintln!("a project folder named {slug:?} already exists; pass --replace or --keep-both");
+            Ok(1)
+        }
+        Err(e) => {
+            eprintln!("{} {e}", "not imported:".red().bold());
+            Ok(1)
+        }
+    }
+}
+
 fn cleanup(projects_dir: &Path) -> Result<i32> {
     let engine = Engine::new(projects_dir);
     let leftovers = engine.leftover_sessions();
@@ -268,7 +336,7 @@ fn run(projects_dir: &Path, project: &str, target: Option<&str>) -> Result<i32> 
     let proj = engine
         .project(&slug)
         .ok_or_else(|| anyhow!("no project {slug:?} in {}", engine.projects_dir().display()))?;
-    let cfg = match &proj.config {
+    let cfg = match &proj.effective {
         Ok(c) => c.clone(),
         Err(e) => bail!("project {slug:?} has an invalid config:\n{e}"),
     };

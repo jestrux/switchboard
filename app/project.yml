@@ -45,6 +45,11 @@ targets:
         NSHighResolutionCapable: true
         LSApplicationCategoryType: public.app-category.developer-tools
         NSHumanReadableCopyright: ""
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Project Folder
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes: [public.folder]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.waky.switchboard

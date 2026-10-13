@@ -188,3 +188,16 @@ fn adopting_a_home_writes_the_seed_and_fragments_promote_terminals() {
     assert!(!projects.join("demo/terminals.yaml").exists());
     engine.stop_everything_blocking();
 }
+
+#[test]
+fn a_member_folder_without_a_seed_finds_its_home_next_door() {
+    let tmp = tempfile::tempdir().unwrap();
+    workspace(tmp.path());
+    // web/api has a fragment but no project.yaml; web/app's seed lists it.
+    let found = discover_seeds(&tmp.path().join("web/api"));
+    assert_eq!(found.len(), 1);
+    assert!(found[0].home.ends_with("web/app"));
+    // An unrelated folder finds nothing.
+    std::fs::create_dir_all(tmp.path().join("web/other")).unwrap();
+    assert!(discover_seeds(&tmp.path().join("web/other")).is_empty());
+}

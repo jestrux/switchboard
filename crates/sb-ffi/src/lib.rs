@@ -91,6 +91,8 @@ pub struct CommandInfo {
     pub cwd_exists: bool,
     pub autostart: bool,
     pub restart_on_crash: bool,
+    /// An ad-hoc terminal (interactive shell) rather than a configured command.
+    pub is_terminal: bool,
     pub state: CommandState,
 }
 
@@ -99,6 +101,10 @@ pub struct GroupInfo {
     pub id: String,
     pub name: String,
     pub cwd: Option<String>,
+    /// The repo folder whose `.switchboard/commands.yaml` supplies this group, if any.
+    pub from: Option<String>,
+    /// Why the fragment could not be read (missing folder, bad YAML), if it couldn't.
+    pub problem: Option<String>,
     pub commands: Vec<CommandInfo>,
 }
 
@@ -117,6 +123,12 @@ pub struct ProjectInfo {
     pub theme_custom: Option<String>,
     /// `system`, `light` or `dark` for its own window, if pinned.
     pub appearance: Option<String>,
+    /// Repo folder whose `.switchboard/project.yaml` mirrors this project, if adopted.
+    pub home: Option<String>,
+    /// Folder to offer as the home when none is set: the first group's folder.
+    pub suggested_home: Option<String>,
+    /// The repo's project.yaml changed under us and is waiting to be applied.
+    pub repo_settings_changed: bool,
     /// Set when the config does not parse or validate; groups and commands are then empty.
     pub error: Option<String>,
     pub commands: Vec<CommandInfo>,
@@ -142,6 +154,30 @@ pub struct InstallPreview {
     pub slug: String,
     pub name: String,
     pub exists: bool,
+}
+
+/// A `.switchboard/project.yaml` found for a dropped folder.
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct SeedInfo {
+    /// Folder holding the seed; becomes the project's home.
+    pub home: String,
+    pub name: String,
+    pub slug: String,
+    /// A project with this slug is already installed.
+    pub exists: bool,
+    /// Seconds since the epoch (the seed's `updated` stamp, else the file's mtime).
+    pub updated_at: f64,
+    pub icon_path: Option<String>,
+    pub members: Vec<SeedMember>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct SeedMember {
+    pub group: String,
+    pub folder: String,
+    pub exists: bool,
+    /// Commands the folder's fragment declares (0 when missing).
+    pub command_count: u32,
 }
 
 #[derive(Debug, thiserror::Error, uniffi::Error)]
@@ -201,6 +237,7 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
         cwd_exists: c.cwd.as_ref().map(|p| p.is_dir()).unwrap_or(true),
         autostart: c.autostart,
         restart_on_crash: c.restart_on_crash,
+        is_terminal: c.terminal,
         state: state_for(&c.address),
     };
     let base = ProjectInfo {
@@ -213,11 +250,14 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
         theme: None,
         theme_custom: None,
         appearance: None,
+        home: None,
+        suggested_home: None,
+        repo_settings_changed: project.repo_settings_changed,
         error: None,
         commands: vec![],
         groups: vec![],
     };
-    match &project.config {
+    match &project.effective {
         Err(e) => ProjectInfo { error: Some(e.to_string()), ..base },
         Ok(cfg) => {
             let all = cfg.resolve_commands();
@@ -229,6 +269,8 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
                     id: g.id.clone(),
                     name: g.display_name().to_string(),
                     cwd: g.cwd.clone(),
+                    from: g.from.clone(),
+                    problem: project.problems.iter().find(|p| p.group == g.id).map(|p| p.message.clone()),
                     commands: all
                         .iter()
                         .filter(|c| c.group.as_ref().map(|gr| gr.id.as_str()) == Some(g.id.as_str()))
@@ -244,6 +286,12 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
                     _ => None,
                 },
                 appearance: cfg.appearance.clone(),
+                home: cfg.home.clone(),
+                suggested_home: cfg
+                    .groups
+                    .iter()
+                    .find_map(|g| g.cwd.clone())
+                    .filter(|c| sb_core::config::expand_tilde(c).is_dir()),
                 commands,
                 groups,
                 ..base
@@ -400,6 +448,84 @@ impl Engine {
             .map_err(|e| SbError::Message(e.to_string()))?;
         self.inner.reload();
         Ok(())
+    }
+
+    // ----- .switchboard seeds -----
+
+    /// Project seeds reachable from a dropped folder, newest first. Empty when the
+    /// folder has no `.switchboard/project.yaml`.
+    pub fn discover_seeds(&self, folder: String) -> Vec<SeedInfo> {
+        sb_core::fragment::discover_seeds(Path::new(&folder))
+            .into_iter()
+            .map(|c| {
+                let slug = project::slugify(&c.seed.config.name);
+                let icon = c.home.join(sb_core::fragment::DOT_DIR).join(sb_core::fragment::ICON_FILE);
+                SeedInfo {
+                    exists: self.inner.projects_dir().join(&slug).exists(),
+                    slug,
+                    name: c.seed.config.name.clone(),
+                    home: c.home.display().to_string(),
+                    updated_at: c.updated_at,
+                    icon_path: icon.is_file().then(|| icon.display().to_string()),
+                    members: c
+                        .members
+                        .iter()
+                        .map(|(g, p, exists)| SeedMember {
+                            group: g.clone(),
+                            folder: sb_core::config::collapse_tilde(p),
+                            exists: *exists,
+                            command_count: sb_core::fragment::Fragment::load(p).map(|f| f.commands.len() as u32).unwrap_or(0),
+                        })
+                        .collect(),
+                }
+            })
+            .collect()
+    }
+
+    /// Install the seed whose home is `home`. Returns the project's slug.
+    pub fn install_seed(&self, home: String, conflict: ConflictPolicy) -> Result<String, SbError> {
+        let conflict = match conflict {
+            ConflictPolicy::Fail => CoreConflict::Fail,
+            ConflictPolicy::Replace => CoreConflict::Replace,
+            ConflictPolicy::KeepBoth => CoreConflict::KeepBoth,
+        };
+        let candidate = sb_core::fragment::discover_seeds(Path::new(&home))
+            .into_iter()
+            .find(|c| c.home == Path::new(&home).canonicalize().unwrap_or_else(|_| PathBuf::from(&home)))
+            .ok_or_else(|| SbError::Message(format!("no .switchboard/project.yaml in {home}")))?;
+        let dest = sb_core::fragment::install_seed(&candidate, self.inner.projects_dir(), conflict)?;
+        self.inner.reload();
+        Ok(dest.file_name().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default())
+    }
+
+    /// Keep this project's settings in `folder/.switchboard/project.yaml` from now on.
+    pub fn adopt_home(&self, slug: String, folder: String) -> Result<(), SbError> {
+        Ok(self.inner.adopt_home(&slug, Path::new(&folder))?)
+    }
+
+    /// Replace the local config with the repo's project.yaml.
+    pub fn apply_repo_settings(&self, slug: String) -> Result<(), SbError> {
+        Ok(self.inner.apply_repo_settings(&slug)?)
+    }
+
+    // ----- ad-hoc terminals -----
+
+    /// Open a terminal in a group's folder (or ungrouped). Returns its address.
+    pub fn add_terminal(&self, project: String, group: Option<String>) -> Result<String, SbError> {
+        Ok(self.inner.add_terminal(&project, group.as_deref())?)
+    }
+
+    pub fn remove_terminal(&self, project: String, address: String) -> Result<(), SbError> {
+        Ok(self.inner.remove_terminal(&project, &address)?)
+    }
+
+    pub fn rename_terminal(&self, project: String, address: String, name: String) -> Result<(), SbError> {
+        Ok(self.inner.rename_terminal(&project, &address, &name)?)
+    }
+
+    /// Turn a terminal into a configured command. Returns the new command's address.
+    pub fn promote_terminal(&self, project: String, address: String, id: String, name: String, run: String) -> Result<String, SbError> {
+        Ok(self.inner.promote_terminal(&project, &address, &id, &name, &run)?)
     }
 
     /// Sessions a previous run left behind (their process groups are still alive).

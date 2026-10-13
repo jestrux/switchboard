@@ -35,6 +35,9 @@ struct SidebarView: View {
                     .padding(.vertical, 6)
                 }
                 Spacer(minLength: 0)
+                if let slug = noticeProject(projects), let project = store.project(slug) {
+                    ProjectNotices(project: project)
+                }
                 SidebarFoot()
             }
             .frame(width: useRail ? SBMetrics.sidebarWidthRail : (context.scope == .all ? SBMetrics.sidebarWidthTree : 268))
@@ -51,6 +54,14 @@ struct SidebarView: View {
             for url in urls where url.isFileURL { store.addProject(from: url, window: context.id) }
             return !urls.isEmpty
         } isTargeted: { dropTargeted = $0 && context.scope == .all }
+    }
+
+    /// The project whose repo notices show above the foot: the one this sidebar is about.
+    private func noticeProject(_ projects: [ProjectInfo]) -> String? {
+        switch context.scope {
+        case .project(let slug): return slug
+        case .all: return useRail ? (context.railProject ?? projects.first?.slug) : context.selection?.project
+        }
     }
 
     /// Room for the traffic lights when the title bar is hidden and there is no rail:
@@ -375,8 +386,14 @@ struct ProjectMenu: View {
         } else {
             Button("Move to Board") { dismissWindow(id: "project", value: project.slug) }
         }
+        Button("New Terminal") {
+            if let ref = store.newTerminal(project: project.slug, group: nil) { context.selection = ref }
+        }
         Button("Edit Config") { store.editConfig(project.slug) }
         Button("Reveal in Finder") { store.revealInFinder(project.slug) }
+        if project.home == nil {
+            Button("Keep Settings in Repo…") { store.keepSettingsInRepo(project.slug) }
+        }
         Divider()
         Button("Delete Project…") { store.deleteProject(project.slug, window: context.id) }
     }
@@ -472,12 +489,21 @@ struct GroupRow: View {
             Image(systemName: collapsed ? "chevron.right" : "chevron.down")
                 .font(.system(size: 8, weight: .bold)).foregroundStyle(p.text4).frame(width: 10)
             Text(label).font(SBType.groupLabel(look.s)).tracking(look.s.groupLabelTracking).foregroundStyle(p.text3)
+            if let problem = group.problem {
+                TriangleGlyph().fill(p.error).frame(width: 10, height: 10).help(problem)
+            }
             Spacer(minLength: 4)
             if hovering {
-                RunControls(anyRunning: running > 0,
-                            start: { store.startAll(project: project, group: group.id) },
-                            stop: { store.stopAll(project: project, group: group.id) },
-                            restart: { store.restartAll(project: project, group: group.id) })
+                HStack(spacing: 2) {
+                    IconButton("terminal", help: "New Terminal in \(group.name) (⌘T)") { newTerminal() }
+                    RunControls(anyRunning: running > 0,
+                                start: { store.startAll(project: project, group: group.id) },
+                                stop: { store.stopAll(project: project, group: group.id) },
+                                restart: { store.restartAll(project: project, group: group.id) })
+                }
+                .foregroundStyle(p.text2)
+            } else if group.problem != nil {
+                Text("unavailable").font(SBType.meta).foregroundStyle(p.error)
             } else if collapsed {
                 Text(running > 0 ? "\(running) running" : "\(group.commands.count) idle").font(SBType.meta).foregroundStyle(p.text3)
             }
@@ -489,10 +515,21 @@ struct GroupRow: View {
         .onTapGesture { toggle() }
         .onHover { hovering = $0 }
         .contextMenu {
+            Button("New Terminal") { newTerminal() }
+            Divider()
             Button("Start All") { store.startAll(project: project, group: group.id) }
             Button("Stop All") { store.stopAll(project: project, group: group.id) }
             Button("Restart All") { store.restartAll(project: project, group: group.id) }
+            if let cwd = group.cwd {
+                Divider()
+                Button("Reveal Folder in Finder") { store.revealFolder((cwd as NSString).expandingTildeInPath) }
+            }
         }
+    }
+
+    @EnvironmentObject private var context: WindowContext
+    private func newTerminal() {
+        if let ref = store.newTerminal(project: project, group: group.id) { context.selection = ref }
     }
 }
 
@@ -516,6 +553,9 @@ struct CommandRow: View {
         let live = state.isAlive
         HStack(spacing: 8) {
             StatusGlyph(status: state.status, restartAt: state.restartAt, restartTotal: backoffTotal(state))
+            if command.isTerminal {
+                Image(systemName: "terminal").font(.system(size: 10, weight: .medium)).foregroundStyle(p.text3)
+            }
             Text(command.name)
                 .font(.system(size: 13, weight: selected ? .semibold : .regular))
                 .foregroundStyle(selected ? p.selectionText : (state.status == .stopped && !command.cwdExists ? p.text2 : (state.status == .stopped ? p.text2 : p.text)))
@@ -535,6 +575,9 @@ struct CommandRow: View {
                     } else {
                         IconButton("play.fill", help: command.cwdExists ? "Start" : "Folder not found") { store.start(ref) }
                             .disabled(!command.cwdExists)
+                    }
+                    if command.isTerminal {
+                        IconButton("xmark", help: "Close Terminal") { store.closeTerminal(ref) }
                     }
                 }
                 .foregroundStyle(selected ? p.selectionText : p.text2)
@@ -580,7 +623,16 @@ struct CommandRow: View {
                 Button("Start") { store.start(ref) }.disabled(!command.cwdExists)
             }
             Divider()
-            Text(command.run)
+            if command.isTerminal {
+                Button("Rename…") { store.renameTerminal(ref, window: context.id) }
+                Button("Save as Command…") {
+                    store.saveTerminalAsCommand(ref, window: context.id) { context.selection = $0 }
+                }
+                Button("Close Terminal") { store.closeTerminal(ref) }
+                Divider()
+            } else {
+                Text(command.run)
+            }
             if let path = command.cwdPath {
                 Button("Reveal Folder in Finder") { store.revealFolder(path) }.disabled(!command.cwdExists)
             }
@@ -666,6 +718,58 @@ struct BrokenProjectCard: View {
         }
         .padding(.vertical, 4)
         .contextMenu { ProjectMenu(project: project) }
+    }
+}
+
+/// Repo-related lines above the foot: settings changed in the repo, or the offer to keep
+/// this project's settings in a repo folder.
+struct ProjectNotices: View {
+    @EnvironmentObject var store: EngineStore
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    let project: ProjectInfo
+    @AppStorage private var dismissed: Bool
+
+    init(project: ProjectInfo) {
+        self.project = project
+        _dismissed = AppStorage(wrappedValue: false, "homeOffer.dismissed.\(project.slug)")
+    }
+
+    var body: some View {
+        let look = Look(theme: theme, scheme: scheme)
+        let p = look.p
+        if project.repoSettingsChanged {
+            notice(p, look, icon: "arrow.triangle.2.circlepath", tint: p.accentSoftText, bg: p.accentSoft,
+                   title: "Settings changed in the repo",
+                   detail: Fmt.shortFolder((project.home ?? "").abbreviatingHome) + "/.switchboard/project.yaml") {
+                SmallButton(label: "Apply", primary: true) { store.applyRepoSettings(project.slug) }
+            }
+        } else if project.error == nil, project.home == nil, !dismissed, let suggested = project.suggestedHome {
+            notice(p, look, icon: "shippingbox", tint: p.text2, bg: p.hover,
+                   title: "Keep \(project.name)’s settings in the repo?",
+                   detail: Fmt.shortFolder(suggested) + "/.switchboard") {
+                SmallButton(label: "Keep") { store.keepSettingsInRepo(project.slug, folder: suggested) }
+                SmallButton(label: "Choose…") { store.keepSettingsInRepo(project.slug) }
+                Button { dismissed = true } label: { Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(p.text3) }
+                    .buttonStyle(.plain).help("Not now. Project › Keep Settings in Repo… does this later.")
+            }
+        }
+    }
+
+    private func notice<Actions: View>(_ p: SBPalette, _ look: Look, icon: String, tint: Color, bg: Color, title: String, detail: String, @ViewBuilder actions: () -> Actions) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 7) {
+                Image(systemName: icon).font(.system(size: 11)).foregroundStyle(tint).padding(.top, 1)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.system(size: 12, weight: .medium)).foregroundStyle(p.text).fixedSize(horizontal: false, vertical: true)
+                    Text(detail).font(SBType.meta).foregroundStyle(p.text3).lineLimit(1).truncationMode(.head)
+                }
+            }
+            HStack(spacing: 6) { actions(); Spacer(minLength: 0) }
+        }
+        .padding(10)
+        .background(bg, in: RoundedRectangle(cornerRadius: look.s.cardRadius, style: .continuous))
+        .padding(.horizontal, 8).padding(.bottom, 8)
     }
 }
 

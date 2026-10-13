@@ -238,6 +238,13 @@ final class EngineStore: ObservableObject {
 
     func addProjectAsync(from url: URL, window: UUID? = nil) async {
         let source = url.path
+        // A repo folder with .switchboard/project.yaml (and no config.yaml of its own)
+        // sets the project up from the repo files.
+        let seeds = engine.discoverSeeds(folder: source)
+        if !seeds.isEmpty, !FileManager.default.fileExists(atPath: url.appendingPathComponent("config.yaml").path) {
+            await importSeed(seeds, window: window)
+            return
+        }
         let preview: InstallPreview
         do {
             preview = try engine.previewInstall(source: source)
@@ -286,6 +293,147 @@ final class EngineStore: ObservableObject {
             _ = await DialogCenter.shared.ask(DialogRequest(
                 kind: .invalidFolder, title: "Could not add project", subtitle: error.readableMessage,
                 buttons: [DialogButton(label: "OK", kbd: "↩", style: .primary, value: 0)], window: window))
+        }
+    }
+
+    /// Confirm and install a project from repo seeds (newest first).
+    private func importSeed(_ seeds: [SeedInfo], window: UUID?) async {
+        var index = 0
+        while true {
+            let seed = seeds[index]
+            var facts = seed.members.map { m in
+                DialogFact(icon: m.exists ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
+                           text: "\(m.group)  ·  \(Fmt.shortFolder(m.folder))",
+                           detail: m.exists ? (m.commandCount == 0 ? "no commands.yaml yet" : "\(m.commandCount) command\(m.commandCount == 1 ? "" : "s")")
+                                            : "folder not found on this Mac",
+                           tint: m.exists ? .running : .error, iconOnlyTint: true)
+            }
+            if facts.isEmpty { facts = [DialogFact(icon: "doc.text", text: "No from: groups; commands are written in project.yaml")] }
+            let other = seeds.count > 1 ? seeds[(index + 1) % seeds.count] : nil
+            let when = Date(timeIntervalSince1970: seed.updatedAt).formatted(date: .abbreviated, time: .shortened)
+            var buttons = [DialogButton(label: "Cancel", kbd: "esc", value: 0)]
+            if seed.exists {
+                buttons.append(DialogButton(label: "Replace", style: .dangerOutline, value: 1))
+                buttons.append(DialogButton(label: "Keep Both", kbd: "↩", style: .primary, value: 2))
+            } else {
+                buttons.append(DialogButton(label: "Set Up Project", kbd: "↩", style: .primary, value: 3))
+            }
+            let choice = await DialogCenter.shared.ask(DialogRequest(
+                kind: .nameConflict,
+                title: seed.exists ? "“\(seed.name)” is already here" : "Set up “\(seed.name)” from this repo?",
+                subtitle: "Settings come from \(Fmt.shortFolder(seed.home.abbreviatingHome))/.switchboard/project.yaml (updated \(when)). Each folder supplies its own commands.",
+                facts: facts,
+                note: seeds.count > 1 ? "\(seeds.count) copies of project.yaml were found across these folders; this is \(index == 0 ? "the newest" : "an older one")." : nil,
+                alt: other.map { DialogButton(label: "Use the copy in \(URL(fileURLWithPath: $0.home).lastPathComponent)", value: 9) },
+                buttons: buttons,
+                window: window))
+            if choice == 9 { index = (index + 1) % seeds.count; continue }
+            let policy: ConflictPolicy
+            switch choice {
+            case 1: policy = .replace; try? engine.stopAll(project: seed.slug, group: nil)
+            case 2: policy = .keepBoth
+            case 3: policy = .fail
+            default: return
+            }
+            do {
+                let slug = try engine.installSeed(home: seed.home, conflict: policy)
+                refreshProjects()
+                lastInstalled = slug
+            } catch {
+                _ = await DialogCenter.shared.ask(DialogRequest(
+                    kind: .invalidFolder, title: "Could not set up the project", subtitle: error.readableMessage,
+                    buttons: [DialogButton(label: "OK", kbd: "↩", style: .primary, value: 0)], window: window))
+            }
+            return
+        }
+    }
+
+    // MARK: - Settings in the repo
+
+    /// Keep the project's settings in `folder/.switchboard/project.yaml` from now on.
+    func keepSettingsInRepo(_ slug: String, folder: String? = nil) {
+        var target = folder
+        if target == nil {
+            let panel = NSOpenPanel()
+            panel.title = "Keep Settings in Repo"
+            panel.message = "Choose the repo folder that should hold this project's .switchboard/project.yaml."
+            panel.canChooseDirectories = true
+            panel.canChooseFiles = false
+            panel.prompt = "Keep Here"
+            guard panel.runModal() == .OK, let url = panel.url else { return }
+            target = url.path
+        }
+        guard let target else { return }
+        do {
+            try engine.adoptHome(slug: slug, folder: (target as NSString).expandingTildeInPath)
+            refreshProjects()
+        } catch {
+            NSLog("adopt failed: \(error.readableMessage)")
+        }
+    }
+
+    func applyRepoSettings(_ slug: String) {
+        try? engine.applyRepoSettings(slug: slug)
+        refreshProjects()
+    }
+
+    // MARK: - Ad-hoc terminals
+
+    /// Open a terminal in a group's folder (or ungrouped) and return its ref.
+    @discardableResult
+    func newTerminal(project: String, group: String?) -> CommandRef? {
+        guard let address = try? engine.addTerminal(project: project, group: group) else { return nil }
+        refreshProjects()
+        return CommandRef(project: project, address: address)
+    }
+
+    func closeTerminal(_ ref: CommandRef) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            try? self.engine.removeTerminal(project: ref.project, address: ref.address)
+            Task { @MainActor in self.refreshProjects() }
+        }
+    }
+
+    func renameTerminal(_ ref: CommandRef, window: UUID? = nil) {
+        guard let cmd = command(ref) else { return }
+        Task { @MainActor in
+            let choice = await DialogCenter.shared.ask(DialogRequest(
+                kind: .nameConflict, title: "Rename terminal", subtitle: "The name shows in the sidebar and pane bar. It stays on this Mac.",
+                buttons: [DialogButton(label: "Cancel", kbd: "esc", value: 0), DialogButton(label: "Rename", kbd: "↩", style: .primary, value: 1)],
+                inputs: [DialogInput(label: "Name", value: cmd.name)], window: window))
+            let name = DialogCenter.shared.inputValues.first?.trimmingCharacters(in: .whitespaces) ?? ""
+            guard choice == 1, !name.isEmpty else { return }
+            try? engine.renameTerminal(project: ref.project, address: ref.address, name: name)
+            refreshProjects()
+        }
+    }
+
+    /// Turn a terminal into a configured command in its group. Returns via `onDone`.
+    func saveTerminalAsCommand(_ ref: CommandRef, window: UUID? = nil, onDone: @escaping (CommandRef) -> Void = { _ in }) {
+        guard let cmd = command(ref), let project = project(ref.project) else { return }
+        let group = cmd.groupId.flatMap { g in project.groups.first { $0.id == g } }
+        let dest = group?.from != nil ? "\(group!.from!.abbreviatingHome)/.switchboard/commands.yaml" : "this project's config"
+        Task { @MainActor in
+            let choice = await DialogCenter.shared.ask(DialogRequest(
+                kind: .nameConflict, title: "Save as command",
+                subtitle: "Adds a command to \(group?.name ?? "the project") in \(dest) and closes this terminal.",
+                buttons: [DialogButton(label: "Cancel", kbd: "esc", value: 0), DialogButton(label: "Save", kbd: "↩", style: .primary, value: 1)],
+                inputs: [DialogInput(label: "Name", placeholder: "dev", value: cmd.name == "Terminal" ? "" : cmd.name),
+                         DialogInput(label: "Command", placeholder: "npm run dev", mono: true)],
+                window: window))
+            let v = DialogCenter.shared.inputValues
+            guard choice == 1, v.count == 2 else { return }
+            let name = v[0].trimmingCharacters(in: .whitespaces), run = v[1].trimmingCharacters(in: .whitespaces)
+            guard !name.isEmpty, !run.isEmpty else { return }
+            do {
+                let address = try engine.promoteTerminal(project: ref.project, address: ref.address, id: name, name: name, run: run)
+                refreshProjects()
+                onDone(CommandRef(project: ref.project, address: address))
+            } catch {
+                _ = await DialogCenter.shared.ask(DialogRequest(
+                    kind: .invalidFolder, title: "Could not save the command", subtitle: error.readableMessage,
+                    buttons: [DialogButton(label: "OK", kbd: "↩", style: .primary, value: 0)], window: window))
+            }
         }
     }
 

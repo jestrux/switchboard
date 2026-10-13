@@ -492,7 +492,7 @@ struct PaneBody: View {
         let command = store.command(ref)
         VStack(spacing: 0) {
             if ownedHere {
-                let showCard = (state.status == .stopped && state.pid == nil && !TerminalRegistry.shared.hasStarted(ref)) || state.status == .error
+                let showCard = (state.status == .stopped && state.pid == nil && !TerminalRegistry.shared.hasStarted(ref) && command?.isTerminal != true) || state.status == .error
                 ZStack(alignment: .top) {
                     p.terminal
                     TerminalContainer(ref: ref, look: look) { context.setFocus(leaf.id) }
@@ -512,7 +512,11 @@ struct PaneBody: View {
                 PaneFooter(ref: ref, state: state, command: command, tier: tier)
             }
         }
-        .onAppear { store.claim(ref, pane: leaf.id, window: context, token: token) }
+        .onAppear {
+            store.claim(ref, pane: leaf.id, window: context, token: token)
+            // A terminal restored from a previous run starts its shell when first shown.
+            if command?.isTerminal == true, state.status == .stopped, state.pid == nil { store.start(ref) }
+        }
         .onDisappear { store.release(ref, token: token) }
         .onChange(of: store.paneOwners[ref]) { _, owner in
             if owner == nil { store.claim(ref, pane: leaf.id, window: context, token: token) }
@@ -733,9 +737,25 @@ struct EmptyPane: View {
                     .padding(.top, 6)
                 }
                 .frame(maxHeight: 240)
-                if tier != .min {
-                    Text("↩ to show · or drag a command from the sidebar").font(SBType.secondary).foregroundStyle(p.text4).padding(.top, 8)
+                HStack(spacing: 8) {
+                    Menu {
+                        ForEach(context.projects(in: store).filter(\.isValid), id: \.slug) { proj in
+                            Section(proj.name) {
+                                Button("At the project root") { openTerminal(proj.slug, nil) }
+                                ForEach(proj.groups, id: \.id) { g in
+                                    Button(g.name) { openTerminal(proj.slug, g.id) }
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("New Terminal", systemImage: "terminal").font(SBType.secondary)
+                    }
+                    .menuStyle(.borderlessButton).fixedSize()
+                    if tier != .min {
+                        Text("↩ to show · or drag a command from the sidebar").font(SBType.secondary).foregroundStyle(p.text4)
+                    }
                 }
+                .padding(.top, 8)
             }
             .padding(14)
             .frame(width: min(420, max(240, 420)))
@@ -747,6 +767,10 @@ struct EmptyPane: View {
         .background(p.terminal)
         .onAppear { if context.focusedPane == leaf.id { filterFocused = true } }
         .onChange(of: context.focusedPane) { _, f in if f != leaf.id { filterFocused = false } }
+    }
+
+    private func openTerminal(_ project: String, _ group: String?) {
+        if let ref = store.newTerminal(project: project, group: group) { context.show(ref, in: leaf.id) }
     }
 
     private func pick(_ i: Int) {

@@ -13,8 +13,18 @@ struct DialogRequest: Identifiable {
     /// Left-aligned secondary action (e.g. Reveal in Finder).
     var alt: DialogButton? = nil
     var buttons: [DialogButton]
+    /// Text fields shown above the buttons; values come back in `DialogCenter.inputValues`.
+    var inputs: [DialogInput] = []
     /// Window that should present it; nil = the main window.
     var window: UUID? = nil
+}
+
+struct DialogInput: Identifiable {
+    let id = UUID()
+    let label: String
+    var placeholder: String = ""
+    var value: String = ""
+    var mono = false
 }
 
 struct DialogFact: Identifiable {
@@ -24,6 +34,8 @@ struct DialogFact: Identifiable {
     var detail: String? = nil
     var tint: DialogTint = .normal
     var mono = false
+    /// Tint only the icon; keep the text in the normal colour.
+    var iconOnlyTint = false
 }
 
 enum DialogTint { case normal, error, crashed, running }
@@ -43,6 +55,8 @@ struct DialogButton: Identifiable {
 final class DialogCenter: ObservableObject {
     static let shared = DialogCenter()
     @Published var current: DialogRequest?
+    /// What the user typed into the last dialog's inputs, in order.
+    var inputValues: [String] = []
     private var continuation: CheckedContinuation<Int, Never>?
 
     func ask(_ request: DialogRequest) async -> Int {
@@ -64,6 +78,20 @@ struct DialogCardView: View {
     let answer: (Int) -> Void
     @Environment(\.sbTheme) private var theme
     @Environment(\.colorScheme) private var scheme
+    @State private var values: [String]
+    @FocusState private var focusedInput: Int?
+
+    init(request: DialogRequest, answer: @escaping (Int) -> Void) {
+        self.request = request
+        self.answer = { _ in }
+        _values = State(initialValue: request.inputs.map(\.value))
+        self.rawAnswer = answer
+    }
+    private let rawAnswer: (Int) -> Void
+    private func finish(_ value: Int) {
+        DialogCenter.shared.inputValues = values
+        rawAnswer(value)
+    }
 
     var body: some View {
         let p = theme.palette(scheme)
@@ -85,7 +113,7 @@ struct DialogCardView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(f.text)
                                     .font(f.mono ? SBType.meta : SBType.secondary)
-                                    .foregroundStyle(f.tint == .normal ? p.text : tint(f.tint, p))
+                                    .foregroundStyle(f.tint == .normal || f.iconOnlyTint ? p.text : tint(f.tint, p))
                                 if let d = f.detail {
                                     Text(d).font(SBType.secondary).foregroundStyle(p.text3)
                                 }
@@ -103,6 +131,25 @@ struct DialogCardView: View {
                 Text(note).font(SBType.secondary).foregroundStyle(p.text3).padding(.top, 10)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            if !request.inputs.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(Array(request.inputs.enumerated()), id: \.offset) { i, input in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(input.label).font(.system(size: 11, weight: .medium)).foregroundStyle(p.text3)
+                            TextField(input.placeholder, text: $values[i])
+                                .textFieldStyle(.plain)
+                                .font(input.mono ? .system(size: 12.5, design: .monospaced) : SBType.body)
+                                .foregroundStyle(p.text)
+                                .focused($focusedInput, equals: i)
+                                .padding(.horizontal, 10).frame(height: 30)
+                                .background(p.sidebar, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                                .hairline(focusedInput == i ? p.accent : p.line, radius: 7)
+                        }
+                    }
+                }
+                .padding(.top, 14)
+                .onAppear { focusedInput = 0 }
+            }
             HStack(spacing: 8) {
                 if let alt = request.alt { dialogButton(alt, p) }
                 Spacer()
@@ -116,9 +163,9 @@ struct DialogCardView: View {
         .hairline(p.line, radius: SBMetrics.dialogRadius)
         .background {
             // Esc = cancel (first non-destructive secondary), Return = the primary / default button.
-            Button("") { answer(request.buttons.first { $0.style == .secondary || $0.style == .defaultSecondary }?.value ?? -1) }
+            Button("") { finish(request.buttons.first { $0.style == .secondary || $0.style == .defaultSecondary }?.value ?? -1) }
                 .keyboardShortcut(.cancelAction).hidden()
-            Button("") { answer(request.buttons.first { $0.style == .primary || $0.style == .defaultSecondary }?.value ?? -1) }
+            Button("") { finish(request.buttons.first { $0.style == .primary || $0.style == .defaultSecondary }?.value ?? -1) }
                 .keyboardShortcut(.defaultAction).hidden()
         }
     }
@@ -137,7 +184,7 @@ struct DialogCardView: View {
             case .secondary: return (p.button, p.text, p.buttonLine)
             }
         }()
-        return Button { answer(b.value) } label: {
+        return Button { finish(b.value) } label: {
             HStack(spacing: 6) {
                 Text(b.label).font(.system(size: 12, weight: b.style == .primary || b.style == .danger ? .semibold : .regular))
                 if !b.kbd.isEmpty { Text(b.kbd).font(.system(size: 10)).opacity(0.6) }

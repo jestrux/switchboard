@@ -324,6 +324,26 @@ impl ProjectSeed {
 pub fn discover_seeds(folder: &Path) -> Vec<SeedCandidate> {
     let mut found: Vec<SeedCandidate> = Vec::new();
     let mut queue = vec![folder.to_path_buf()];
+    // A member folder without its own seed: look one level around it for a sibling repo
+    // whose seed lists this folder.
+    if !ProjectSeed::path_in(folder).is_file() {
+        if let (Ok(me), Some(parent)) = (folder.canonicalize(), folder.canonicalize().ok().and_then(|p| p.parent().map(Path::to_path_buf))) {
+            if let Ok(entries) = std::fs::read_dir(&parent) {
+                for entry in entries.flatten() {
+                    let sibling = entry.path();
+                    if sibling == me || !ProjectSeed::path_in(&sibling).is_file() {
+                        continue;
+                    }
+                    if let Ok(seed) = ProjectSeed::load(&sibling) {
+                        let lists_me = seed.members(&sibling).iter().any(|(_, p, _)| p.canonicalize().ok().as_deref() == Some(me.as_path()));
+                        if lists_me {
+                            queue.push(sibling);
+                        }
+                    }
+                }
+            }
+        }
+    }
     let mut seen = std::collections::HashSet::new();
     while let Some(dir) = queue.pop() {
         let Ok(canon) = dir.canonicalize() else { continue };
