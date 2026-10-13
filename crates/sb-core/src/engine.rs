@@ -112,6 +112,7 @@ struct State {
 
 pub struct Engine {
     projects_dir: PathBuf,
+    pidfile_path: PathBuf,
     state: Mutex<State>,
     listeners: Mutex<Vec<(u64, Listener)>>,
     next_listener: Mutex<u64>,
@@ -124,8 +125,10 @@ impl Engine {
     pub fn new(projects_dir: impl Into<PathBuf>) -> Arc<Engine> {
         let projects_dir = projects_dir.into();
         let projects = project::load_projects(&projects_dir);
+        let pidfile_path = project::app_support_dir().join(pidfile::FILE_NAME);
         let engine = Arc::new(Engine {
             projects_dir,
+            pidfile_path,
             state: Mutex::new(State {
                 projects,
                 sessions: HashMap::new(),
@@ -661,11 +664,9 @@ impl Engine {
         let _ = pidfile::write(&self.pidfile_path(), &entries);
     }
 
-    fn pidfile_path(&self) -> PathBuf {
-        self.projects_dir
-            .parent()
-            .map(|p| p.join(pidfile::FILE_NAME))
-            .unwrap_or_else(|| self.projects_dir.join(pidfile::FILE_NAME))
+    /// `sessions.json` in the app support folder (shared by the app and the CLI).
+    pub fn pidfile_path(&self) -> PathBuf {
+        self.pidfile_path.clone()
     }
 
     /// Sessions recorded by a previous run whose process groups are still alive.

@@ -8,3 +8,4 @@ app/Generated
 xcuserdata/
 .build/
 DerivedData/
+sessions.json

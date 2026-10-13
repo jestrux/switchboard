@@ -78,10 +78,7 @@ fn list(projects_dir: &Path) -> Result<i32> {
         println!("No projects in {}", projects_dir.display());
         return Ok(0);
     }
-    let pidfile_path = projects_dir
-        .parent()
-        .map(|p| p.join(pidfile::FILE_NAME))
-        .unwrap_or_default();
+    let pidfile_path = project::app_support_dir().join(pidfile::FILE_NAME);
     let live: HashMap<(String, String), u32> = pidfile::alive(&pidfile::read(&pidfile_path))
         .into_iter()
         .map(|e| ((e.project, e.address), e.pid))
