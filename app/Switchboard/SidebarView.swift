@@ -4,16 +4,18 @@ import UniformTypeIdentifiers
 /// Projects → groups → commands, with status dots and hover actions. Accepts dropped folders.
 struct SidebarView: View {
     @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
     @State private var dropTargeted = false
     @State private var collapsedProjects: Set<String> = []
     @State private var collapsedGroups: Set<String> = []
 
     var body: some View {
-        List(selection: $store.selection) {
-            if store.projects.isEmpty {
+        let projects = context.projects(in: store)
+        List(selection: $context.selection) {
+            if projects.isEmpty {
                 emptyState
             }
-            ForEach(store.projects, id: \.slug) { project in
+            ForEach(projects, id: \.slug) { project in
                 if let error = project.error {
                     ProjectErrorRow(project: project, error: error)
                 } else {
@@ -32,13 +34,13 @@ struct SidebarView: View {
             }
         }
         .dropDestination(for: URL.self) { urls, _ in
+            guard context.scope == .all else { return false }
             var added = false
             for url in urls where url.isFileURL {
                 if store.addProject(from: url) { added = true }
             }
             return added
-        } isTargeted: { dropTargeted = $0 }
-        .onChange(of: store.selection) { _, _ in store.persistSelection() }
+        } isTargeted: { dropTargeted = $0 && context.scope == .all }
     }
 
     private var emptyState: some View {
@@ -89,6 +91,8 @@ struct SidebarView: View {
 
 struct ProjectRow: View {
     @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @Environment(\.openWindow) private var openWindow
     let project: ProjectInfo
     @State private var hovering = false
 
@@ -128,6 +132,9 @@ struct ProjectRow: View {
         Button("Stop All") { store.stopAll(project: project.slug) }
         Button("Restart All") { store.restartAll(project: project.slug) }
         Divider()
+        if context.scope == .all {
+            Button("Open in New Window") { openWindow(id: "project", value: project.slug) }
+        }
         Button("Edit Config") { store.editConfig(project.slug) }
         Button("Reveal in Finder") { store.revealInFinder(project.slug) }
         Divider()

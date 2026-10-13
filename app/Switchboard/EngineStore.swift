@@ -11,9 +11,13 @@ final class EngineStore: ObservableObject {
     let engine: Engine
     @Published private(set) var projects: [ProjectInfo] = []
     @Published private(set) var states: [CommandRef: CommandState] = [:]
-    @Published var selection: CommandRef?
     /// Last known terminal title per command (OSC 0/2), shown in the footer.
     @Published var terminalTitles: [CommandRef: String] = [:]
+    /// Which window currently shows each command's terminal. A terminal view can only be
+    /// in one window at a time; selecting it elsewhere moves it there.
+    @Published private(set) var paneOwners: [CommandRef: UUID] = [:]
+    private var windowNames: [UUID: String] = [:]
+    private var offeredLeftovers = false
 
     private var listener: Listener?
     private var subscription: UInt64 = 0
@@ -25,7 +29,30 @@ final class EngineStore: ObservableObject {
         subscription = engine.subscribe(listener: listener)
         refreshProjects()
         do { try engine.watch() } catch { NSLog("watch failed: \(error)") }
-        restoreSelection()
+    }
+
+    // MARK: - Pane ownership (one terminal view per command, one window at a time)
+
+    func registerWindow(_ context: WindowContext) {
+        windowNames[context.id] = context.title(store: self)
+    }
+
+    func claim(_ ref: CommandRef, for context: WindowContext) {
+        windowNames[context.id] = context.title(store: self)
+        if paneOwners[ref] != context.id { paneOwners[ref] = context.id }
+    }
+
+    func release(_ ref: CommandRef, from context: WindowContext) {
+        if paneOwners[ref] == context.id { paneOwners[ref] = nil }
+    }
+
+    func releaseAll(from context: WindowContext) {
+        paneOwners = paneOwners.filter { $0.value != context.id }
+        windowNames[context.id] = nil
+    }
+
+    func ownerName(of ref: CommandRef) -> String? {
+        paneOwners[ref].flatMap { windowNames[$0] }
     }
 
     // MARK: - Lookups
@@ -54,9 +81,6 @@ final class EngineStore: ObservableObject {
             }
         }
         states = merged
-        if let sel = selection, command(sel) == nil {
-            selection = nil
-        }
     }
 
     // MARK: - Actions
@@ -184,9 +208,7 @@ final class EngineStore: ObservableObject {
         do {
             let slug = try engine.install(source: source, conflict: policy)
             refreshProjects()
-            if let p = project(slug), let first = p.allCommands.first {
-                selection = CommandRef(project: slug, address: first.address)
-            }
+            lastInstalled = slug
             return true
         } catch {
             let alert = NSAlert()
@@ -197,6 +219,9 @@ final class EngineStore: ObservableObject {
             return false
         }
     }
+
+    /// Slug of the most recently added project, so the adding window can select it.
+    @Published var lastInstalled: String?
 
     /// Debug helper: copy `samples/kinpay` from this repo into the Projects directory.
     func installSampleProject() {
@@ -209,6 +234,8 @@ final class EngineStore: ObservableObject {
     // MARK: - Leftovers
 
     func offerToKillLeftovers() {
+        guard !offeredLeftovers else { return }
+        offeredLeftovers = true
         let leftovers = engine.leftoverSessions()
         guard !leftovers.isEmpty else { return }
         let alert = NSAlert()
@@ -219,24 +246,6 @@ final class EngineStore: ObservableObject {
         alert.addButton(withTitle: "Leave Running")
         if alert.runModal() == .alertFirstButtonReturn {
             _ = engine.killLeftovers()
-        }
-    }
-
-    // MARK: - Selection persistence
-
-    private func restoreSelection() {
-        if let data = UserDefaults.standard.data(forKey: "selection"),
-           let ref = try? JSONDecoder().decode(CommandRef.self, from: data),
-           command(ref) != nil {
-            selection = ref
-        } else if let p = projects.first(where: \.isValid), let c = p.allCommands.first {
-            selection = CommandRef(project: p.slug, address: c.address)
-        }
-    }
-
-    func persistSelection() {
-        if let selection, let data = try? JSONEncoder().encode(selection) {
-            UserDefaults.standard.set(data, forKey: "selection")
         }
     }
 

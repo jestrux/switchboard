@@ -81,5 +81,9 @@ What the app does:
 - **Terminals**: each command has its own SwiftTerm pane kept alive while hidden, so
   switching back shows scrollback and the alternate screen intact. Interactive programs
   (`claude`, `vim`, `htop`) work; Option is Meta.
+- **Windows**: right-click a project (or Project > Open in New Window, ⌥⌘N) to give it
+  its own window showing only that project, with its own selection. A command's terminal
+  lives in one window at a time; selecting it elsewhere moves it there and the previous
+  window offers "Show Here" to take it back. ⌘0 brings back the all-projects window.
 - **Quit** stops every session (SIGINT → SIGTERM → SIGKILL per process group) before
   exiting. On the next launch, sessions left behind by a crash are offered for cleanup.

@@ -72,6 +72,12 @@ final class TerminalRegistry {
         return host
     }
 
+    /// Has this command been started at least once this session?
+    func hasStarted(_ ref: CommandRef) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        return started.contains(ref)
+    }
+
     @MainActor
     func existingHost(for ref: CommandRef) -> TerminalHost? {
         lock.lock(); defer { lock.unlock() }

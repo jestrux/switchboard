@@ -4,27 +4,50 @@ import SwiftTerm
 /// The main area: the selected command's terminal plus a footer with its vitals.
 struct TerminalPane: View {
     @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
     let ref: CommandRef
+
+    private var ownedHere: Bool { store.paneOwners[ref] == context.id }
 
     var body: some View {
         let state = store.state(ref)
         let command = store.command(ref)
         VStack(spacing: 0) {
-            if !state.isAlive && state.status == .stopped {
-                idleBanner(command: command)
+            if ownedHere {
+                if !state.isAlive && state.status == .stopped {
+                    idleBanner(command: command)
+                }
+                TerminalContainer(ref: ref)
+            } else {
+                shownElsewhere(command: command)
             }
-            TerminalContainer(ref: ref)
             Divider()
             PaneFooter(ref: ref, command: command, state: state)
         }
         .navigationTitle(command?.displayName ?? ref.address)
         .navigationSubtitle(store.project(ref.project)?.name ?? ref.project)
+        // Selecting a command moves its terminal into this window.
+        .onAppear { store.claim(ref, for: context) }
+        .onDisappear { store.release(ref, from: context) }
+    }
+
+    /// The terminal view can only be in one window; this window lost it to another.
+    private func shownElsewhere(command: CommandInfo?) -> some View {
+        ContentUnavailableView {
+            Label(command?.displayName ?? ref.address, systemImage: "macwindow.on.rectangle")
+        } description: {
+            Text("Showing in the \(store.ownerName(of: ref) ?? "other") window.")
+        } actions: {
+            Button("Show Here") { store.claim(ref, for: context) }
+                .keyboardShortcut(.return, modifiers: [.command])
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     /// Shown over an empty terminal for a command that has never run this session.
     @ViewBuilder
     private func idleBanner(command: CommandInfo?) -> some View {
-        if TerminalRegistry.shared.existingHost(for: ref) == nil, let command {
+        if !TerminalRegistry.shared.hasStarted(ref), let command {
             HStack(spacing: 10) {
                 Image(systemName: "terminal")
                     .foregroundStyle(.secondary)
