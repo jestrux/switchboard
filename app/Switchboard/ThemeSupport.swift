@@ -9,14 +9,12 @@ enum ThemeSettings {
 }
 
 /// The look a window renders with: theme plus a resolved colour scheme.
-struct WindowLook: Equatable {
-    var themeID: SBThemeID
+struct WindowLook {
+    var theme: SBTheme
     var appearance: SBAppearance
     /// True when the project's config pinned the theme, false when the global setting applies.
     var pinnedTheme: Bool
     var pinnedAppearance: Bool
-
-    var theme: SBTheme { themeID.theme }
 }
 
 extension SBThemeID {

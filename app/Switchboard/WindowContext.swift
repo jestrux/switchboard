@@ -167,9 +167,15 @@ final class WindowContext: ObservableObject, Identifiable {
 
     /// Project-pinned theme/appearance apply only in that project's own window.
     func resolveLook(store: EngineStore, themeID: SBThemeID, appearance: SBAppearance) -> WindowLook {
-        var look = WindowLook(themeID: themeID, appearance: appearance, pinnedTheme: false, pinnedAppearance: false)
+        var look = WindowLook(theme: themeID.theme, appearance: appearance, pinnedTheme: false, pinnedAppearance: false)
         if case .project(let slug) = scope, let p = store.project(slug) {
-            if let t = SBThemeID.fromConfig(p.theme) { look.themeID = t; look.pinnedTheme = true }
+            if let custom = CustomThemeSpec.parse(p.themeCustom) {
+                look.theme = custom.resolve(baseFallback: themeID)
+                look.pinnedTheme = true
+            } else if let t = SBThemeID.fromConfig(p.theme) {
+                look.theme = t.theme
+                look.pinnedTheme = true
+            }
             if let a = SBAppearance.fromConfig(p.appearance) { look.appearance = a; look.pinnedAppearance = true }
         }
         return look

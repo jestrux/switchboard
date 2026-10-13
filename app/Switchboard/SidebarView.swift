@@ -85,7 +85,7 @@ struct SidebarView: View {
     @ViewBuilder
     private func rows(_ projects: [ProjectInfo]) -> some View {
         if projects.isEmpty, context.scope == .all {
-            EmptySidebar()
+            if store.projects.isEmpty { EmptySidebar() } else { AllExtractedSidebar() }
         } else if useRail {
             if let project = projects.first(where: { $0.slug == context.railProject }) ?? projects.first {
                 if let error = project.error {
@@ -676,7 +676,7 @@ struct SidebarFoot: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "macwindow.on.rectangle").font(.system(size: 11))
-                        Text("\(away.count) project\(away.count == 1 ? "" : "s") in its own window").font(SBType.secondary)
+                        Text(away.count == 1 ? "1 project in its own window" : "\(away.count) projects in their own windows").font(SBType.secondary)
                         Spacer()
                         Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
                     }
@@ -703,6 +703,19 @@ struct SidebarFoot: View {
         }
         .background(p.sidebar)
         .overlay(alignment: .top) { Rectangle().fill(p.line).frame(height: 1) }
+    }
+}
+
+/// Every project is open in its own window; the pane area explains and offers Bring Back.
+struct AllExtractedSidebar: View {
+    @Environment(\.sbPalette) private var p
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Board is clear").font(.system(size: 13, weight: .semibold)).foregroundStyle(p.text)
+            Text("Every project is in its own window. Close one, or bring it back, to see it here.")
+                .font(SBType.secondary).foregroundStyle(p.text3).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(12)
     }
 }
 

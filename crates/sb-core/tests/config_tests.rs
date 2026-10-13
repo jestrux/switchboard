@@ -267,11 +267,37 @@ fn broken_project_folder_still_loads_with_an_error() {
 fn theme_and_appearance_overrides_are_validated() {
     let ok = ProjectConfig::from_yaml("version: 1\nname: X\ntheme: patch-bay\nappearance: dark\ncommands:\n  - {id: a, run: a}\n").unwrap();
     ok.validate().unwrap();
-    assert_eq!(ok.theme.as_deref(), Some("patch-bay"));
+    assert_eq!(ok.theme.as_ref().map(|t| t.base()), Some("patch-bay"));
     let bad = ProjectConfig::from_yaml("version: 1\nname: X\ntheme: neon\nappearance: auto\n").unwrap();
     let Err(ConfigError::Invalid(errors)) = bad.validate() else { panic!() };
     assert!(errors[0].contains("theme must be one of graphite, patch-bay, paper"), "{errors:?}");
     assert!(errors[1].contains("appearance must be one of system, light, dark"), "{errors:?}");
     let yaml = ok.to_yaml().unwrap();
     assert!(yaml.contains("theme: patch-bay") && yaml.contains("appearance: dark"));
+}
+
+#[test]
+fn custom_themes_inherit_a_base_and_validate_tokens() {
+    use sb_core::config::ThemeSpec;
+    let cfg = ProjectConfig::from_yaml(
+        "version: 1\nname: X\ntheme:\n  name: Mine\n  base: paper\n  dark:\n    accent: \"#F7AD3F\"\n    ansi: [\"#000000\",\"#111111\",\"#222222\",\"#333333\",\"#444444\",\"#555555\",\"#666666\",\"#777777\",\"#888888\",\"#999999\",\"#AAAAAA\",\"#BBBBBB\",\"#CCCCCC\",\"#DDDDDD\",\"#EEEEEE\",\"#FFFFFF\"]\n  light:\n    accent: \"#981C1E\"\n",
+    ).unwrap();
+    cfg.validate().unwrap();
+    let Some(ThemeSpec::Custom(c)) = &cfg.theme else { panic!("custom") };
+    assert_eq!(c.base.as_deref(), Some("paper"));
+    assert_eq!(cfg.theme.as_ref().unwrap().base(), "paper");
+
+    let bad = ProjectConfig::from_yaml(
+        "version: 1\nname: X\ntheme:\n  base: neon\n  dark:\n    accent: red\n    glitter: \"#FFFFFF\"\n    ansi: [\"#000000\"]\n",
+    ).unwrap();
+    let Err(ConfigError::Invalid(errors)) = bad.validate() else { panic!() };
+    let joined = errors.join("\n");
+    assert!(joined.contains("theme must be one of"), "{joined}");
+    assert!(joined.contains("theme.dark.accent must be a \"#RRGGBB\" colour"), "{joined}");
+    assert!(joined.contains("theme.dark.glitter is not a theme token"), "{joined}");
+    assert!(joined.contains("theme.dark.ansi must be a list of 16 colours"), "{joined}");
+    // A custom theme without a base inherits Graphite.
+    let plain = ProjectConfig::from_yaml("version: 1\nname: X\ntheme:\n  light:\n    accent: \"#112233\"\n").unwrap();
+    plain.validate().unwrap();
+    assert_eq!(plain.theme.as_ref().unwrap().base(), "graphite");
 }

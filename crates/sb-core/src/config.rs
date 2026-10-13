@@ -15,10 +15,11 @@ pub struct ProjectConfig {
     pub icon: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
-    /// Look for this project's own window: `graphite`, `patch-bay` or `paper`.
-    /// The main board keeps the app-wide setting.
+    /// Look for this project's own window: a built-in name (`graphite`, `patch-bay`,
+    /// `paper`) or a custom theme with token overrides. The main board keeps the
+    /// app-wide setting.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub theme: Option<String>,
+    pub theme: Option<ThemeSpec>,
     /// `system`, `light` or `dark`, for this project's own window.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub appearance: Option<String>,
@@ -178,9 +179,7 @@ impl ProjectConfig {
             }
         }
         if let Some(t) = &self.theme {
-            if !THEMES.contains(&t.as_str()) {
-                errors.push(format!("theme must be one of {} (found {t:?})", THEMES.join(", ")));
-            }
+            validate_theme(t, &mut errors);
         }
         if let Some(a) = &self.appearance {
             if !APPEARANCES.contains(&a.as_str()) {
@@ -244,6 +243,87 @@ impl ProjectConfig {
 
 /// Theme ids a project may pin for its own window.
 pub const THEMES: [&str; 3] = ["graphite", "patch-bay", "paper"];
+
+/// Palette tokens a custom theme may override (plus `ansi`, a list of 16 colours).
+pub const THEME_TOKENS: [&str; 32] = [
+    "window", "rail", "sidebar", "line", "pane", "header", "terminal", "terminalText",
+    "terminalDim", "text", "text2", "text3", "text4", "hover", "selection", "selectionText",
+    "accent", "onAccent", "accentSoft", "accentSoftText", "button", "buttonLine",
+    "running", "runningSoft", "starting", "startingSoft", "crashed", "crashedSoft",
+    "error", "errorSoft", "stopped", "stoppedSoft",
+];
+
+/// `theme: patch-bay` or a custom block.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(untagged)]
+pub enum ThemeSpec {
+    Name(String),
+    Custom(CustomTheme),
+}
+
+impl ThemeSpec {
+    /// The built-in theme this resolves to or inherits from.
+    pub fn base(&self) -> &str {
+        match self {
+            ThemeSpec::Name(n) => n,
+            ThemeSpec::Custom(c) => c.base.as_deref().unwrap_or("graphite"),
+        }
+    }
+}
+
+/// A custom theme: a base to inherit from plus per-scheme token overrides.
+///
+/// ```yaml
+/// theme:
+///   name: CityBuild
+///   base: graphite
+///   dark:
+///     accent: "#F7AD3F"
+///     ansi: ["#2B2830", "#C4393C", …]   # 16 colours
+///   light:
+///     accent: "#981C1E"
+/// ```
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct CustomTheme {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub base: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dark: Option<BTreeMap<String, serde_yaml::Value>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub light: Option<BTreeMap<String, serde_yaml::Value>>,
+}
+
+fn validate_theme(spec: &ThemeSpec, errors: &mut Vec<String>) {
+    let base = spec.base();
+    if !THEMES.contains(&base) {
+        errors.push(format!("theme must be one of {} (found {base:?})", THEMES.join(", ")));
+    }
+    if let ThemeSpec::Custom(c) = spec {
+        for (scheme, tokens) in [("dark", &c.dark), ("light", &c.light)] {
+            let Some(tokens) = tokens else { continue };
+            for (key, value) in tokens {
+                if key == "ansi" {
+                    match value.as_sequence() {
+                        Some(list) if list.len() == 16 => {
+                            for (i, v) in list.iter().enumerate() {
+                                if !v.as_str().map(is_hex_color).unwrap_or(false) {
+                                    errors.push(format!("theme.{scheme}.ansi[{i}] must be a \"#RRGGBB\" colour"));
+                                }
+                            }
+                        }
+                        _ => errors.push(format!("theme.{scheme}.ansi must be a list of 16 colours")),
+                    }
+                } else if !THEME_TOKENS.contains(&key.as_str()) {
+                    errors.push(format!("theme.{scheme}.{key} is not a theme token"));
+                } else if !value.as_str().map(is_hex_color).unwrap_or(false) {
+                    errors.push(format!("theme.{scheme}.{key} must be a \"#RRGGBB\" colour"));
+                }
+            }
+        }
+    }
+}
 /// Appearance values a project may pin for its own window.
 pub const APPEARANCES: [&str; 3] = ["system", "light", "dark"];
 

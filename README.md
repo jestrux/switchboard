@@ -89,8 +89,13 @@ What the app does:
   palette, and an Appearance control (System · Light · Dark). A project can pin its own look
   for its own window with `theme: patch-bay` and `appearance: dark` in `config.yaml`
   (values: `graphite` · `patch-bay` · `paper`, `system` · `light` · `dark`); the board keeps
-  the global setting. The Project rail setting switches between a rail of project tiles
-  with one project in the sidebar and a full tree.
+  the global setting. A project can also define a **custom theme**: a `theme:` block with
+  an optional `name`, a `base` built-in to inherit from, and `dark:` / `light:` maps of
+  token overrides (`accent`, `window`, `sidebar`, `terminal`, `running`, … plus `ansi`, a
+  list of 16 colours). Unknown tokens and non-`#RRGGBB` values are config errors.
+  `samples/citybuild` and `samples/kinpay` carry palettes lifted from those products'
+  CSS variables. The Project rail setting switches between a rail of project tiles with
+  one project in the sidebar and a full tree.
 - **Split panes**: Pane > Split Right (⌘D) or Split Down (⇧⌘D) shows up to four
   terminals in one window, each with a header that picks its command (or pick from the
   sidebar: selection always targets the focused pane). Drag the divider to resize, ⌘]

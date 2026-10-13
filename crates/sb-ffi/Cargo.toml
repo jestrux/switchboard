@@ -13,3 +13,4 @@ name = "sb_ffi"
 sb-core.workspace = true
 uniffi.workspace = true
 thiserror.workspace = true
+serde_json.workspace = true

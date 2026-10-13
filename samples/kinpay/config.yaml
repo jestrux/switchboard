@@ -2,6 +2,82 @@ version: 1
 name: Kinpay
 icon: icon.png
 
+theme:
+  name: Kinpay
+  base: graphite
+  # From kinpay/app and kinpay/dashboard app.css: purple primary, lime/emerald/gold accents.
+  dark:
+    window: "#0E0818"
+    rail: "#0E0818"
+    sidebar: "#120A1E"
+    line: "#2E1F47"
+    pane: "#150C24"
+    header: "#150C24"
+    terminal: "#0E0818"
+    terminalText: "#EDE6FF"
+    terminalDim: "#8B77A8"
+    text: "#F0EAFF"
+    text2: "#B8A9D6"
+    text3: "#8B77A8"
+    text4: "#4A3A66"
+    hover: "#1E1430"
+    selection: "#261A3A"
+    selectionText: "#FFFFFF"
+    accent: "#B47BF0"
+    onAccent: "#120A1E"
+    accentSoft: "#2E1F47"
+    accentSoftText: "#C9A2F7"
+    button: "#1E1430"
+    buttonLine: "#2E1F47"
+    running: "#34D399"
+    runningSoft: "#0F2E22"
+    starting: "#FCD34D"
+    startingSoft: "#332A10"
+    crashed: "#F87171"
+    crashedSoft: "#3A1B1B"
+    error: "#FB923C"
+    errorSoft: "#2E1D10"
+    stopped: "#5A4A78"
+    stoppedSoft: "#2E1F47"
+    ansi: ["#2E1F47", "#F87171", "#34D399", "#FCD34D", "#818CF8", "#B47BF0", "#5EEAF6", "#D9D0EA",
+           "#5A4A78", "#FCA5A5", "#6EE7B7", "#FDE68A", "#A5B4FC", "#C9A2F7", "#99F6FF", "#FFFFFF"]
+  light:
+    window: "#FAF8FF"
+    rail: "#FAF8FF"
+    sidebar: "#FFFFFF"
+    line: "#E4DAF5"
+    pane: "#FFFFFF"
+    header: "#FFFFFF"
+    terminal: "#FDFCFF"
+    terminalText: "#1A0F2E"
+    terminalDim: "#9580B3"
+    text: "#1A0F2E"
+    text2: "#5B4A7A"
+    text3: "#9580B3"
+    text4: "#C9BCE0"
+    hover: "#F2EFFE"
+    selection: "#EDE4FD"
+    selectionText: "#1A0F2E"
+    accent: "#9742E7"
+    onAccent: "#FFFFFF"
+    accentSoft: "#F2EFFE"
+    accentSoftText: "#7732E8"
+    button: "#FFFFFF"
+    buttonLine: "#E4DAF5"
+    running: "#10B981"
+    runningSoft: "#DCF5EC"
+    starting: "#B8860B"
+    startingSoft: "#FBF1D6"
+    crashed: "#E5484D"
+    crashedSoft: "#FDE2E2"
+    error: "#C9580B"
+    errorSoft: "#FDEEE2"
+    stopped: "#B3A5CC"
+    stoppedSoft: "#E4DAF5"
+    ansi: ["#1A0F2E", "#E5484D", "#0E9F6E", "#B8860B", "#4F46E5", "#9742E7", "#0891B2", "#E4DAF5",
+           "#6B5B8A", "#F87171", "#10B981", "#D4AF37", "#818CF8", "#B47BF0", "#06B6D4", "#FAF8FF"]
+appearance: system
+
 groups:
   - id: frontend
     name: Frontend

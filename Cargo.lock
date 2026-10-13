@@ -828,6 +828,7 @@ name = "sb-ffi"
 version = "0.1.0"
 dependencies = [
  "sb-core",
+ "serde_json",
  "thiserror 2.0.21",
  "uniffi",
 ]

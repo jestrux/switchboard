@@ -4,6 +4,82 @@ icon: icon.png
 color: "#1F63C6"
 
 # Ungrouped commands run from the repo root.
+theme:
+  name: CityBuild
+  base: graphite
+  # From citybuild/frontend/app/app.css: landing ink + crimson/gold, app dark surfaces.
+  dark:
+    window: "#141118"
+    rail: "#141118"
+    sidebar: "#1A1720"
+    line: "#2B2731"
+    pane: "#1A1720"
+    header: "#1A1720"
+    terminal: "#111016"
+    terminalText: "#E8E4E0"
+    terminalDim: "#7A7580"
+    text: "#F0ECE8"
+    text2: "#B8B3BD"
+    text3: "#8C8790"
+    text4: "#4E4A56"
+    hover: "#221F2B"
+    selection: "#2A2432"
+    selectionText: "#FFFFFF"
+    accent: "#F7AD3F"
+    onAccent: "#1A1208"
+    accentSoft: "#3A2E14"
+    accentSoftText: "#F7C56A"
+    button: "#252230"
+    buttonLine: "#353140"
+    running: "#4ADE80"
+    runningSoft: "#163022"
+    starting: "#F7AD3F"
+    startingSoft: "#3A2E14"
+    crashed: "#EF5A5A"
+    crashedSoft: "#3A1B1E"
+    error: "#FF8A3D"
+    errorSoft: "#2E1D10"
+    stopped: "#5A5560"
+    stoppedSoft: "#2E2A36"
+    ansi: ["#2B2830", "#C4393C", "#4ADE80", "#F7AD3F", "#7FA7D9", "#C792EA", "#5FD7E8", "#D6D2D8",
+           "#4E4A56", "#E85C5F", "#6EE7A0", "#FFC56B", "#A3C2E8", "#DDB3F5", "#8AE6F2", "#FFFFFF"]
+  light:
+    window: "#F7F5F2"
+    rail: "#F7F5F2"
+    sidebar: "#FBFAF8"
+    line: "#E5E7EB"
+    pane: "#FFFFFF"
+    header: "#FFFFFF"
+    terminal: "#FDFCFB"
+    terminalText: "#1A1A1A"
+    terminalDim: "#8A8F98"
+    text: "#141118"
+    text2: "#4B4F58"
+    text3: "#6B7280"
+    text4: "#B5B8BF"
+    hover: "#EFEDE9"
+    selection: "#FBEAEA"
+    selectionText: "#141118"
+    accent: "#981C1E"
+    onAccent: "#FFFFFF"
+    accentSoft: "#F8E3E3"
+    accentSoftText: "#981C1E"
+    button: "#FFFFFF"
+    buttonLine: "#E5E7EB"
+    running: "#16A34A"
+    runningSoft: "#DCFCE7"
+    starting: "#B45309"
+    startingSoft: "#FBEFD9"
+    crashed: "#DC2626"
+    crashedSoft: "#FDE2E2"
+    error: "#C9580B"
+    errorSoft: "#FDEEE2"
+    stopped: "#A8ADB6"
+    stoppedSoft: "#E5E7EB"
+    ansi: ["#1A1A1A", "#DC2626", "#16A34A", "#B45309", "#2F64A8", "#8E44AD", "#0E8399", "#D9DCE1",
+           "#5F646D", "#E5484D", "#18A058", "#C98A0B", "#4A6CF7", "#A660C8", "#12A3BD", "#F7F5F2"]
+appearance: system
+
 commands:
   - id: claude
     name: Claude Code

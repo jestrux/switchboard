@@ -111,8 +111,10 @@ pub struct ProjectInfo {
     pub config_path: String,
     pub icon_path: Option<String>,
     pub color: Option<String>,
-    /// Per-project look for its own window (`graphite`, `patch-bay`, `paper`), if pinned.
+    /// Base theme for its own window (`graphite`, `patch-bay`, `paper`), if pinned.
     pub theme: Option<String>,
+    /// Custom theme as JSON (`{name?, base?, dark?: {token: "#hex"}, light?: {...}}`), if any.
+    pub theme_custom: Option<String>,
     /// `system`, `light` or `dark` for its own window, if pinned.
     pub appearance: Option<String>,
     /// Set when the config does not parse or validate; groups and commands are then empty.
@@ -209,6 +211,7 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
         icon_path: project.icon_path.as_ref().map(|p| p.display().to_string()),
         color: None,
         theme: None,
+        theme_custom: None,
         appearance: None,
         error: None,
         commands: vec![],
@@ -235,7 +238,11 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
                 .collect();
             ProjectInfo {
                 color: cfg.color.clone(),
-                theme: cfg.theme.clone(),
+                theme: cfg.theme.as_ref().map(|t| t.base().to_string()),
+                theme_custom: match &cfg.theme {
+                    Some(sb_core::config::ThemeSpec::Custom(c)) => serde_json::to_string(c).ok(),
+                    _ => None,
+                },
                 appearance: cfg.appearance.clone(),
                 commands,
                 groups,
