@@ -138,3 +138,66 @@ groups:
         name: Ngrok
         run: ngrok http 3000
         autostart: false
+
+  - id: circles-frontend
+    name: Circles Frontend
+    cwd: ~/Documents/web/kinpay-circles/frontend
+    commands:
+      - id: dev
+        name: dev
+        run: npm run dev
+        autostart: false
+
+      - id: storybook
+        name: Storybook
+        run: npm run storybook
+        autostart: false
+
+      - id: typecheck
+        name: typecheck
+        run: npm run typecheck
+        autostart: false
+
+      - id: test
+        name: test
+        run: npm run test
+        autostart: false
+
+  - id: circles-backend
+    name: Circles Backend
+    cwd: ~/Documents/web/kinpay-circles/backend
+    commands:
+      - id: dev
+        name: make:dev
+        run: make dev
+        autostart: false
+        restart_on_crash: true
+
+      - id: migrate
+        name: make:migrate
+        run: make migrate
+        autostart: false
+
+      - id: seed
+        name: make:seed
+        run: make seed
+        autostart: false
+
+      - id: test
+        name: make:test
+        run: make test
+        autostart: false
+
+  - id: circles-e2e
+    name: Circles E2E
+    cwd: ~/Documents/web/kinpay-circles/journeys-e2e
+    commands:
+      - id: journeys
+        name: Journeys
+        run: bun run e2e
+        autostart: false
+
+      - id: check-stack
+        name: Check stack
+        run: ./start.sh
+        autostart: false
