@@ -1,0 +1,81 @@
+version: 1
+name: CityBuild
+icon: icon.png
+color: "#1F63C6"
+
+# Ungrouped commands run from the repo root.
+commands:
+  - id: claude
+    name: Claude Code
+    run: claude
+    cwd: ~/Documents/web/citybuild
+    autostart: false
+
+groups:
+  - id: frontend
+    name: Frontend
+    cwd: ~/Documents/web/citybuild/frontend
+    commands:
+      - id: dev
+        name: dev
+        run: npm run dev
+        autostart: true
+
+      - id: storybook
+        name: Storybook
+        run: npm run storybook
+        autostart: false
+
+      - id: typecheck
+        name: typecheck
+        run: npm run typecheck
+        autostart: false
+
+      - id: test
+        name: test
+        run: npm run test
+        autostart: false
+
+  - id: backend
+    name: Backend
+    cwd: ~/Documents/web/citybuild/backend
+    commands:
+      - id: dev
+        name: make:dev
+        run: make dev
+        autostart: true
+        restart_on_crash: true
+
+      - id: migrate
+        name: make:migrate
+        run: make migrate
+        autostart: false
+
+      - id: seed
+        name: make:seed
+        run: make seed
+        autostart: false
+
+      - id: test
+        name: make:test
+        run: make test
+        autostart: false
+
+  - id: e2e
+    name: E2E
+    cwd: ~/Documents/web/citybuild/e2e
+    commands:
+      - id: flows
+        name: Flows
+        run: bun run e2e
+        autostart: false
+
+      - id: stripe-verify
+        name: Stripe verify
+        run: bun run scripts/stripe-verify.ts
+        autostart: false
+
+      - id: session
+        name: Dev session (seeded)
+        run: ./start.sh --user --bids
+        autostart: false

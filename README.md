@@ -10,6 +10,7 @@ crates/sb-cli       `sb` command-line front end
 crates/sb-ffi       UniFFI bridge used by the Mac app
 app/                SwiftUI app (Switchboard.app)
 samples/kinpay      Reference project (config.yaml + icon.png)
+samples/citybuild   Second sample: frontend + backend + e2e across three folders
 ```
 
 Projects live in `~/Library/Application Support/Switchboard/Projects/<slug>/config.yaml`.
