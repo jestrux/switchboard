@@ -72,7 +72,8 @@ description: Starting and stopping commands, what each status means, and what ha
 
 - **What:** Switchboard remembers which commands and terminals were running. At the next
   launch it asks "Start the command that was running?" and lists them. Start It starts
-  each one fresh. Not Now starts nothing and drops the offer.
+  each one fresh. Not Now starts nothing and drops the offer. Start It is ⌘Return, not
+  Return, so a stray keypress at launch cannot start anything. Esc is Not Now.
 - **Reach it:** Automatic at launch, after the leftovers prompt when there is one. It also
   covers a crash, since the list is kept up to date while commands run.
 - **State:** `runningAtQuit` in the app's `defaults`, as `project<tab>address` entries.

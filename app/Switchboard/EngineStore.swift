@@ -623,7 +623,7 @@ final class EngineStore: ObservableObject {
             facts: facts,
             note: "Each one starts fresh. A session inside a command, such as a Claude conversation, does not come back by itself.",
             buttons: [DialogButton(label: "Not Now", value: 0),
-                      DialogButton(label: n == 1 ? "Start It" : "Start Them", kbd: "↩", style: .primary, value: 1)]))
+                      DialogButton(label: n == 1 ? "Start It" : "Start Them", kbd: "⌘↩", style: .primary, value: 1)]))
         if choice == 1 { refs.forEach(start) }
     }
 

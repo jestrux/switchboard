@@ -166,7 +166,8 @@ struct DialogCardView: View {
             Button("") { finish(request.buttons.first { $0.style == .secondary || $0.style == .defaultSecondary }?.value ?? -1) }
                 .keyboardShortcut(.cancelAction).hidden()
             Button("") { finish(request.buttons.first { $0.style == .primary || $0.style == .defaultSecondary }?.value ?? -1) }
-                .keyboardShortcut(.defaultAction).hidden()
+                // The launch prompt can take focus mid-typing, so a bare Return must not answer it.
+                .keyboardShortcut(.return, modifiers: request.kind == .runAgain ? [.command] : []).hidden()
         }
     }
 
