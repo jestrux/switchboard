@@ -106,6 +106,22 @@ final class EngineStore: ObservableObject {
         states[ref] ?? .idle
     }
 
+    /// Groups the user has opened, as `project/group`. Groups start collapsed. This is
+    /// per-device state like the sidebar width, so it never goes into a project's YAML.
+    @Published private(set) var expandedGroups: Set<String> =
+        Set(UserDefaults.standard.stringArray(forKey: "expandedGroups") ?? [])
+
+    func isGroupExpanded(project: String, group: String) -> Bool {
+        expandedGroups.contains("\(project)/\(group)")
+    }
+
+    func setGroup(project: String, group: String, expanded: Bool) {
+        let key = "\(project)/\(group)"
+        guard expandedGroups.contains(key) != expanded else { return }
+        if expanded { expandedGroups.insert(key) } else { expandedGroups.remove(key) }
+        UserDefaults.standard.set(expandedGroups.sorted(), forKey: "expandedGroups")
+    }
+
     /// The user's rail order (slugs). Projects not listed yet follow, alphabetically.
     private var projectOrder: [String] = UserDefaults.standard.stringArray(forKey: "projectOrder") ?? []
 

@@ -11,7 +11,6 @@ struct SidebarView: View {
     @AppStorage(ThemeSettings.railKey) private var railOn = true
     @State private var dropTargeted = false
     @State private var collapsedProjects: Set<String> = []
-    @State private var collapsedGroups: Set<String> = []
 
     private var look: Look { Look(theme: theme, scheme: scheme) }
     private var useRail: Bool { context.scope == .all && railOn }
@@ -59,6 +58,14 @@ struct SidebarView: View {
             for url in urls where url.isFileURL { store.addProject(from: url, window: context.id) }
             return !urls.isEmpty
         } isTargeted: { dropTargeted = $0 && context.scope == .all }
+        // Selecting a command from a pane, the menu bar or a new terminal opens its group,
+        // so the selected row is never hidden inside a collapsed one.
+        .onChange(of: context.selection) { _, ref in
+            guard let ref, let project = store.project(ref.project),
+                  let group = project.groups.first(where: { $0.commands.contains { $0.address == ref.address } })
+            else { return }
+            store.setGroup(project: ref.project, group: group.id, expanded: true)
+        }
     }
 
     /// The project whose repo notices show above the foot: the one this sidebar is about.
@@ -158,10 +165,9 @@ struct SidebarView: View {
                 .id("\(project.slug):\(cmd.address)")
         }
         ForEach(project.groups, id: \.id) { group in
-            let key = "\(project.slug)/\(group.id)"
-            let collapsed = collapsedGroups.contains(key)
+            let collapsed = !store.isGroupExpanded(project: project.slug, group: group.id)
             GroupRow(project: project.slug, group: group, collapsed: collapsed, indent: indent) {
-                if collapsed { collapsedGroups.remove(key) } else { collapsedGroups.insert(key) }
+                store.setGroup(project: project.slug, group: group.id, expanded: collapsed)
             }
             .id("\(project.slug):group:\(group.id)")
             if !collapsed {
@@ -308,7 +314,8 @@ struct BoardProjectHeader: View {
             .font(SBType.secondary)
         }
         .padding(.horizontal, 14)
-        .padding(.top, 44)
+        // The traffic lights sit over the rail, so this column needs no title-bar allowance.
+        .padding(.top, 14)
         .padding(.bottom, 12)
         .contextMenu { ProjectMenu(project: project) }
     }
