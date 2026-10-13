@@ -1,0 +1,14 @@
+[package]
+name = "sb-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "UniFFI bridge for the Switchboard engine"
+
+[lib]
+crate-type = ["staticlib", "cdylib", "lib"]
+name = "sb_ffi"
+
+[dependencies]
+sb-core.workspace = true
+uniffi.workspace = true

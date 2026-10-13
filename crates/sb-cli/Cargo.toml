@@ -1,0 +1,17 @@
+[package]
+name = "sb-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Switchboard command-line front end"
+
+[[bin]]
+name = "sb"
+path = "src/main.rs"
+
+[dependencies]
+sb-core.workspace = true
+clap.workspace = true
+owo-colors.workspace = true
+crossterm.workspace = true
+anyhow.workspace = true

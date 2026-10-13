@@ -1,0 +1,10 @@
+/target
+.DS_Store
+app/build
+app/Switchboard.xcodeproj
+app/Frameworks
+app/Generated
+*.xcuserstate
+xcuserdata/
+.build/
+DerivedData/

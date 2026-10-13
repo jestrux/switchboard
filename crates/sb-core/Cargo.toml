@@ -1,0 +1,21 @@
+[package]
+name = "sb-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Switchboard engine: config, supervisor, PTY sessions"
+
+[dependencies]
+serde.workspace = true
+serde_yaml.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+portable-pty.workspace = true
+vt100.workspace = true
+notify.workspace = true
+nix.workspace = true
+libc.workspace = true
+dirs.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

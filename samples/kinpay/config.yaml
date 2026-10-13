@@ -1,0 +1,64 @@
+version: 1
+name: Kinpay
+icon: icon.png
+
+groups:
+  - id: frontend
+    name: Frontend
+    cwd: ~/Documents/web/kinpay
+    commands:
+      - id: dev-app
+        name: dev:app
+        run: yarn dev:app
+        autostart: true
+
+      - id: dev-dashboard
+        name: dev:dashboard
+        run: yarn dev:dashboard
+        autostart: true
+
+      - id: storybook
+        name: Storybook
+        cwd: ~/Documents/web/kinpay/app
+        run: npm run storybook
+        autostart: false
+
+      - id: studio
+        name: Studio
+        cwd: ~/Documents/web/kinpay/frame-studio-simple
+        run: npm run dev
+        autostart: false
+
+  - id: backend
+    name: Backend
+    cwd: ~/Documents/web/kinpay-backend
+    commands:
+      - id: dev
+        name: make:dev
+        run: make dev
+        autostart: true
+        restart_on_crash: true
+
+      - id: migrate
+        name: make:migrate
+        run: make migrate
+        autostart: false
+
+      - id: flush-loans
+        name: make:flush-loans
+        run: make flush-loans
+        autostart: false
+
+  - id: tunnels
+    name: Tunnels
+    cwd: ~/Documents/web/kinpay
+    commands:
+      - id: tunnel
+        name: Tunnel
+        run: python3 tunnel.py
+        autostart: false
+
+      - id: ngrok
+        name: Ngrok
+        run: ngrok http 3000
+        autostart: false
