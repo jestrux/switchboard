@@ -621,6 +621,9 @@ struct CommandRow: View {
                     .background(p.accentSoft, in: Capsule())
             }
             Spacer(minLength: 4)
+            if live, let port = state.port {
+                PortLink(port: port, url: state.url, selected: selected)
+            }
             if hovering {
                 HStack(spacing: 2) {
                     if live {
@@ -716,11 +719,8 @@ struct MetaText: View {
         let p = theme.palette(scheme)
         switch state.status {
         case .running:
-            if let s = state.startedAt {
-                TimelineView(.periodic(from: .now, by: 1)) { ctx in
-                    Text(Fmt.uptime(since: s, now: ctx.date)).font(SBType.meta).monospacedDigit().foregroundStyle(p.text3)
-                }
-            }
+            // The port (drawn by the row) is the useful thing here; uptime lives in the pane footer.
+            EmptyView()
         case .starting:
             Text("starting").font(SBType.meta).foregroundStyle(p.starting)
         case .exited:
@@ -739,6 +739,29 @@ struct MetaText: View {
         case .stopped:
             if !command.cwdExists { Text("no folder").font(SBType.meta).foregroundStyle(p.error) }
         }
+    }
+}
+
+/// `:3006`, the port a running command announced. Click to open it in the browser.
+struct PortLink: View {
+    @Environment(\.sbPalette) private var p
+    let port: UInt16
+    let url: String?
+    var selected = false
+    @State private var hovering = false
+
+    var body: some View {
+        Button {
+            if let url { LinkHandling.open(url) }
+        } label: {
+            Text(verbatim: ":\(port)")
+                .font(SBType.meta)
+                .foregroundStyle(hovering ? p.accentSoftText : (selected ? p.selectionText.opacity(0.75) : p.text3))
+                .underline(hovering)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .help(url.map { "Open \($0)" } ?? "Port \(port)")
     }
 }
 

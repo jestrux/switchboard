@@ -238,3 +238,19 @@ fn input_reaches_the_process_and_resize_is_accepted() {
     engine.stop_everything_blocking();
     assert!(engine.write_input(&key, b"x").is_err());
 }
+
+#[test]
+fn announced_port_is_reported_while_running_and_cleared_on_exit() {
+    let tmp = tempfile::tempdir().unwrap();
+    let projects = tmp.path().join("Projects");
+    write_project(&projects, "demo", "version: 1\nname: Demo\ncommands:\n  - id: web\n    run: \"echo '> vite --port 1234'; sleep 0.3; printf '  Local:   http://localhost:5179/\\n'; sleep 600\"\n");
+    let engine = Engine::new(&projects);
+    let key = CommandKey::new("demo", "web");
+    engine.start(&key).unwrap();
+    let st = wait_for(&engine, &key, |s| s.port.is_some(), Duration::from_secs(10));
+    assert_eq!(st.port, Some(5179), "the announced port, not the --port flag");
+    assert_eq!(st.url.as_deref(), Some("http://localhost:5179"));
+    engine.stop_blocking(&key);
+    let st = wait_for(&engine, &key, |s| !s.is_alive(), Duration::from_secs(10));
+    assert_eq!(st.port, None);
+}

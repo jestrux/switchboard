@@ -100,8 +100,8 @@ struct ShellPreview: View {
             VStack(alignment: .leading, spacing: 1) {
                 row("Claude Code", status: .stopped, meta: "", indent: 0)
                 group("Frontend")
-                row("dev", status: .running, meta: "1:59", indent: 22, selected: true)
-                row("Storybook", status: .running, meta: "12:40", indent: 22)
+                row("dev", status: .running, meta: ":3006", indent: 22, selected: true)
+                row("Storybook", status: .running, meta: ":6006", indent: 22)
                 row("typecheck", status: .exited, meta: "exit 0", indent: 22)
                 row("test", status: .stopped, meta: "", indent: 22)
                 group("Backend")
@@ -176,7 +176,8 @@ struct ShellPreview: View {
                 (Text("Frontend / ").foregroundStyle(p.text3) + Text("dev").foregroundStyle(p.text))
                     .font(.system(size: 13, weight: .semibold))
                 Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold)).foregroundStyle(p.text3)
-                Text("Running · 1:59").font(SBType.secondary).foregroundStyle(p.text3)
+                Text("Running").font(SBType.secondary).foregroundStyle(p.text3)
+                Text(":3006").font(SBType.meta).foregroundStyle(p.text3)
                 Spacer()
                 ForEach(["stop.fill", "arrow.clockwise", "rectangle.split.2x1", "arrow.up.left.and.arrow.down.right", "xmark"], id: \.self) { i in
                     Image(systemName: i).font(.system(size: 10, weight: .semibold)).foregroundStyle(p.text2).frame(width: 24, height: 24)

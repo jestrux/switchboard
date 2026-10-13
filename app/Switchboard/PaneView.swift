@@ -253,7 +253,7 @@ struct PaneBar: View {
         let look = Look(theme: theme, scheme: scheme)
         let p = look.p
         let ref = leaf.ref
-        let state = ref.map(store.state) ?? CommandState(status: .stopped, pid: nil, exitCode: nil, signal: nil, startedAt: nil, endedAt: nil, message: nil, needsRestart: false, restartAt: nil)
+        let state = ref.map(store.state) ?? CommandState(status: .stopped, pid: nil, exitCode: nil, signal: nil, startedAt: nil, endedAt: nil, message: nil, needsRestart: false, restartAt: nil, port: nil, url: nil)
         let cmd = ref.flatMap(store.command)
         let fg = focused || hovering ? p.text : p.text3
         HStack(spacing: 8) {
@@ -291,11 +291,14 @@ struct PaneBar: View {
                     .help("Maximized: ⌘⇧↩ restores the split")
             }
             if tier != .min, ref != nil {
-                TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    Text(statusText(state, cmd: cmd, full: tier == .full))
-                        .font(SBType.secondary)
-                        .foregroundStyle(statusColour(state, p))
-                        .lineLimit(1)
+                // Only a pending restart counts down; everything else is static text.
+                if state.restartAt != nil {
+                    TimelineView(.periodic(from: .now, by: 1)) { _ in statusLabel(state, cmd: cmd, p: p) }
+                } else {
+                    statusLabel(state, cmd: cmd, p: p)
+                }
+                if state.isAlive, let port = state.port {
+                    PortLink(port: port, url: state.url)
                 }
             }
             Spacer(minLength: 4)
@@ -341,11 +344,17 @@ struct PaneBar: View {
         .background(bg, in: Capsule())
     }
 
+    private func statusLabel(_ state: CommandState, cmd: CommandInfo?, p: SBPalette) -> some View {
+        Text(statusText(state, cmd: cmd, full: tier == .full))
+            .font(SBType.secondary)
+            .foregroundStyle(statusColour(state, p))
+            .lineLimit(1)
+    }
+
     private func statusText(_ s: CommandState, cmd: CommandInfo?, full: Bool) -> String {
         switch s.status {
         case .running:
-            let up = s.startedAt.map { Fmt.uptime(since: $0) } ?? ""
-            return full ? "Running · \(up)" : up
+            return full ? "Running" : ""
         case .starting: return full ? "Starting" : "starting"
         case .exited: return full ? "Done · exit 0" : "✓ exit 0"
         case .crashed:
@@ -620,7 +629,8 @@ struct PaneFooter: View {
     let tier: PaneTier
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { ctx in
+        // Uptime is the only thing here that changes by itself, so tick only while alive.
+        TimelineView(.periodic(from: .now, by: state.isAlive ? 1 : 3600)) { ctx in
             HStack(spacing: 14) {
                 if tier == .full, state.status != .error {
                     Text(Fmt.shortFolder(command?.cwd)).foregroundStyle(p.text3).lineLimit(1).truncationMode(.middle)
@@ -797,7 +807,7 @@ struct EmptyPane: View {
 enum MetaLabel {
     static func short(_ s: CommandState) -> String {
         switch s.status {
-        case .running: return s.startedAt.map { Fmt.uptime(since: $0) } ?? "running"
+        case .running: return s.port.map { ":\($0)" } ?? "running"
         case .starting: return "starting"
         case .exited: return "done"
         case .crashed: return "crashed"

@@ -38,6 +38,10 @@ pub struct CommandState {
     pub needs_restart: bool,
     /// When a crash restart is scheduled (backoff), the moment it will fire.
     pub restart_at: Option<SystemTime>,
+    /// Port the running program announced it is listening on, if it printed one.
+    pub port: Option<u16>,
+    /// URL to open for that port.
+    pub url: Option<String>,
 }
 
 impl Default for CommandState {
@@ -52,6 +56,8 @@ impl Default for CommandState {
             message: None,
             needs_restart: false,
             restart_at: None,
+            port: None,
+            url: None,
         }
     }
 }
@@ -908,6 +914,9 @@ impl Engine {
             };
             s.ended_at = Some(SystemTime::now());
             s.needs_restart = false;
+            // Nothing is listening once the process is gone.
+            s.port = None;
+            s.url = None;
             s.message = if gave_up {
                 Some("gave up after 5 crashes in 2 minutes".to_string())
             } else {
@@ -1004,6 +1013,17 @@ impl SessionObserver for Observer {
     fn on_exit(&self, key: &CommandKey, exit: Exit) {
         if let Some(e) = self.engine.upgrade() {
             e.on_exit(key, exit);
+        }
+    }
+    fn on_listening(&self, key: &CommandKey, listening: crate::ports::Listening) {
+        if let Some(e) = self.engine.upgrade() {
+            // Only while the session is alive; a late line must not revive a stopped row.
+            if e.state_of(key).is_alive() {
+                e.set_state(key, |s| {
+                    s.port = Some(listening.port);
+                    s.url = Some(listening.url.clone());
+                });
+            }
         }
     }
 }

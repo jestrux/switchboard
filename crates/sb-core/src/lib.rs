@@ -7,6 +7,7 @@ pub mod engine;
 pub mod fragment;
 pub mod icons;
 pub mod pidfile;
+pub mod ports;
 pub mod project;
 pub mod session;
 pub mod solo;

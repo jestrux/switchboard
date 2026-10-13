@@ -108,6 +108,8 @@ pub trait SessionObserver: Send + Sync {
     /// The process produced output or has been alive long enough to count as running.
     fn on_running(&self, key: &CommandKey);
     fn on_exit(&self, key: &CommandKey, exit: Exit);
+    /// The program announced the address it is listening on.
+    fn on_listening(&self, _key: &CommandKey, _listening: crate::ports::Listening) {}
 }
 
 pub struct Session {
@@ -216,11 +218,15 @@ impl Session {
             .name(format!("sb-read {key}"))
             .spawn(move || {
                 let mut buf = [0u8; 16 * 1024];
+                let mut ports = crate::ports::Scanner::default();
                 loop {
                     match reader.read(&mut buf) {
                         Ok(0) | Err(_) => break,
                         Ok(n) => {
                             let chunk = &buf[..n];
+                            if let Some(listening) = ports.feed(chunk) {
+                                s.observer.on_listening(&s.key, listening);
+                            }
                             {
                                 let mut inner = s.inner.lock().unwrap();
                                 inner.parser.process(chunk);

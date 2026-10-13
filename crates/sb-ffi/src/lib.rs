@@ -50,6 +50,9 @@ pub struct CommandState {
     pub needs_restart: bool,
     /// Seconds since the Unix epoch when a scheduled crash restart fires.
     pub restart_at: Option<f64>,
+    /// Port the program announced it is listening on, and a URL to open.
+    pub port: Option<u16>,
+    pub url: Option<String>,
 }
 
 fn secs(t: Option<SystemTime>) -> Option<f64> {
@@ -68,6 +71,8 @@ impl From<sb_core::CommandState> for CommandState {
             message: s.message,
             needs_restart: s.needs_restart,
             restart_at: secs(s.restart_at),
+            port: s.port,
+            url: s.url,
         }
     }
 }
