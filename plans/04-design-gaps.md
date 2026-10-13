@@ -1,5 +1,7 @@
 # 4. Design handoff gaps
 
+**Status: Ready**, independent of the other items. Next step: dim the refused split button, the smallest item and already backed by `WindowContext.splitRefusal`. Then the divider readout, then directional focus.
+
 The redesign in [`design-handoff/`](design-handoff) is implemented except for the items
 below. `DESIGN.md` is the spec; `HANDOFF.md` has the build order and acceptance criteria;
 the mockups named here are in `design-handoff/mockups/` and need their markup read, not

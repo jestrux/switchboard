@@ -1,5 +1,7 @@
 # 2. Split a project into repo fragments
 
+**Status: Blocked** on how two groups sharing one folder are stored (see the end of this file and [open-questions.md](open-questions.md)). Next step: get that answer from the author, then write the preview-and-split engine call against the scratch workspace in the tests.
+
 ## Goal
 
 Turn a project whose commands are written inline in `config.yaml` into one that composes

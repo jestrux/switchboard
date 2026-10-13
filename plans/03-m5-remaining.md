@@ -1,5 +1,7 @@
 # 3. Remaining M5 features
 
+**Status: partly Ready.** Next step: the find bar, which depends on nothing else. Start by reading what SwiftTerm's search API exposes publicly. Quick add waits on item 1's engine calls. Ask the author whether Export is still wanted before building it.
+
 From [`handoff/PRD.md`](../handoff/PRD.md) milestone M5. Split panes and crash-leftover
 cleanup are done. These are not.
 

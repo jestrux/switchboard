@@ -1,5 +1,7 @@
 # 5. Release
 
+**Status: Ready when the author wants to distribute.** Next step: confirm with the author whether a paid Apple Developer account and a Developer ID certificate exist. Nothing else here can start without them.
+
 ## State today
 
 - Debug builds, signed with an **Apple Development** certificate by `scripts/build-app.sh`.

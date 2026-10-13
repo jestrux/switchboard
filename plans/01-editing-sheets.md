@@ -1,5 +1,7 @@
 # 1. Editing sheets (PRD milestone M4)
 
+**Status: Next.** Next step: write the engine calls (`add_command`, `update_command`, `delete_command`, and the group equivalents) in `crates/sb-core/src/engine.rs` with tests in `tests/fragment_tests.rs`, following `promote_terminal`. Ask the author the design question under Open points before building any sheet UI.
+
 ## Goal
 
 Create and edit projects, groups and commands in the app. Today every change means opening

@@ -8,6 +8,33 @@ Read first: [`CLAUDE.md`](CLAUDE.md) and [`docs/agent-guide.md`](docs/agent-guid
 how to work here, then [`plans/decisions.md`](plans/decisions.md) for choices already made
 that are not obvious from the code.
 
+## Start here
+
+**Next step:** item 1, step 1. Add the engine calls for adding, updating and deleting
+commands and groups, with tests, and expose them through `sb-ffi`
+([details](plans/01-editing-sheets.md#suggested-order)). Everything in items 1 to 3 that
+writes a config depends on them.
+
+Two questions to put to the author before going far, because they change the work:
+
+- Should the editing sheets get a design pass from Claude Design, or follow the existing
+  dialog card?
+- How should two groups that share one folder be stored as repo fragments? This blocks
+  item 2.
+
+Status key: **Next** is the item to pick up now, **Ready** can start any time,
+**Blocked** waits on the thing named.
+
+| # | Item | Status |
+|---|---|---|
+| 1 | Editing sheets | **Next** |
+| 2 | Split into repo fragments | Blocked on the shared-folder question |
+| 3 | Remaining M5 features | Find bar and menu bar extra are Ready; quick add waits on item 1; export needs a yes from the author |
+| 4 | Design handoff gaps | Ready, independent of the rest |
+| 5 | Release | Ready when the author wants to distribute |
+
+Update this table and the "Next step" line in each plan file as work lands.
+
 ## In order
 
 1. **[Editing sheets](plans/01-editing-sheets.md)**: create and edit projects, groups and

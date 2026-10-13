@@ -1,5 +1,7 @@
 # Open questions
 
+**Next step:** put the two questions marked as blocking to the author: two groups in one folder, and whether the editing sheets need a design module.
+
 Product decisions not yet made. Ask the author rather than guessing.
 
 ## From the PRD
