@@ -23,6 +23,10 @@ pub struct ProjectConfig {
     /// `system`, `light` or `dark`, for this project's own window.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub appearance: Option<String>,
+    /// The repo folder whose `.switchboard/project.yaml` mirrors this config (write-back).
+    /// Relative `from:` paths resolve against its parent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub home: Option<String>,
     /// Ungrouped commands, shown above the groups.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub commands: Vec<CommandConfig>,
@@ -39,6 +43,12 @@ pub struct GroupConfig {
     pub name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cwd: Option<String>,
+    /// A repo folder whose `.switchboard/commands.yaml` supplies this group's commands.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from: Option<String>,
+    /// Per-command tweaks over the fragment's commands, by command id.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub overrides: BTreeMap<String, crate::fragment::CommandOverride>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub commands: Vec<CommandConfig>,
     #[serde(flatten)]
@@ -61,6 +71,10 @@ pub struct CommandConfig {
     /// `None` means "not set", which defaults to `false`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub restart_on_crash: Option<bool>,
+    /// An ad-hoc terminal (interactive login shell) rather than a configured command.
+    /// Never read from or written to YAML.
+    #[serde(skip)]
+    pub terminal: bool,
     #[serde(flatten)]
     pub extra: Mapping,
 }
@@ -109,6 +123,8 @@ pub struct ResolvedCommand {
     pub env: BTreeMap<String, String>,
     pub autostart: bool,
     pub restart_on_crash: bool,
+    /// Interactive shell session (ad-hoc terminal) instead of `$SHELL -lc run`.
+    pub terminal: bool,
 }
 
 impl ResolvedCommand {
@@ -119,6 +135,12 @@ impl ResolvedCommand {
             .or_else(|| group.and_then(|g| g.cwd.clone()));
         let name = cmd.display_name().to_string();
         let (address, display_name, group_ref) = match group {
+            // Terminals carry their own `@terminal/<id>` address regardless of group.
+            Some(_) if cmd.terminal => (
+                cmd.id.clone(),
+                format!("{} / {}", group.unwrap().display_name(), name),
+                group.map(|g| GroupRef { id: g.id.clone(), name: g.display_name().to_string() }),
+            ),
             Some(g) => (
                 format!("{}/{}", g.id, cmd.id),
                 format!("{} / {}", g.display_name(), name),
@@ -141,6 +163,7 @@ impl ResolvedCommand {
             env: cmd.env.clone(),
             autostart: cmd.autostart(),
             restart_on_crash: cmd.restart_on_crash(),
+            terminal: cmd.terminal,
         }
     }
 }

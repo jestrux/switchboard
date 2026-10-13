@@ -116,6 +116,8 @@ struct State {
 pub struct Engine {
     projects_dir: PathBuf,
     pidfile_path: PathBuf,
+    /// Last project.yaml we wrote per slug, to tell local edits from repo changes.
+    last_written: Mutex<HashMap<String, crate::fragment::ProjectSeed>>,
     state: Mutex<State>,
     listeners: Mutex<Vec<(u64, Listener)>>,
     next_listener: Mutex<u64>,
@@ -127,11 +129,12 @@ impl Engine {
     /// Create an engine over `projects_dir` and load its projects. Starts nothing.
     pub fn new(projects_dir: impl Into<PathBuf>) -> Arc<Engine> {
         let projects_dir = projects_dir.into();
-        let projects = project::load_projects(&projects_dir);
+        let projects = Vec::new();
         let pidfile_path = project::app_support_dir().join(pidfile::FILE_NAME);
         let engine = Arc::new(Engine {
             projects_dir,
             pidfile_path,
+            last_written: Mutex::new(HashMap::new()),
             state: Mutex::new(State {
                 projects,
                 sessions: HashMap::new(),
@@ -147,6 +150,7 @@ impl Engine {
             self_ref: Mutex::new(Weak::new()),
         });
         *engine.self_ref.lock().unwrap() = Arc::downgrade(&engine);
+        engine.reload();
         engine
     }
 
@@ -196,7 +200,9 @@ impl Engine {
 
     /// Re-read the Projects directory. Never touches running sessions.
     pub fn reload(&self) {
-        let projects = project::load_projects(&self.projects_dir);
+        let mut projects = project::load_projects(&self.projects_dir);
+        self.sync_seeds(&mut projects);
+        self.watch_sources(&projects);
         let changed_keys: Vec<(CommandKey, CommandState)>;
         {
             let mut st = self.state.lock().unwrap();
@@ -229,7 +235,8 @@ impl Engine {
         }
     }
 
-    /// Start watching the Projects directory; edits reload within about a second.
+    /// Start watching the Projects directory (and every project's fragment and seed
+    /// folders); edits reload within about a second.
     pub fn watch(&self) -> Result<(), String> {
         let me = self.me();
         let weak = Arc::downgrade(&me);
@@ -239,7 +246,207 @@ impl Engine {
             }
         })?;
         *self.watcher.lock().unwrap() = Some(watcher);
+        let projects = self.projects();
+        self.watch_sources(&projects);
         Ok(())
+    }
+
+    /// Watch each project's fragment folders and its home `.switchboard` folder.
+    fn watch_sources(&self, projects: &[Project]) {
+        let mut guard = self.watcher.lock().unwrap();
+        let Some(w) = guard.as_mut() else { return };
+        for p in projects {
+            for src in &p.sources {
+                if let Some(dir) = src.parent() { w.add_path(dir); }
+            }
+            if let Some(home) = p.home() {
+                w.add_path(&home.join(crate::fragment::DOT_DIR));
+            }
+        }
+    }
+
+    // ----- project.yaml write-back ----------------------------------------
+
+    /// Keep each project's repo seed in step with its config, or flag the project when the
+    /// seed changed under us (a pull): if the seed matches what we last wrote, the local
+    /// config wins and is written out; otherwise the repo copy is newer and the user is
+    /// asked before it is applied.
+    fn sync_seeds(&self, projects: &mut [Project]) {
+        use crate::fragment::ProjectSeed;
+        let mut last = self.last_written.lock().unwrap();
+        for p in projects.iter_mut() {
+            let (Ok(cfg), Some(home)) = (&p.config, p.home()) else { continue };
+            let current = ProjectSeed::from_config(cfg, &home);
+            match ProjectSeed::load(&home) {
+                Ok(on_disk) => {
+                    if on_disk.same_settings(&current, &home) {
+                        p.repo_settings_changed = false;
+                    } else {
+                        // Which side changed? What we last wrote decides; without that
+                        // record (fresh launch), the newer file wins.
+                        let local_is_newer = match last.get(&p.slug) {
+                            Some(l) => on_disk.same_settings(l, &home),
+                            None => {
+                                let config_mtime = std::fs::metadata(p.config_path())
+                                    .and_then(|m| m.modified())
+                                    .ok()
+                                    .and_then(|t| t.duration_since(SystemTime::UNIX_EPOCH).ok())
+                                    .map(|d| d.as_secs_f64())
+                                    .unwrap_or(0.0);
+                                config_mtime > on_disk.updated_secs_pub(&crate::fragment::ProjectSeed::path_in(&home))
+                            }
+                        };
+                        if local_is_newer {
+                            let _ = current.save(&home, p.icon_path.as_deref());
+                            p.repo_settings_changed = false;
+                        } else {
+                            p.repo_settings_changed = true;
+                            continue;
+                        }
+                    }
+                }
+                Err(_) => {
+                    let _ = current.save(&home, p.icon_path.as_deref());
+                    p.repo_settings_changed = false;
+                }
+            }
+            last.insert(p.slug.clone(), current);
+        }
+    }
+
+    /// Make `folder` the project's home: set `home:` in config.yaml and write the seed there.
+    pub fn adopt_home(&self, slug: &str, folder: &Path) -> Result<(), EngineError> {
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let mut cfg = p.config.clone().map_err(|_| EngineError::ProjectInvalid(slug.to_string()))?;
+        cfg.home = Some(crate::config::collapse_tilde(folder));
+        p.save_config(&cfg).map_err(|e| EngineError::Spawn(e.to_string()))?;
+        let seed = crate::fragment::ProjectSeed::from_config(&cfg, folder);
+        seed.save(folder, p.icon_path.as_deref()).map_err(|e| EngineError::Spawn(e.to_string()))?;
+        self.last_written.lock().unwrap().insert(slug.to_string(), seed);
+        self.reload();
+        Ok(())
+    }
+
+    /// Replace config.yaml with the repo's project.yaml (after "Settings changed in the repo").
+    pub fn apply_repo_settings(&self, slug: &str) -> Result<(), EngineError> {
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let home = p.home().ok_or_else(|| EngineError::Spawn("project has no home folder".into()))?;
+        let seed = crate::fragment::ProjectSeed::load(&home).map_err(|e| EngineError::Spawn(e.to_string()))?;
+        let cfg = seed.to_config(&home);
+        p.save_config(&cfg).map_err(|e| EngineError::Spawn(e.to_string()))?;
+        let icon = home.join(crate::fragment::DOT_DIR).join(crate::fragment::ICON_FILE);
+        if icon.is_file() {
+            let _ = std::fs::copy(&icon, p.dir.join(project::ICON_FILE));
+        }
+        self.last_written.lock().unwrap().insert(slug.to_string(), seed);
+        self.reload();
+        Ok(())
+    }
+
+    // ----- ad-hoc terminals ------------------------------------------------
+
+    /// Open a new terminal entry in a group (or ungrouped) and start its shell.
+    /// Returns the terminal's address.
+    pub fn add_terminal(&self, slug: &str, group: Option<&str>) -> Result<String, EngineError> {
+        use crate::terminals::{self, TerminalEntry};
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let cfg = p.effective.as_ref().map_err(|_| EngineError::ProjectInvalid(slug.to_string()))?;
+        let cwd = match group {
+            Some(g) => {
+                let gc = cfg.group(g).ok_or_else(|| EngineError::UnknownGroup(g.to_string()))?;
+                gc.cwd.clone()
+            }
+            None => cfg.home.clone(),
+        };
+        let mut entries = p.terminals.clone();
+        let entry = TerminalEntry {
+            id: terminals::new_id(),
+            name: terminals::next_name(&entries, group),
+            group: group.map(str::to_string),
+            cwd,
+        };
+        let address = entry.address();
+        entries.push(entry);
+        terminals::save(&p.dir, &entries).map_err(|e| EngineError::Spawn(e.to_string()))?;
+        self.reload();
+        self.start(&CommandKey::new(slug, &address))?;
+        Ok(address)
+    }
+
+    /// Stop and forget a terminal.
+    pub fn remove_terminal(&self, slug: &str, address: &str) -> Result<(), EngineError> {
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let id = crate::terminals::id_from_address(address).ok_or_else(|| EngineError::UnknownCommand(address.to_string()))?;
+        self.stop_blocking(&CommandKey::new(slug, address));
+        let entries: Vec<_> = p.terminals.iter().filter(|t| t.id != id).cloned().collect();
+        crate::terminals::save(&p.dir, &entries).map_err(|e| EngineError::Spawn(e.to_string()))?;
+        self.reload();
+        Ok(())
+    }
+
+    pub fn rename_terminal(&self, slug: &str, address: &str, name: &str) -> Result<(), EngineError> {
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let id = crate::terminals::id_from_address(address).ok_or_else(|| EngineError::UnknownCommand(address.to_string()))?;
+        let mut entries = p.terminals.clone();
+        let Some(t) = entries.iter_mut().find(|t| t.id == id) else { return Err(EngineError::UnknownCommand(address.to_string())) };
+        t.name = name.trim().to_string();
+        crate::terminals::save(&p.dir, &entries).map_err(|e| EngineError::Spawn(e.to_string()))?;
+        self.reload();
+        Ok(())
+    }
+
+    /// Turn a terminal into a configured command in its group. Writes to the group's
+    /// fragment when the group comes from one, else to config.yaml. The terminal is removed.
+    pub fn promote_terminal(&self, slug: &str, address: &str, command_id: &str, name: &str, run: &str) -> Result<String, EngineError> {
+        use crate::config::CommandConfig;
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let id = crate::terminals::id_from_address(address).ok_or_else(|| EngineError::UnknownCommand(address.to_string()))?;
+        let entry = p.terminals.iter().find(|t| t.id == id).cloned().ok_or_else(|| EngineError::UnknownCommand(address.to_string()))?;
+        let mut cfg = p.config.clone().map_err(|_| EngineError::ProjectInvalid(slug.to_string()))?;
+        let command_id = crate::project::slugify(command_id);
+        let new_cmd = CommandConfig {
+            id: command_id.clone(),
+            name: Some(name.to_string()),
+            run: run.to_string(),
+            cwd: None,
+            env: Default::default(),
+            autostart: Some(false),
+            restart_on_crash: None,
+            terminal: false,
+            extra: Default::default(),
+        };
+        let new_address = match &entry.group {
+            Some(g) => {
+                let base = crate::fragment::from_base(&cfg, &p.dir);
+                let group = cfg.groups.iter_mut().find(|x| &x.id == g).ok_or_else(|| EngineError::UnknownGroup(g.clone()))?;
+                if let Some(from) = group.from.clone() {
+                    let folder = crate::fragment::resolve_folder(&from, &base);
+                    let mut fragment = crate::fragment::Fragment::load(&folder).unwrap_or_default();
+                    if fragment.commands.iter().any(|c| c.id == command_id) {
+                        return Err(EngineError::Spawn(format!("a command with id {command_id:?} already exists in that group")));
+                    }
+                    fragment.commands.push(new_cmd);
+                    fragment.save(&folder).map_err(|e| EngineError::Spawn(e.to_string()))?;
+                } else {
+                    if group.commands.iter().any(|c| c.id == command_id) {
+                        return Err(EngineError::Spawn(format!("a command with id {command_id:?} already exists in that group")));
+                    }
+                    group.commands.push(new_cmd);
+                    p.save_config(&cfg).map_err(|e| EngineError::Spawn(e.to_string()))?;
+                }
+                format!("{g}/{command_id}")
+            }
+            None => {
+                if cfg.commands.iter().any(|c| c.id == command_id) {
+                    return Err(EngineError::Spawn(format!("a command with id {command_id:?} already exists")));
+                }
+                cfg.commands.push(new_cmd);
+                p.save_config(&cfg).map_err(|e| EngineError::Spawn(e.to_string()))?;
+                command_id.clone()
+            }
+        };
+        self.remove_terminal(slug, address)?;
+        Ok(new_address)
     }
 
     pub fn projects(&self) -> Vec<Project> {
@@ -260,7 +467,7 @@ impl Engine {
         projects
             .iter()
             .find(|p| p.slug == key.project)
-            .and_then(|p| p.config.as_ref().ok())
+            .and_then(|p| p.effective.as_ref().ok())
             .and_then(|c| c.resolve(&key.address))
     }
 
@@ -272,7 +479,7 @@ impl Engine {
             .find(|p| p.slug == key.project)
             .ok_or_else(|| EngineError::UnknownProject(key.project.clone()))?;
         let config = project
-            .config
+            .effective
             .as_ref()
             .map_err(|_| EngineError::ProjectInvalid(key.project.clone()))?;
         config
@@ -435,7 +642,7 @@ impl Engine {
             .find(|p| p.slug == project)
             .ok_or_else(|| EngineError::UnknownProject(project.to_string()))?;
         let cfg = p
-            .config
+            .effective
             .as_ref()
             .map_err(|_| EngineError::ProjectInvalid(project.to_string()))?;
         match group {

@@ -4,9 +4,11 @@
 
 pub mod config;
 pub mod engine;
+pub mod fragment;
 pub mod pidfile;
 pub mod project;
 pub mod session;
+pub mod terminals;
 pub mod watcher;
 
 pub use config::{CommandConfig, ConfigError, GroupConfig, ProjectConfig, ResolvedCommand};

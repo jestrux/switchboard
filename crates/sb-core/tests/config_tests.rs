@@ -15,11 +15,12 @@ fn parses_kinpay_sample() {
     assert!(cfg.commands.is_empty());
 
     let group_ids: Vec<&str> = cfg.groups.iter().map(|g| g.id.as_str()).collect();
-    assert_eq!(group_ids, ["frontend", "backend", "tunnels"]);
+    assert_eq!(&group_ids[..3], ["frontend", "backend", "tunnels"]);
+    assert_eq!(&group_ids[3..], ["circles-frontend", "circles-backend", "circles-e2e"]);
 
     let cmds = cfg.resolve_commands();
-    assert_eq!(cmds.len(), 9);
-    let addresses: Vec<&str> = cmds.iter().map(|c| c.address.as_str()).collect();
+    assert_eq!(cmds.len(), 19);
+    let addresses: Vec<&str> = cmds.iter().take(9).map(|c| c.address.as_str()).collect();
     assert_eq!(
         addresses,
         [
@@ -68,7 +69,7 @@ fn parses_kinpay_sample() {
     assert_eq!(ngrok.display_name, "Tunnels / Ngrok");
 
     let autostart: Vec<&str> = cmds.iter().filter(|c| c.autostart).map(|c| c.address.as_str()).collect();
-    assert_eq!(autostart, ["frontend/dev-app", "frontend/dev-dashboard", "backend/dev"]);
+    assert_eq!(autostart, ["frontend/dev-app", "frontend/dev-dashboard", "backend/dev"], "circles groups are opt-in");
 }
 
 #[test]

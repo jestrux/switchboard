@@ -8,7 +8,8 @@ use std::time::Duration;
 const QUIET_PERIOD: Duration = Duration::from_millis(400);
 
 pub struct Watcher {
-    _inner: RecommendedWatcher,
+    inner: RecommendedWatcher,
+    watched: std::sync::Mutex<std::collections::HashSet<std::path::PathBuf>>,
 }
 
 impl Watcher {
@@ -40,6 +41,22 @@ impl Watcher {
             })
             .map_err(|e| e.to_string())?;
 
-        Ok(Watcher { _inner: inner })
+        let mut watched = std::collections::HashSet::new();
+        watched.insert(dir.to_path_buf());
+        Ok(Watcher { inner, watched: std::sync::Mutex::new(watched) })
+    }
+
+    /// Also watch `dir` (non-recursively). Missing or already-watched paths are skipped.
+    pub fn add_path(&mut self, dir: &Path) {
+        if !dir.is_dir() {
+            return;
+        }
+        let mut watched = self.watched.lock().unwrap();
+        if watched.contains(dir) {
+            return;
+        }
+        if self.inner.watch(dir, RecursiveMode::NonRecursive).is_ok() {
+            watched.insert(dir.to_path_buf());
+        }
     }
 }

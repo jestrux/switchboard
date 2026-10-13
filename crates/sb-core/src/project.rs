@@ -30,8 +30,19 @@ pub struct Project {
     /// Folder name; also the stable identifier.
     pub slug: String,
     pub dir: PathBuf,
+    /// The config as written in `config.yaml`.
     pub config: Result<ProjectConfig, ConfigError>,
+    /// The config with `from:` fragments expanded and ad-hoc terminals merged in. This is
+    /// what the engine runs. Same error as `config` when that failed.
+    pub effective: Result<ProjectConfig, ConfigError>,
+    /// Groups whose fragment could not be read (missing folder, bad YAML).
+    pub problems: Vec<crate::fragment::GroupProblem>,
+    /// Fragment files this project reads, for the watcher.
+    pub sources: Vec<PathBuf>,
+    pub terminals: Vec<crate::terminals::TerminalEntry>,
     pub icon_path: Option<PathBuf>,
+    /// The repo's `project.yaml` differs from this config (changed under us, e.g. git pull).
+    pub repo_settings_changed: bool,
 }
 
 impl Project {
@@ -46,8 +57,39 @@ impl Project {
         } else {
             Err(ConfigError::Io(format!("{} is missing", CONFIG_FILE)))
         };
+        let terminals = crate::terminals::load(dir);
+        let (effective, problems, sources) = match &config {
+            Ok(cfg) => {
+                let composed = cfg.compose(dir);
+                let mut eff = composed.config;
+                crate::terminals::merge_into(&mut eff, &terminals);
+                (Ok(eff), composed.problems, composed.sources)
+            }
+            Err(e) => (Err(e.clone()), Vec::new(), Vec::new()),
+        };
         let icon_path = resolve_icon(dir, config.as_ref().ok());
-        Project { slug, dir: dir.to_path_buf(), config, icon_path }
+        Project {
+            slug,
+            dir: dir.to_path_buf(),
+            config,
+            effective,
+            problems,
+            sources,
+            terminals,
+            icon_path,
+            repo_settings_changed: false,
+        }
+    }
+
+    /// The home folder (`home:`), expanded.
+    pub fn home(&self) -> Option<PathBuf> {
+        self.config.as_ref().ok().and_then(|c| c.home.as_deref()).map(crate::config::expand_tilde)
+    }
+
+    /// Write `config.yaml` back (for engine edits: adopt, promote, apply).
+    pub fn save_config(&self, config: &ProjectConfig) -> Result<(), ConfigError> {
+        let yaml = config.to_yaml()?;
+        std::fs::write(self.config_path(), yaml).map_err(|e| ConfigError::Io(e.to_string()))
     }
 
     /// Display name: the config's name, or the folder name when the config is broken.

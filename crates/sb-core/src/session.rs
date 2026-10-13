@@ -153,7 +153,12 @@ impl Session {
 
         let shell = login_shell();
         let mut builder = CommandBuilder::new(&shell);
-        builder.args(["-lc", &cmd.run]);
+        if cmd.terminal {
+            // An interactive login shell: reads the user's rc files, shows a prompt.
+            builder.arg("-l");
+        } else {
+            builder.args(["-lc", &cmd.run]);
+        }
         if let Some(cwd) = &cmd.cwd {
             builder.cwd(cwd);
         } else if let Some(home) = dirs::home_dir() {
