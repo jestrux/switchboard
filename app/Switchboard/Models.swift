@@ -49,6 +49,39 @@ extension ProjectInfo {
     var isValid: Bool { error == nil }
 }
 
+/// A folder a project's commands run in, as a candidate home for its repo settings.
+struct WorkingFolder: Identifiable, Hashable {
+    /// Absolute path.
+    let path: String
+    /// Names of the groups (or commands) that use it, e.g. "Frontend, Tunnels".
+    let label: String
+    var id: String { path }
+}
+
+extension ProjectInfo {
+    /// Distinct folders this project's groups and commands run in that exist on this Mac,
+    /// in sidebar order. Two groups sharing a folder appear once with both names.
+    var workingFolders: [WorkingFolder] {
+        var order: [String] = []
+        var names: [String: [String]] = [:]
+        func add(_ raw: String?, _ name: String) {
+            guard let raw else { return }
+            let path = ((raw as NSString).expandingTildeInPath as NSString).standardizingPath
+            var isDir: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else { return }
+            if names[path] == nil { order.append(path); names[path] = [] }
+            if !names[path]!.contains(name) { names[path]!.append(name) }
+        }
+        for c in commands where !c.isTerminal { add(c.cwd, c.name) }
+        for g in groups {
+            add(g.cwd, g.name)
+            // Commands that override the group's folder.
+            for c in g.commands where !c.isTerminal && c.cwd != g.cwd { add(c.cwd, "\(g.name) / \(c.name)") }
+        }
+        return order.map { WorkingFolder(path: $0, label: names[$0]!.joined(separator: ", ")) }
+    }
+}
+
 extension CommandInfo {
     /// `~`-relative folder for display, or a hint when none is set.
     var folderLabel: String { cwd ?? "~ (no folder set)" }

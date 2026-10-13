@@ -122,8 +122,12 @@ struct SwitchboardApp: App {
                 .disabled(selection == nil)
             Button("Reveal in Finder") { if let s = selection { store.revealInFinder(s.project) } }
                 .disabled(selection == nil)
-            Button("Keep Settings in Repo…") { if let s = selection { store.keepSettingsInRepo(s.project) } }
-                .disabled(selection == nil || selection.flatMap { store.project($0.project)?.home } != nil)
+            if let proj = selection.flatMap({ store.project($0.project) }), proj.home == nil, proj.workingFolders.count > 1 {
+                Menu("Keep Settings in Repo") { HomeFolderMenuItems(project: proj).environmentObject(store) }
+            } else {
+                Button("Keep Settings in Repo…") { if let s = selection { store.keepSettingsInRepo(s.project) } }
+                    .disabled(selection == nil || selection.flatMap { store.project($0.project)?.home } != nil)
+            }
             Divider()
             Button("Reload Projects") { store.engine.reload() }
             Button("Open Projects Folder") {

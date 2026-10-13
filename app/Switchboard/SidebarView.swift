@@ -392,7 +392,11 @@ struct ProjectMenu: View {
         Button("Edit Config") { store.editConfig(project.slug) }
         Button("Reveal in Finder") { store.revealInFinder(project.slug) }
         if project.home == nil {
-            Button("Keep Settings in Repo…") { store.keepSettingsInRepo(project.slug) }
+            if project.workingFolders.count > 1 {
+                Menu("Keep Settings in Repo") { HomeFolderMenuItems(project: project) }
+            } else {
+                Button("Keep Settings in Repo…") { store.keepSettingsInRepo(project.slug) }
+            }
         }
         Divider()
         Button("Delete Project…") { store.deleteProject(project.slug, window: context.id) }
@@ -749,7 +753,7 @@ struct ProjectNotices: View {
                    title: "Keep \(project.name)’s settings in the repo?",
                    detail: Fmt.shortFolder(suggested) + "/.switchboard") {
                 SmallButton(label: "Keep") { store.keepSettingsInRepo(project.slug, folder: suggested) }
-                SmallButton(label: "Choose…") { store.keepSettingsInRepo(project.slug) }
+                HomeFolderChooser(project: project)
                 Button { dismissed = true } label: { Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(p.text3) }
                     .buttonStyle(.plain).help("Not now. Project › Keep Settings in Repo… does this later.")
             }
@@ -770,6 +774,51 @@ struct ProjectNotices: View {
         .padding(10)
         .background(bg, in: RoundedRectangle(cornerRadius: look.s.cardRadius, style: .continuous))
         .padding(.horizontal, 8).padding(.bottom, 8)
+    }
+}
+
+/// "Choose…": the project's own working folders, then Other Folder… for anywhere else.
+/// With a single working folder there is nothing to choose between, so it opens the picker.
+struct HomeFolderChooser: View {
+    @EnvironmentObject var store: EngineStore
+    @Environment(\.sbPalette) private var p
+    let project: ProjectInfo
+
+    var body: some View {
+        let folders = project.workingFolders
+        if folders.count <= 1 {
+            SmallButton(label: "Choose…") { store.keepSettingsInRepo(project.slug) }
+        } else {
+            Menu {
+                HomeFolderMenuItems(project: project)
+            } label: {
+                Text("Choose…").font(.system(size: 12)).foregroundStyle(p.text)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .padding(.horizontal, 9).frame(height: 24)
+            .background(p.button, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .overlay { RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(p.buttonLine) }
+        }
+    }
+}
+
+/// Menu entries shared by the sidebar offer and Project › Keep Settings in Repo.
+struct HomeFolderMenuItems: View {
+    @EnvironmentObject var store: EngineStore
+    let project: ProjectInfo
+
+    var body: some View {
+        ForEach(project.workingFolders) { folder in
+            Button {
+                store.keepSettingsInRepo(project.slug, folder: folder.path)
+            } label: {
+                Text("\(folder.label)  —  \(folder.path.abbreviatingHome)")
+            }
+        }
+        Divider()
+        Button("Other Folder…") { store.keepSettingsInRepo(project.slug) }
     }
 }
 
