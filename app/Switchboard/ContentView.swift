@@ -32,7 +32,12 @@ struct ContentView: View {
         .onAppear {
             store.registerWindow(context)
             context.reconcile(with: store)
-            if context.scope == .all { store.offerToKillLeftovers() }
+            if context.scope == .all {
+                store.offerToKillLeftovers()
+                for slug in store.projectWindowsToReopen() {
+                    openWindow(id: "project", value: slug)
+                }
+            }
         }
         .onChange(of: store.projects) { _, _ in context.reconcile(with: store) }
         .onChange(of: store.lastInstalled) { _, slug in

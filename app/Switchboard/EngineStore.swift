@@ -18,6 +18,11 @@ final class EngineStore: ObservableObject {
     @Published private(set) var paneOwners: [CommandRef: UUID] = [:]
     private var windowNames: [UUID: String] = [:]
     private var offeredLeftovers = false
+    /// Project windows currently open, so they can be reopened on the next launch.
+    private(set) var openProjectWindows: Set<String> = []
+    private var terminating = false
+    private var reopenedWindows = false
+    private static let reopenKey = "reopenProjectWindows"
 
     private var listener: Listener?
     private var subscription: UInt64 = 0
@@ -35,6 +40,31 @@ final class EngineStore: ObservableObject {
 
     func registerWindow(_ context: WindowContext) {
         windowNames[context.id] = context.title(store: self)
+        if case .project(let slug) = context.scope {
+            openProjectWindows.insert(slug)
+            persistOpenWindows()
+        }
+    }
+
+    // MARK: - Reopening project windows across launches
+
+    /// Called by the main window once: reopen the project windows from the last run.
+    func projectWindowsToReopen() -> [String] {
+        guard !reopenedWindows else { return [] }
+        reopenedWindows = true
+        let saved = UserDefaults.standard.stringArray(forKey: Self.reopenKey) ?? []
+        return saved.filter { project($0) != nil }
+    }
+
+    /// Snapshot the open set before windows start closing at quit.
+    func prepareForTermination() {
+        terminating = true
+        UserDefaults.standard.set(Array(openProjectWindows).sorted(), forKey: Self.reopenKey)
+    }
+
+    private func persistOpenWindows() {
+        guard !terminating else { return }
+        UserDefaults.standard.set(Array(openProjectWindows).sorted(), forKey: Self.reopenKey)
     }
 
     func claim(_ ref: CommandRef, for context: WindowContext) {
@@ -49,6 +79,10 @@ final class EngineStore: ObservableObject {
     func releaseAll(from context: WindowContext) {
         paneOwners = paneOwners.filter { $0.value != context.id }
         windowNames[context.id] = nil
+        if case .project(let slug) = context.scope {
+            openProjectWindows.remove(slug)
+            persistOpenWindows()
+        }
     }
 
     func ownerName(of ref: CommandRef) -> String? {
