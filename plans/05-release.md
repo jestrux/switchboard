@@ -10,6 +10,13 @@ updates and on how the app and Rust versions move together.
   signs it with Developer ID, submits it to Apple's notary service, staples the ticket and
   zips it to `dist/Switchboard-<version>.zip`. Run end to end on 2026-10-13; Gatekeeper
   reports the result as "Notarized Developer ID".
+- **The script owns the version.** `scripts/release.sh patch|minor|major|X.Y.Z` rewrites
+  `CFBundleShortVersionString` and the build number in `app/project.yml` and the workspace
+  version in `Cargo.toml`, so the app and the Rust crates always move together. With
+  `--publish` it commits the bump as "Release X.Y.Z", pushes, and creates the release on
+  that commit with generated notes. It refuses a dirty tree and an already-released
+  version, and restores the version files if the build fails. `--dry-run` previews.
+  The bump-and-publish path was dry-run only on 2026-10-13; 0.1.0 was published by hand.
 - **No certificate is installed and no password is stored.** The script uses the developer
   account Xcode is signed in to. Apple creates and holds a cloud-managed Developer ID
   certificate (`-allowProvisioningUpdates`), and notarization goes through the same account
@@ -28,11 +35,8 @@ updates and on how the app and Rust versions move together.
 
 ## Still to decide
 
-1. **Version.** `CFBundleShortVersionString` is `0.1.0` in `app/project.yml`, which is what
-   the release script reads; the Rust workspace version is `0.1.0`. Decide how they move
-   together, and bump before each release (a tag can only be released once).
-2. **Updates**: Sparkle or manual downloads.
-3. A DMG instead of a zip, if a drag-to-Applications window is wanted.
+1. **Updates**: Sparkle or manual downloads.
+2. A DMG instead of a zip, if a drag-to-Applications window is wanted.
 
 Related PRD open questions: bundle id (currently `dev.waky.switchboard`) and sandboxing.
 See [open-questions.md](open-questions.md).

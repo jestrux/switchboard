@@ -26,6 +26,14 @@ The essentials:
 **Asked to set up a product as a Switchboard project** ("help me set up X including its
 theme")? Follow [docs/setting-up-a-project.md](docs/setting-up-a-project.md).
 
+**Asked to cut a release?** Run `scripts/release.sh <patch|minor|major> --publish`. It
+bumps the version, builds, signs, notarizes, commits the bump as "Release X.Y.Z", pushes and
+creates the GitHub release with the zip. Use patch for fixes, minor for new features, and
+ask which when it is not clear. Commit other work first (the tree must be clean), preview
+with `--dry-run`, and pass the commit trailers through `SB_RELEASE_TRAILERS`. Publishing
+is visible to everyone with repo access, so confirm before running it unless the author
+has just asked for the release. Details: [plans/05-release.md](plans/05-release.md).
+
 Other guides: [docs/projects.md](docs/projects.md), [docs/theming.md](docs/theming.md).
 `scripts/docs.sh` serves everything in `docs/` as a browsable site (the app is in
 `docs-site/`; the Markdown files are the source).

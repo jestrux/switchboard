@@ -38,9 +38,10 @@ description: The Settings window, opening at login, and what the app remembers p
 
 - **What:** A universal build, signed with Developer ID and notarized by Apple, that opens
   on any Mac without a Gatekeeper warning.
-- **Reach it:** The latest GitHub release. `scripts/release.sh` builds it, and
-  `scripts/release.sh --publish` also creates the release.
-- **State:** `dist/Switchboard-<version>.zip`. The version is read from `app/project.yml`.
+- **Reach it:** The latest GitHub release. `scripts/release.sh patch --publish` (or minor,
+  major, or an exact version) bumps the version, builds, and creates the release.
+- **State:** `dist/Switchboard-<version>.zip`. The script writes the version to
+  `app/project.yml` and `Cargo.toml`.
 - **Limits:** There is no auto-update. The script needs Xcode signed in to the developer account.
 
 ## Folder access

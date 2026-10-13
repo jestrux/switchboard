@@ -219,8 +219,8 @@ across rebuilds. Without a certificate it signs ad hoc and macOS re-asks after e
 Do not pass a signing identity to `xcodebuild` on the command line: it also applies to the
 SwiftTerm package's build tools and fails.
 
-To cut a distributable build, run `scripts/release.sh` (add `--publish` for a GitHub
-release). It signs with a cloud-managed Developer ID through Xcode's signed-in account and
+To cut a release, run `scripts/release.sh <patch|minor|major> --publish`, which also bumps
+the version, commits and pushes (`--dry-run` previews; without `--publish` it only builds the zip). It signs with a cloud-managed Developer ID through Xcode's signed-in account and
 notarizes; see [plans/05-release.md](../plans/05-release.md).
 
 ## Conventions
