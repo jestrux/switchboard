@@ -27,7 +27,8 @@ struct ContentView: View {
                 splitView
             }
         }
-        .focusedSceneValue(\.windowFocus, WindowFocus(context: context, selection: context.selection))
+        .focusedSceneValue(\.windowFocus, WindowFocus(context: context, selection: context.selection,
+                                                     canSplit: context.canSplit, canClosePane: context.canClosePane))
         .environmentObject(context)
         .onAppear {
             store.registerWindow(context)
@@ -54,9 +55,10 @@ struct ContentView: View {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 420)
         } detail: {
-            if let ref = context.selection {
-                TerminalPane(ref: ref)
-                    .id(ref)
+            if context.layout.leafCount > 1 || context.selection != nil {
+                PaneTreeView(layout: context.layout)
+                    .navigationTitle(windowTitle)
+                    .navigationSubtitle(windowSubtitle)
             } else {
                 ContentUnavailableView {
                     Label(scopedProject?.name ?? "Switchboard", systemImage: "switch.2")
@@ -71,6 +73,18 @@ struct ContentView: View {
         }
         .toolbar { toolbar }
         .frame(minWidth: 820, minHeight: 480)
+    }
+
+    private var windowTitle: String {
+        guard let ref = context.selection else { return scopedProject?.name ?? "Switchboard" }
+        return store.command(ref)?.displayName ?? ref.address
+    }
+
+    private var windowSubtitle: String {
+        guard let ref = context.selection else { return "" }
+        let project = store.project(ref.project)?.name ?? ref.project
+        let n = context.layout.leafCount
+        return n > 1 ? "\(project) · \(n) panes" : project
     }
 
     /// A project window whose project was deleted or renamed away.
@@ -111,6 +125,13 @@ struct ContentView: View {
                         .help("Start")
                         .disabled(cmd?.cwdExists == false)
                 }
+                Divider()
+                Button { context.split(axis: .horizontal) } label: { Label("Split Right", systemImage: "rectangle.split.2x1") }
+                    .help("Split the focused pane to the right (⌘D)")
+                    .disabled(!context.canSplit)
+                Button { context.split(axis: .vertical) } label: { Label("Split Down", systemImage: "rectangle.split.1x2") }
+                    .help("Split the focused pane downward (⇧⌘D)")
+                    .disabled(!context.canSplit)
                 Divider()
                 Button { store.editConfig(ref.project) } label: { Label("Edit Config", systemImage: "doc.text") }
                     .help("Open config.yaml in VS Code")

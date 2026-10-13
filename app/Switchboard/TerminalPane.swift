@@ -1,95 +1,29 @@
 import SwiftUI
 import SwiftTerm
 
-/// The main area: the selected command's terminal plus a footer with its vitals.
-struct TerminalPane: View {
-    @EnvironmentObject var store: EngineStore
-    @EnvironmentObject var context: WindowContext
-    let ref: CommandRef
-
-    private var ownedHere: Bool { store.paneOwners[ref] == context.id }
-
-    var body: some View {
-        let state = store.state(ref)
-        let command = store.command(ref)
-        VStack(spacing: 0) {
-            if ownedHere {
-                if !state.isAlive && state.status == .stopped {
-                    idleBanner(command: command)
-                }
-                TerminalContainer(ref: ref)
-            } else {
-                shownElsewhere(command: command)
-            }
-            Divider()
-            PaneFooter(ref: ref, command: command, state: state)
-        }
-        .navigationTitle(command?.displayName ?? ref.address)
-        .navigationSubtitle(store.project(ref.project)?.name ?? ref.project)
-        // Selecting a command moves its terminal into this window.
-        .onAppear { store.claim(ref, for: context) }
-        .onDisappear { store.release(ref, from: context) }
-    }
-
-    /// The terminal view can only be in one window; this window lost it to another.
-    private func shownElsewhere(command: CommandInfo?) -> some View {
-        ContentUnavailableView {
-            Label(command?.displayName ?? ref.address, systemImage: "macwindow.on.rectangle")
-        } description: {
-            Text("Showing in the \(store.ownerName(of: ref) ?? "other") window.")
-        } actions: {
-            Button("Show Here") { store.claim(ref, for: context) }
-                .keyboardShortcut(.return, modifiers: [.command])
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    /// Shown over an empty terminal for a command that has never run this session.
-    @ViewBuilder
-    private func idleBanner(command: CommandInfo?) -> some View {
-        if !TerminalRegistry.shared.hasStarted(ref), let command {
-            HStack(spacing: 10) {
-                Image(systemName: "terminal")
-                    .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(command.run).font(.system(.body, design: .monospaced))
-                    Text(command.folderLabel).font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                if !command.cwdExists {
-                    Label("Folder not found", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                        .font(.caption)
-                }
-                Button("Start") { store.start(ref) }
-                    .keyboardShortcut(.return, modifiers: [.command])
-                    .disabled(!command.cwdExists)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(.bar)
-            Divider()
-        }
-    }
-}
-
 /// Hosts the per-command `TerminalView` from the registry, swapping on selection change.
 struct TerminalContainer: NSViewRepresentable {
     let ref: CommandRef
+    /// Called when the terminal inside takes keyboard focus (click or programmatic).
+    var onFocus: () -> Void = {}
 
     func makeNSView(context: Context) -> ContainerView {
         let v = ContainerView()
         v.wantsLayer = true
+        v.onFocus = onFocus
         v.show(ref)
         return v
     }
 
     func updateNSView(_ nsView: ContainerView, context: Context) {
+        nsView.onFocus = onFocus
         nsView.show(ref)
     }
 
     final class ContainerView: NSView {
         private var current: CommandRef?
+        var onFocus: () -> Void = {}
+        private var responderObservation: NSKeyValueObservation?
 
         override var acceptsFirstResponder: Bool { true }
 
@@ -120,6 +54,11 @@ struct TerminalContainer: NSViewRepresentable {
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
             if let t = subviews.first { window?.makeFirstResponder(t) }
+            // Follow keyboard focus: when our terminal becomes first responder, the pane is focused.
+            responderObservation = window?.observe(\.firstResponder, options: [.new]) { [weak self] win, _ in
+                guard let self, let t = self.subviews.first, win.firstResponder === t else { return }
+                DispatchQueue.main.async { self.onFocus() }
+            }
         }
 
         override func viewDidChangeEffectiveAppearance() {

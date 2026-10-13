@@ -13,9 +13,10 @@ final class EngineStore: ObservableObject {
     @Published private(set) var states: [CommandRef: CommandState] = [:]
     /// Last known terminal title per command (OSC 0/2), shown in the footer.
     @Published var terminalTitles: [CommandRef: String] = [:]
-    /// Which window currently shows each command's terminal. A terminal view can only be
-    /// in one window at a time; selecting it elsewhere moves it there.
-    @Published private(set) var paneOwners: [CommandRef: UUID] = [:]
+    /// Which pane (and window) currently shows each command's terminal. A terminal view
+    /// can only be in one place at a time; showing it elsewhere moves it there.
+    struct PaneOwner: Equatable { let pane: UUID; let window: UUID; let token: UUID }
+    @Published private(set) var paneOwners: [CommandRef: PaneOwner] = [:]
     private var windowNames: [UUID: String] = [:]
     private var offeredLeftovers = false
     /// Projects pulled out of the main board into their own window. The main window
@@ -68,17 +69,20 @@ final class EngineStore: ObservableObject {
         UserDefaults.standard.set(Array(openProjectWindows).sorted(), forKey: Self.reopenKey)
     }
 
-    func claim(_ ref: CommandRef, for context: WindowContext) {
+    /// `token` identifies the view instance claiming, so a view being replaced during a
+    /// layout change cannot release a claim its successor just made.
+    func claim(_ ref: CommandRef, pane: UUID, window context: WindowContext, token: UUID) {
         windowNames[context.id] = context.title(store: self)
-        if paneOwners[ref] != context.id { paneOwners[ref] = context.id }
+        let owner = PaneOwner(pane: pane, window: context.id, token: token)
+        if paneOwners[ref] != owner { paneOwners[ref] = owner }
     }
 
-    func release(_ ref: CommandRef, from context: WindowContext) {
-        if paneOwners[ref] == context.id { paneOwners[ref] = nil }
+    func release(_ ref: CommandRef, token: UUID) {
+        if paneOwners[ref]?.token == token { paneOwners[ref] = nil }
     }
 
     func releaseAll(from context: WindowContext) {
-        paneOwners = paneOwners.filter { $0.value != context.id }
+        paneOwners = paneOwners.filter { $0.value.window != context.id }
         windowNames[context.id] = nil
         if case .project(let slug) = context.scope {
             openProjectWindows.remove(slug)
@@ -87,7 +91,7 @@ final class EngineStore: ObservableObject {
     }
 
     func ownerName(of ref: CommandRef) -> String? {
-        paneOwners[ref].flatMap { windowNames[$0] }
+        paneOwners[ref].flatMap { windowNames[$0.window] }
     }
 
     // MARK: - Lookups

@@ -6,6 +6,7 @@
 //   uidrive resize W H               resize (and position) the main window
 //   uidrive move X Y                 move the cursor (hover)
 //   uidrive click X Y | rclick X Y   left / right click at screen point (origin top-left)
+//   uidrive drag X1 Y1 X2 Y2          drag with the left button
 //   uidrive key CODE [cmd|shift|ctrl|alt]*   press a key by virtual key code
 //   uidrive type TEXT                type a string
 //   uidrive sleep MS
@@ -90,6 +91,14 @@ while !args.isEmpty {
         if cmd == "rclick" { post(.rightMouseDown, p, button: .right); post(.rightMouseUp, p, button: .right) }
         if cmd == "rdown" { post(.rightMouseDown, p, button: .right) }
         if cmd == "rup" { post(.rightMouseUp, p, button: .right) }
+    case "drag":
+        let a = CGPoint(x: num(), y: num()), b = CGPoint(x: num(), y: num())
+        post(.mouseMoved, a); post(.leftMouseDown, a)
+        for i in 1...10 {
+            let t = CGFloat(i) / 10
+            post(.leftMouseDragged, CGPoint(x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t))
+        }
+        post(.leftMouseUp, b)
     case "key":
         let code = CGKeyCode(num())
         var flags: CGEventFlags = []

@@ -61,6 +61,21 @@ struct SwitchboardApp: App {
             Button("Stop Everything") { store.engine.stopEverything() }
                 .disabled(!store.engine.anyAlive())
         }
+        CommandMenu("Pane") {
+            Button("Split Right") { focus?.context.split(axis: .horizontal) }
+                .keyboardShortcut("d", modifiers: [.command])
+                .disabled(!(focus?.canSplit ?? false))
+            Button("Split Down") { focus?.context.split(axis: .vertical) }
+                .keyboardShortcut("d", modifiers: [.command, .shift])
+                .disabled(!(focus?.canSplit ?? false))
+            Divider()
+            Button("Focus Next Pane") { focus?.context.focusNextPane() }
+                .keyboardShortcut("]", modifiers: [.command])
+                .disabled(!(focus?.canClosePane ?? false))
+            Button("Close Pane") { focus?.context.closePane() }
+                .keyboardShortcut("w", modifiers: [.command, .shift])
+                .disabled(!(focus?.canClosePane ?? false))
+        }
         CommandMenu("Project") {
             Button("Open in New Window") {
                 if let s = selection { openWindow(id: "project", value: s.project) }

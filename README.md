@@ -85,5 +85,9 @@ What the app does:
   its own window showing only that project, with its own selection. A command's terminal
   lives in one window at a time; selecting it elsewhere moves it there and the previous
   window offers "Show Here" to take it back. ⌘0 brings back the all-projects window.
+- **Split panes**: Pane > Split Right (⌘D) or Split Down (⇧⌘D) shows up to four
+  terminals in one window, each with a header that picks its command (or pick from the
+  sidebar: selection always targets the focused pane). Drag the divider to resize, ⌘]
+  cycles focus, ⇧⌘W closes a pane. The layout is remembered per window.
 - **Quit** stops every session (SIGINT → SIGTERM → SIGKILL per process group) before
   exiting. On the next launch, sessions left behind by a crash are offered for cleanup.
