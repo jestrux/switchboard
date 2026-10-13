@@ -292,7 +292,7 @@ struct BoardProjectHeader: View {
         let panes = context.layout.leaves.filter { $0.ref?.project == project.slug }.count
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 6) {
-                Text(project.name).font(SBType.sidebarTitle).foregroundStyle(p.text).lineLimit(1)
+                Text(project.name).font(SBType.sidebarTitle).foregroundStyle(p.text).lineLimit(1).help(project.name)
                 Spacer(minLength: 4)
                 IconButton("macwindow.on.rectangle", help: "Open in New Window (⌘⇧N)") {
                     openWindow(id: "project", value: project.slug)
@@ -333,7 +333,7 @@ struct ProjectWindowHeader: View {
             HStack(spacing: 10) {
                 ProjectIcon(project: project, size: SBMetrics.projectHeaderIcon, radius: look.s.tileRadius)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(project.name).font(SBType.projectWindowTitle).tracking(-0.4).foregroundStyle(p.text).lineLimit(1)
+                    Text(project.name).font(SBType.projectWindowTitle).tracking(-0.4).foregroundStyle(p.text).lineLimit(1).help(project.name)
                     HStack(spacing: 4) {
                         Circle().fill(running > 0 ? p.running : p.stopped).frame(width: 6, height: 6)
                         Text("\(running) running").foregroundStyle(running > 0 ? p.running : p.text3)
@@ -453,8 +453,8 @@ struct TreeProjectRow: View {
                 Image(systemName: collapsed ? "chevron.right" : "chevron.down")
                     .font(.system(size: 9, weight: .bold)).foregroundStyle(p.text4).frame(width: 10)
                 ProjectIcon(project: project, size: 20, radius: 6)
-                Text(project.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(running > 0 ? p.text : p.text2).lineLimit(1)
-                if crashed > 0 { Text("\(crashed) crashed").font(SBType.meta).foregroundStyle(p.crashed) }
+                Text(project.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(running > 0 ? p.text : p.text2).lineLimit(1).help(project.name)
+                if crashed > 0 { Text("\(crashed) crashed").font(SBType.meta).foregroundStyle(p.crashed).fixedSize() }
                 Spacer(minLength: 4)
                 if hovering {
                     RunControls(anyRunning: running > 0,
@@ -522,6 +522,7 @@ struct GroupRow: View {
             Image(systemName: GroupIcon.symbol(group.icon)).font(.system(size: 10.5, weight: .medium))
                 .foregroundStyle(p.text3).frame(width: 14)
             Text(label).font(SBType.groupLabel(look.s)).tracking(look.s.groupLabelTracking).foregroundStyle(p.text3)
+                .lineLimit(1).truncationMode(.tail)
             if let problem = group.problem {
                 TriangleGlyph().fill(p.error).frame(width: 10, height: 10).help(problem)
             }
@@ -536,9 +537,9 @@ struct GroupRow: View {
                 }
                 .foregroundStyle(p.text2)
             } else if group.problem != nil {
-                Text("unavailable").font(SBType.meta).foregroundStyle(p.error)
+                Text("unavailable").font(SBType.meta).foregroundStyle(p.error).fixedSize()
             } else if collapsed {
-                Text(running > 0 ? "\(running) running" : "\(group.commands.count) idle").font(SBType.meta).foregroundStyle(p.text3)
+                Text(running > 0 ? "\(running) running" : "\(group.commands.count) idle").font(SBType.meta).foregroundStyle(p.text3).fixedSize()
             }
         }
         .frame(height: SBMetrics.groupRow)
@@ -547,6 +548,7 @@ struct GroupRow: View {
         .contentShape(Rectangle())
         .onTapGesture { toggle() }
         .onHover { hovering = $0 }
+        .help(group.name)
         .draggable(DragPayload.group(project, group.id))
         .reorderTarget(edge: .top) { payload in
             guard let g = DragPayload.parseGroup(payload), g.project == project else { return false }
@@ -613,17 +615,15 @@ struct CommandRow: View {
             Text(command.name)
                 .font(.system(size: 13, weight: selected ? .semibold : .regular))
                 .foregroundStyle(selected ? p.selectionText : (state.status == .stopped && !command.cwdExists ? p.text2 : (state.status == .stopped ? p.text2 : p.text)))
-                .lineLimit(1)
+                .lineLimit(1).truncationMode(.tail)
             if state.needsRestart {
                 Text("↻ apply").font(.system(size: 10, weight: .medium))
                     .foregroundStyle(p.accentSoftText)
                     .padding(.horizontal, 5).frame(height: 16)
                     .background(p.accentSoft, in: Capsule())
+                    .fixedSize()
             }
             Spacer(minLength: 4)
-            if live, let port = state.port {
-                PortLink(port: port, url: state.url, selected: selected)
-            }
             if hovering {
                 HStack(spacing: 2) {
                     if live {
@@ -639,7 +639,14 @@ struct CommandRow: View {
                 }
                 .foregroundStyle(selected ? p.selectionText : p.text2)
             } else {
-                MetaText(state: state, command: command)
+                MetaText(state: state, command: command).fixedSize()
+            }
+            // The port keeps its place at the trailing edge whether or not the row is
+            // hovered, so reaching for it never slides a Stop button under the pointer.
+            if live, let port = state.port {
+                PortLink(port: port, url: state.url, selected: selected).fixedSize()
+            }
+            if !hovering {
                 if let n = context.paneNumber(of: ref), context.layout.leafCount > 1 {
                     Text("\(n)").font(.system(size: 10, weight: .semibold)).monospacedDigit()
                         .foregroundStyle(p.text3)
@@ -675,7 +682,8 @@ struct CommandRow: View {
             guard let dragged = CommandRef.fromDragString(payload) else { return false }
             return store.moveCommand(dragged, toSlotOf: ref)
         }
-        .help(state.summary)
+        // The name can be cut short in a narrow sidebar, so the tooltip always carries it whole.
+        .help("\(command.name) · \(state.summary)")
         .contextMenu {
             if live {
                 Button("Stop") { store.stop(ref) }
