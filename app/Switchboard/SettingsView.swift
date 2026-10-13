@@ -56,6 +56,14 @@ struct SettingsView: View {
                 Spacer()
                 Toggle("", isOn: $rail).labelsHidden().toggleStyle(.switch).tint(p.accent)
             }
+
+            section("Preview", p)
+            let previewScheme: ColorScheme = appearance.colorScheme ?? scheme
+            let k = 504.0 / 1120.0
+            ShellPreview(theme: themeID.theme, scheme: previewScheme, rail: rail)
+                .scaleEffect(k, anchor: .topLeading)
+                .frame(width: 504, height: 640 * k, alignment: .topLeading)
+                .clipped()
         }
         .padding(28)
         .frame(width: 560)
