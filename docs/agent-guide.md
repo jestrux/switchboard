@@ -111,6 +111,13 @@ osascript -e 'tell application "System Events" to tell process "Switchboard" to 
 - **A real ⌘ must be held for link hover:** `osascript … key down command`, then `cmdmove`.
 - Screen capture and control need Screen Recording and Accessibility permission for the
   terminal running the script.
+- **An app opened from a Claude Code session inherits its environment.** A `claude` started
+  inside that app then runs as a child session and saves no transcript, so pasted-image
+  previews cannot work. Launch with a clean environment when testing those:
+  `env -i HOME="$HOME" USER="$USER" PATH=/usr/bin:/bin /usr/bin/open /Applications/Switchboard.app`.
+- **`uidrive shot` and `region` follow the frontmost Switchboard window**, which is the
+  image preview while one is showing. Capture the screen rectangle with
+  `screencapture -x -R116,60,1280,800` instead.
 
 ### Putting the app in a known state
 
@@ -129,6 +136,7 @@ Settings live in `defaults` under `dev.waky.switchboard`. Set them before launch
 | `projectOrder` | rail order (slugs) |
 | `reopenProjectWindows` | project windows to reopen at launch; delete for a clean board |
 | `homeOffer.dismissed.<slug>` | hides the "keep settings in the repo" offer |
+| `runningAtQuit` | what was running, as `project<tab>address`; drives the "start again" prompt at launch. Delete it to launch without the prompt |
 | `traceLinks` | bool; logs link hover hits |
 
 Data on disk, all under `~/Library/Application Support/Switchboard/`:

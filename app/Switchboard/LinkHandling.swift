@@ -1,13 +1,16 @@
 import AppKit
 import SwiftTerm
 
-/// ⌘-click and ⌘-hover for links in terminals.
+/// ⌘-click and ⌘-hover for links in terminals, and hover and click for image references.
 ///
 /// SwiftTerm already detects plain URLs and OSC 8 hyperlinks (underlining them while ⌘
 /// is held) and asks the delegate to open them. This adds Markdown links, `[text](url)`,
 /// the way Claude Code prints them in plain output: ⌘-hovering the link text underlines
 /// it and ⌘-clicking anywhere on the text or the URL opens it. It reads the line from the
-/// engine's parsed screen, since SwiftTerm exposes no text access.
+/// engine's parsed screen.
+///
+/// Image references (see `ImageLinks`) need no ⌘: hovering one underlines it and shows a
+/// preview, and a click that does not turn into a drag opens the file.
 @MainActor
 enum LinkHandling {
     private static var monitors: [Any] = []
@@ -16,18 +19,33 @@ enum LinkHandling {
     /// Set when a ⌘-mouse-down was handled here, so the matching mouse-up is swallowed too
     /// (otherwise SwiftTerm would open the same URL a second time).
     private static var swallowNextMouseUp = false
+    /// A plain mouse-down on an image reference. It opens on mouse-up unless the pointer
+    /// moved, so dragging from a path still selects text.
+    private static var pressedImage: (at: NSPoint, file: URL)?
 
     static func install() {
         guard monitors.isEmpty else { return }
         hoverTrace = ProcessInfo.processInfo.environment["SB_TRACE_LINKS"] != nil || UserDefaults.standard.bool(forKey: "traceLinks")
         monitors.append(NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
-            guard event.modifierFlags.contains(.command) else { return event }
-            guard let window = event.window, let hit = link(in: window, at: event.locationInWindow) else { return event }
-            open(hit.url)
+            ImagePreview.hide()
+            pressedImage = nil
+            let command = event.modifierFlags.contains(.command)
+            guard let window = event.window, let hit = link(in: window, at: event.locationInWindow, command: command) else { return event }
+            guard command else {
+                if let file = hit.image { pressedImage = (event.locationInWindow, file) }
+                return event
+            }
+            if let file = hit.image { open(file: file) } else { open(hit.url) }
             swallowNextMouseUp = true
             return nil
         }!)
         monitors.append(NSEvent.addLocalMonitorForEvents(matching: .leftMouseUp) { event in
+            if let pressed = pressedImage {
+                pressedImage = nil
+                let moved = hypot(event.locationInWindow.x - pressed.at.x, event.locationInWindow.y - pressed.at.y)
+                if moved < 4 { open(file: pressed.file) }
+                return event
+            }
             guard swallowNextMouseUp else { return event }
             swallowNextMouseUp = false
             return nil
@@ -35,6 +53,11 @@ enum LinkHandling {
         monitors.append(NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .flagsChanged, .mouseExited]) { event in
             forwardModifierToTerminal(event)
             updateHover(event)
+            return event
+        }!)
+        // The text under the pointer is about to change or the user has moved on.
+        monitors.append(NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel, .keyDown, .leftMouseDragged]) { event in
+            ImagePreview.hide()
             return event
         }!)
     }
@@ -54,11 +77,13 @@ enum LinkHandling {
         let view: NSView
         let url: String
         let rect: NSRect
+        /// Set for an image reference; `url` is then its path.
+        var image: URL?
     }
 
-    /// The Markdown or plain URL link under the pointer, if any. OSC 8 hyperlinks are
-    /// SwiftTerm's: it underlines, previews and opens them itself.
-    private static func link(in window: NSWindow, at locationInWindow: NSPoint) -> Hit? {
+    /// The image reference under the pointer or, with ⌘ held, the Markdown or plain URL
+    /// link. OSC 8 hyperlinks are SwiftTerm's: it underlines, previews and opens them itself.
+    private static func link(in window: NSWindow, at locationInWindow: NSPoint, command: Bool) -> Hit? {
         guard let (ref, view) = TerminalRegistry.shared.terminal(in: window, at: locationInWindow) else { return nil }
         let point = view.convert(locationInWindow, from: nil)
         let cell = cellSize(for: view)
@@ -66,6 +91,13 @@ enum LinkHandling {
         // The view is not flipped: y grows upward, row 0 is the top line.
         let fromTop = view.bounds.height - point.y
         let row = Int(fromTop / cell.height)
+        if point.x >= 0, fromTop >= 0, let found = ImageLinks.find(ref: ref, view: view, row: row, col: col) {
+            let rect = NSRect(x: CGFloat(found.columns.lowerBound) * cell.width,
+                              y: view.bounds.height - CGFloat(row + 1) * cell.height,
+                              width: CGFloat(found.columns.count) * cell.width, height: cell.height)
+            return Hit(view: view, url: found.file.path, rect: rect, image: found.file)
+        }
+        guard command else { return nil }
         let screen = EngineStore.shared.engine.screenText(project: ref.project, address: ref.address)
         let lines = screen.components(separatedBy: "\n")
         guard row >= 0, row < lines.count else { return nil }
@@ -94,13 +126,30 @@ enum LinkHandling {
         return nil
     }
 
+    /// Re-evaluates the hover where the pointer is now, for when something other than the
+    /// pointer changed (a pasted image finished loading).
+    static func refreshHover() {
+        guard let window = NSApp.keyWindow else { return }
+        updateHover(window: window, location: window.mouseLocationOutsideOfEventStream,
+                    command: NSEvent.modifierFlags.contains(.command))
+    }
+
     private static func updateHover(_ event: NSEvent) {
         // Synthetic or fallback mouse-moved events can carry stale locations; the window's
         // own pointer position is authoritative.
         let window = event.window ?? NSApp.keyWindow
         let location = window?.mouseLocationOutsideOfEventStream ?? event.locationInWindow
-        let hit = event.modifierFlags.contains(.command) && event.type != .mouseExited && window != nil
-            ? link(in: window!, at: location) : nil
+        updateHover(window: event.type == .mouseExited ? nil : window, location: location,
+                    command: event.modifierFlags.contains(.command))
+    }
+
+    private static func updateHover(window: NSWindow?, location: NSPoint, command: Bool) {
+        let hit = window.flatMap { link(in: $0, at: location, command: command) }
+        if let file = hit?.image, let hit, let window = hit.view.window {
+            ImagePreview.show(file, near: hit.view.convert(hit.rect, to: nil), in: window)
+        } else {
+            ImagePreview.hide()
+        }
         if let hit, let window = hit.view.window {
             // The underline lives in a transparent child window: nothing in the view
             // hierarchy (SwiftTerm's Metal layer included) can draw over it.
@@ -136,6 +185,12 @@ enum LinkHandling {
         guard let url = URL(string: text) else { return }
         log("open \(url.absoluteString)")
         NSWorkspace.shared.open(url)
+    }
+
+    /// Opens an image file in the Mac's default app for it (Preview, unless changed).
+    static func open(file: URL) {
+        log("open-image \(file.path)")
+        NSWorkspace.shared.open(file)
     }
 
     /// Same cell geometry SwiftTerm uses (advance of "W", ascent + descent + leading, pixel-snapped).

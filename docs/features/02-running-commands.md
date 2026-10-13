@@ -3,7 +3,7 @@ id: running-commands
 number: 2
 title: Running commands
 category: features
-description: Starting and stopping commands, what each status means, and what happens on a crash or on quit.
+description: Starting and stopping commands, what each status means, and what happens on a crash, on quit and at the next launch.
 ---
 
 # Running commands
@@ -67,3 +67,15 @@ description: Starting and stopping commands, what each status means, and what ha
 - **Reach it:** Quit as usual. `sb cleanup` does the same clean-up from a terminal.
 - **State:** `sessions.json` is how leftovers are found.
 - **Limits:** Closing the last window does not quit the app, so commands keep running.
+
+## Starting again at the next launch
+
+- **What:** Switchboard remembers which commands and terminals were running. At the next
+  launch it asks "Start the command that was running?" and lists them. Start It starts
+  each one fresh. Not Now starts nothing and drops the offer.
+- **Reach it:** Automatic at launch, after the leftovers prompt when there is one. It also
+  covers a crash, since the list is kept up to date while commands run.
+- **State:** `runningAtQuit` in the app's `defaults`, as `project<tab>address` entries.
+- **Limits:** A command starts from scratch, so a session inside it, such as a Claude
+  conversation, does not come back. Entries that are no longer in the config are skipped.
+  Quitting while the prompt is still open keeps the offer for the launch after.

@@ -25,6 +25,13 @@ final class EngineStore: ObservableObject {
     private var terminating = false
     private var reopenedWindows = false
     private static let reopenKey = "reopenProjectWindows"
+    private static let runningKey = "runningAtQuit"
+    /// What was running when the app last quit, read once at launch before this run's
+    /// own statuses start replacing the saved list.
+    private var ranLastTime: [CommandRef] = (UserDefaults.standard.stringArray(forKey: "runningAtQuit") ?? []).compactMap {
+        let parts = $0.split(separator: "\t", maxSplits: 1).map(String.init)
+        return parts.count == 2 ? CommandRef(project: parts[0], address: parts[1]) : nil
+    }
 
     private var listener: Listener?
     private var subscription: UInt64 = 0
@@ -62,6 +69,15 @@ final class EngineStore: ObservableObject {
     func prepareForTermination() {
         terminating = true
         UserDefaults.standard.set(Array(openProjectWindows).sorted(), forKey: Self.reopenKey)
+    }
+
+    /// Keeps the list of running commands on disk as it changes, so it is right after a
+    /// crash too. Frozen once quitting starts: the stops that follow are not the user's.
+    private func persistRunning() {
+        guard !terminating, ranLastTime.isEmpty else { return }
+        let alive = states.filter { $0.value.isAlive }.keys.map { "\($0.project)\t\($0.address)" }.sorted()
+        guard alive != UserDefaults.standard.stringArray(forKey: Self.runningKey) ?? [] else { return }
+        UserDefaults.standard.set(alive, forKey: Self.runningKey)
     }
 
     private func persistOpenWindows() {
@@ -560,7 +576,10 @@ final class EngineStore: ObservableObject {
         guard !offeredLeftovers else { return }
         offeredLeftovers = true
         let leftovers = engine.leftoverSessions()
-        guard !leftovers.isEmpty else { return }
+        guard !leftovers.isEmpty else {
+            Task { @MainActor in await offerToRunAgain() }
+            return
+        }
         Task { @MainActor in
             let n = leftovers.count
             let facts = leftovers.map { l -> DialogFact in
@@ -578,7 +597,34 @@ final class EngineStore: ObservableObject {
                 buttons: [DialogButton(label: "Leave Running", value: 0),
                           DialogButton(label: n == 1 ? "Stop It" : "Stop Them", kbd: "↩", style: .primary, value: 1)]))
             if choice == 1 { _ = engine.killLeftovers() }
+            await offerToRunAgain()
         }
+    }
+
+    // MARK: - Running again after a relaunch
+
+    /// Quitting stops every command, so on the next launch offer to start the ones that
+    /// were running. Asked once per launch; either answer clears the offer.
+    private func offerToRunAgain() async {
+        let refs = ranLastTime.filter { command($0) != nil && !state($0).isAlive }
+        // The saved list stays put until the question is answered, so quitting with the
+        // dialog still open asks again next time.
+        defer { ranLastTime = []; persistRunning() }
+        guard !refs.isEmpty else { return }
+        let n = refs.count
+        let facts = refs.map { ref -> DialogFact in
+            let name = (command(ref)?.displayName ?? ref.address) + " · " + (project(ref.project)?.name ?? ref.project)
+            return DialogFact(icon: "play.fill", text: name, iconOnlyTint: true)
+        }
+        let choice = await DialogCenter.shared.ask(DialogRequest(
+            kind: .runAgain,
+            title: n == 1 ? "Start the command that was running?" : "Start the \(n) commands that were running?",
+            subtitle: "\(n == 1 ? "It was" : "They were") running when Switchboard last quit.",
+            facts: facts,
+            note: "Each one starts fresh. A session inside a command, such as a Claude conversation, does not come back by itself.",
+            buttons: [DialogButton(label: "Not Now", value: 0),
+                      DialogButton(label: n == 1 ? "Start It" : "Start Them", kbd: "↩", style: .primary, value: 1)]))
+        if choice == 1 { refs.forEach(start) }
     }
 
     // MARK: - Engine events (arrive on engine threads)
@@ -590,6 +636,7 @@ final class EngineStore: ObservableObject {
     nonisolated fileprivate func handleStatus(_ ref: CommandRef, _ state: CommandState) {
         Task { @MainActor in
             self.states[ref] = state
+            self.persistRunning()
         }
     }
 }
