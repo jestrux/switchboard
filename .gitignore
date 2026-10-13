@@ -10,3 +10,8 @@ xcuserdata/
 DerivedData/
 sessions.json
 /dist
+
+docs-site/node_modules
+docs-site/dist
+docs-site/*.tsbuildinfo
+.gstack/

@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+/* docs-viewer's classes live in node_modules, which Tailwind does not scan on its own.
+   Without this line the site renders unstyled. */
+@source "../node_modules/@jestrux/docs-viewer/src";

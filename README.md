@@ -61,7 +61,10 @@ groups:
       - { id: migrate, run: make migrate, autostart: false }
 ```
 
-## Guides
+## Docs
+
+- **[Feature list](docs/features/README.md)**: everything the app does, by area, with how
+  to reach each feature and its limits.
 
 - **[Projects, config and repo files](docs/projects.md)**: the config format, keeping
   settings in your repos with `.switchboard/`, terminals, and the `sb` CLI.
@@ -72,6 +75,8 @@ groups:
 - **[Agent guide](docs/agent-guide.md)**: how to build, test and iterate on this codebase
   quickly. Start here if you are an AI agent or new to the repo.
 - [`PLAN.md`](PLAN.md): what is left to build.
+
+`scripts/docs.sh` opens all of these as a searchable site in the browser.
 - [`handoff/PRD.md`](handoff/PRD.md): the original product spec.
 
 ## Layout
@@ -83,5 +88,6 @@ crates/sb-ffi       UniFFI bridge used by the Mac app
 app/                SwiftUI app
 samples/            Reference projects (Kinpay, CityBuild)
 scripts/            Build, package, walkthrough and screenshot scripts
-docs/               Guides and media
+docs/               Feature list, guides and media (Markdown is the source)
+docs-site/          Browser viewer for docs/
 ```

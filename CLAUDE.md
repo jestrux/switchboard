@@ -7,6 +7,11 @@ dev commands. See [README.md](README.md) for what it does.
 build and test loops, the UI driver for exercising the real app, how to put the app in a
 known state, and the traps already hit.
 
+**To learn what the app already does, read [docs/features/](docs/features/README.md).**
+It is the feature list: every feature, how to reach it, where its state lives and its
+limits. After meaningful feature work, ask the author whether to update the docs, and on a
+yes update the matching feature page (and any guide it touches) as part of that work.
+
 The essentials:
 
 - Process logic lives in Rust (`crates/sb-core`). Swift only renders engine state.
@@ -22,5 +27,7 @@ The essentials:
 theme")? Follow [docs/setting-up-a-project.md](docs/setting-up-a-project.md).
 
 Other guides: [docs/projects.md](docs/projects.md), [docs/theming.md](docs/theming.md).
+`scripts/docs.sh` serves everything in `docs/` as a browsable site (the app is in
+`docs-site/`; the Markdown files are the source).
 
 What is left to build: [PLAN.md](PLAN.md), with context in [plans/](plans).

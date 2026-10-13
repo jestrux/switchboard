@@ -1,3 +1,12 @@
+---
+id: agent-guide
+number: 1
+title: Agent guide
+category: contributing
+categoryTitle: Agent guide
+description: How to build, test and iterate on this codebase quickly.
+---
+
 # Agent guide: build, test and iterate fast
 
 For an AI agent (or a person) starting a fresh session on this repo. It covers the loops
@@ -5,6 +14,12 @@ that are quick, the tools that exist for driving the app, and the traps that hav
 cost time. Product behaviour is in [the README](../README.md), [projects](projects.md) and
 [theming](theming.md). To set up a product as a project, follow
 [setting-up-a-project.md](setting-up-a-project.md).
+
+What the app already does is in the [feature list](features/README.md). Read it before
+changing behaviour, and after meaningful feature work ask the author whether to update it.
+`scripts/docs.sh` serves `docs/` as a site; a page is any Markdown file there with
+frontmatter (`id`, `number`, `title`, `category`), and `docs-site/src/docs-config.ts`
+bridges plain Markdown links, images and `###` headings to the viewer's dialect.
 
 ## The 30-second map
 

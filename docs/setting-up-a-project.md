@@ -1,3 +1,11 @@
+---
+id: setting-up-a-project
+number: 2
+title: Setting up a project
+category: guides
+description: A checklist for taking a product folder to a themed, verified project.
+---
+
 # Setting up a project
 
 How to turn "help me set up `<product>` at `<folder>`, including its theme" into a working

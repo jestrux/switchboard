@@ -1,3 +1,11 @@
+---
+id: theming
+number: 3
+title: Theming
+category: guides
+description: Built-in themes, per-project themes and custom palettes, with screenshots.
+---
+
 # Theming
 
 Switchboard has three built-in themes, each with a light and a dark palette, and lets a

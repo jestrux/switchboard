@@ -1,3 +1,12 @@
+---
+id: projects-config
+number: 1
+title: Projects, config and repo files
+category: guides
+categoryTitle: Guides
+description: The config format, repo files, terminals and the sb CLI.
+---
+
 # Projects, config and repo files
 
 - [The config file](#the-config-file)
