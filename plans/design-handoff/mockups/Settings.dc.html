@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings appearance</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 800px; display: flex; background: {{c.win}}; color: {{c.text}}; font-family: Geist, -apple-system, sans-serif; font-size: 13px; overflow: hidden">
+<div style="width: 440px; flex: none; background: {{c.side}}; border-right: 1px solid {{c.line}}; display: flex; flex-direction: column; padding: 18px 28px 28px; box-sizing: border-box; gap: 28px">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FF5F57"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FEBC2E"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #28C840"></span>
+<span style="flex: 1; text-align: center; font-size: 13px; font-weight: 600; color: {{c.t2}}; margin-right: 52px">Settings</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em">Appearance</h1>
+<div style="font-size: 12.5px; color: {{c.t3}}">Changes apply instantly. Running commands are not affected.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 12px; font-weight: 600; color: {{c.t2}}">Theme</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{themes}}" as="t" hint-placeholder-count="3">
+<button onClick="{{t.pick}}" aria-pressed="{{t.on}}" style="padding: 8px; border-radius: 12px; border: 1px solid {{t.border}}; box-shadow: {{t.ring}}; background: {{c.pane}}; color: {{c.text}}; font-family: inherit; display: flex; flex-direction: column; gap: 8px; cursor: pointer; text-align: left">
+<div style="height: 64px; border-radius: 7px; background: {{t.win}}; display: flex; overflow: hidden; border: 1px solid {{t.line}}">
+<div style="width: 34%; background: {{t.side}}; display: flex; flex-direction: column; gap: 5px; padding: 8px 6px; box-sizing: border-box">
+<span style="height: 5px; border-radius: 2px; background: {{t.sel}}"></span>
+<span style="display: flex; gap: 3px; align-items: center"><span style="width: 5px; height: 5px; border-radius: 3px; background: {{t.green}}"></span><span style="flex: 1; height: 3px; border-radius: 2px; background: {{t.t4}}"></span></span>
+<span style="display: flex; gap: 3px; align-items: center"><span style="width: 5px; height: 5px; border-radius: 3px; background: {{t.red}}"></span><span style="flex: 1; height: 3px; border-radius: 2px; background: {{t.t4}}"></span></span>
+</div>
+<div style="flex: 1; background: {{t.term}}; padding: 8px; display: flex; flex-direction: column; gap: 4px">
+<span style="width: 60%; height: 3px; border-radius: 2px; background: {{t.t4}}"></span>
+<span style="width: 40%; height: 3px; border-radius: 2px; background: {{t.green}}"></span>
+<span style="width: 70%; height: 3px; border-radius: 2px; background: {{t.t4}}"></span>
+<span style="width: 24px; height: 8px; border-radius: 3px; background: {{t.acc}}; margin-top: auto; align-self: flex-end"></span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 1px; padding: 0 2px 2px">
+<span style="font-size: 13px; font-weight: 600">{{t.name}}</span>
+<span style="font-size: 11px; color: {{c.t3}}">{{t.note}}</span>
+</div>
+</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 12px; font-weight: 600; color: {{c.t2}}">Appearance</div>
+<div role="radiogroup" aria-label="Appearance" style="display: flex; padding: 3px; border-radius: 10px; background: {{c.btn}}; border: 1px solid {{c.btnLine}}">
+<sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
+<button role="radio" aria-checked="{{m.on}}" onClick="{{m.pick}}" style="flex: 1; height: 30px; border-radius: 7px; border: 0; background: {{m.bg}}; color: {{m.fg}}; font-family: inherit; font-size: 12.5px; font-weight: {{m.weight}}; box-shadow: {{m.shadow}}; cursor: pointer">{{m.label}}</button>
+</sc-for>
+</div>
+<div style="font-size: 12px; color: {{c.t3}}">System follows macOS. Every theme has a light and a dark palette.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 12px; font-weight: 600; color: {{c.t2}}">Sidebar</div>
+<label style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; background: {{c.pane}}; border: 1px solid {{c.line}}; cursor: pointer">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 3px">
+<span style="font-size: 13px; font-weight: 600">Project rail</span>
+<span style="font-size: 12px; color: {{c.t3}}; line-height: 1.45">Projects sit in a rail of icons; the sidebar lists one project at a time. Off shows every project in one tree.</span>
+</div>
+<button role="switch" aria-checked="{{rail}}" aria-label="Project rail" onClick="{{toggleRail}}" style="width: 38px; height: 22px; border-radius: 11px; border: 0; padding: 2px; background: {{switchBg}}; display: flex; justify-content: {{switchJustify}}; cursor: pointer; flex: none"><span style="width: 18px; height: 18px; border-radius: 9px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.25)"></span></button>
+</label>
+</div>
+<span style="flex: 1"></span>
+<div style="font-size: 11.5px; color: {{c.t3}}; font-family: 'Geist Mono', monospace">Switchboard › Settings…  ⌘,</div>
+</div>
+
+<div style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 28px 32px; box-sizing: border-box">
+<div style="font-size: 12px; font-weight: 600; color: {{c.t3}}; letter-spacing: 0.04em">PREVIEW</div>
+<div style="width: 768px; height: 480px; border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 1px {{c.line}}, 0 20px 50px rgba(0,0,0,0.25)">
+<div style="width: 1280px; height: 800px; transform: scale(0.6); transform-origin: 0 0">
+<dc-import name="Shell" theme="{{themeId}}" mode="{{modeId}}" rail="{{rail}}" scenario="running" hint-size="1280px,800px"></dc-import>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+constructor(props) { super(props); this.state = { theme:'graphite', mode:'system', rail:true }; }
+renderVals() {
+  const P = {
+    graphite: { dark:{ win:'#0B0C0E', side:'#0E0F11', line:'#1E2025', pane:'#16171A', term:'#111214', text:'#E6E7EA', t2:'#A9ACB4', t3:'#7D828B', t4:'#2E3138', sel:'#1D2233', acc:'#7C9CFF', onAcc:'#0B0C0E', btn:'#16171A', btnLine:'#2A2D33', green:'#3DD68C', red:'#FF5C5C' },
+                light:{ win:'#ECEEF1', side:'#F4F5F7', line:'#E1E3E8', pane:'#FFFFFF', term:'#FCFCFD', text:'#17181B', t2:'#4F545C', t3:'#7D838C', t4:'#D6D9DF', sel:'#E3E9FF', acc:'#4A6CF7', onAcc:'#FFFFFF', btn:'#FFFFFF', btnLine:'#DADDE3', green:'#14965A', red:'#D93A3F' } },
+    patchbay: { dark:{ win:'#12100D', side:'#181511', line:'#2A251E', pane:'#1F1B16', term:'#0F0D0B', text:'#EDE6DA', t2:'#A99F8E', t3:'#8A7F6C', t4:'#3A332A', sel:'#2E1F17', acc:'#FFB224', onAcc:'#1A1208', btn:'#1F1B16', btnLine:'#3A332A', green:'#9ACD6B', red:'#FF6B5A' },
+                light:{ win:'#E6DECF', side:'#EFE8DB', line:'#DDD2BF', pane:'#FBF8F2', term:'#FBF8F2', text:'#241E16', t2:'#5F5545', t3:'#857965', t4:'#D6CAB4', sel:'#F5DDB0', acc:'#C47A00', onAcc:'#1A1208', btn:'#FBF8F2', btnLine:'#D6CAB4', green:'#4E8A1A', red:'#C2412E' } },
+    paper: { dark:{ win:'#161618', side:'#161618', line:'#2C2C30', pane:'#1F1F22', term:'#1B1B1E', text:'#EDEDEB', t2:'#A3A29E', t3:'#85847F', t4:'#35353A', sel:'#2A2A2F', acc:'#8B8BFF', onAcc:'#121214', btn:'#262629', btnLine:'#35353A', green:'#3FCB7E', red:'#FF6B6B' },
+             light:{ win:'#EFEEEA', side:'#EFEEEA', line:'#E2E0DA', pane:'#FFFFFF', term:'#FBFBF9', text:'#1A1A1C', t2:'#4A4946', t3:'#7A7873', t4:'#E2E0DA', sel:'#FFFFFF', acc:'#3B3BD9', onAcc:'#FFFFFF', btn:'#FFFFFF', btnLine:'#E2E0DA', green:'#1F8A4C', red:'#D13434' } }
+  };
+  const s = this.state;
+  const modeId = s.mode === 'light' ? 'light' : 'dark';
+  const c = P[s.theme][modeId];
+  const notes = { graphite:'Default · calm', patchbay:'Warm · lit LEDs', paper:'Soft · floating' };
+  const names = { graphite:'Graphite', patchbay:'Patch Bay', paper:'Paper' };
+  const themes = ['graphite','patchbay','paper'].map((id) => {
+    const t = P[id][modeId]; const on = s.theme === id;
+    return { ...t, name:names[id], note:notes[id], on: on ? 'true' : 'false', border: on ? c.acc : c.line, ring: on ? '0 0 0 1px ' + c.acc : 'none', pick: () => this.setState({ theme:id }) };
+  });
+  const modes = [['system','System'],['light','Light'],['dark','Dark']].map(([id, label]) => {
+    const on = s.mode === id;
+    return { label, on: on ? 'true' : 'false', bg: on ? c.pane : 'transparent', fg: on ? c.text : c.t2, weight: on ? 600 : 400, shadow: on ? '0 1px 2px rgba(0,0,0,0.12), 0 0 0 1px ' + c.line : 'none', pick: () => this.setState({ mode:id }) };
+  });
+  return {
+    c, themes, modes, themeId: s.theme, modeId, rail: s.rail,
+    switchBg: s.rail ? c.acc : c.btnLine, switchJustify: s.rail ? 'flex-end' : 'flex-start',
+    toggleRail: () => this.setState({ rail: !s.rail })
+  };
+}
+}
+</script>
+</body>
+</html>

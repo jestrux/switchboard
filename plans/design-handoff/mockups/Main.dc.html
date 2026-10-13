@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Switchboard read-back</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9DB2FF}a:hover{color:#C7D3FF}
+</style>
+</helmet>
+<div style="width: 1280px; height: 900px; box-sizing: border-box; padding: 64px 72px; background: #0E0F11; color: #E6E7EA; font-family: Geist, -apple-system, sans-serif; display: flex; flex-direction: column; gap: 36px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 13px; letter-spacing: 0.08em; color: #8B8F98; text-transform: uppercase">Handoff 01 · App shell · read-back</div>
+<h1 style="margin: 0; font-size: 44px; font-weight: 600; letter-spacing: -0.02em">What I understood</h1>
+</div>
+<div style="font-size: 14px; color: #8B8F98; max-width: 380px; line-height: 1.5">Pick a direction below (or a mix). I'll then go deep on it: every state, light + dark, dialogs, tokens, icon.</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px">
+<div style="background: #16171A; border: 1px solid #23252A; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 13px; font-weight: 600; color: #9DB2FF; letter-spacing: 0.04em; text-transform: uppercase">The product</div>
+<div style="font-size: 15px; line-height: 1.55; color: #C9CBD1">A Mac app that starts, watches and stops dev commands. A <b style="color: #fff">project is a grouping of commands across repos</b>, not a folder. Sidebar of projects › groups › commands, one real PTY pane (it must host <span style="font-family: 'Geist Mono', monospace; font-size: 13px">claude</span>, vim, htop), a vitals footer.</div>
+</div>
+<div style="background: #16171A; border: 1px solid #23252A; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 13px; font-weight: 600; color: #9DB2FF; letter-spacing: 0.04em; text-transform: uppercase">The ask</div>
+<div style="font-size: 15px; line-height: 1.55; color: #C9CBD1">Swap system chrome for designed chrome: sidebar surface, row anatomy, a <b style="color: #fff">pane header</b> replacing the toolbar strip, a footer with hierarchy, custom dialogs, tokens, an app icon. Dark-first, light first-class. Native behaviour, not native look.</div>
+</div>
+<div style="background: #16171A; border: 1px solid #23252A; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 13px; font-weight: 600; color: #9DB2FF; letter-spacing: 0.04em; text-transform: uppercase">Fixed points</div>
+<div style="font-size: 15px; line-height: 1.55; color: #C9CBD1">IA, the six states and their meanings, ✓ for exit 0, backoff countdown, restart-to-apply, ⌘ shortcuts, drop-to-add, VS Code / Finder hand-offs. SwiftUI/AppKit + SwiftTerm, no web views. No splits, sheets or menu-bar extra.</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 13px; font-weight: 600; color: #8B8F98; letter-spacing: 0.04em; text-transform: uppercase">Shared across all three directions — the status language</div>
+<div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px">
+<div style="background: #16171A; border: 1px solid #23252A; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="5" fill="none" stroke="#6B7079" stroke-width="2"/></svg>
+<div style="font-size: 14px; font-weight: 600">Stopped</div>
+<div style="font-size: 12.5px; color: #8B8F98; line-height: 1.45">Hollow ring. Calm, no colour.</div>
+</div>
+<div style="background: #16171A; border: 1px solid #23252A; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="5" fill="none" stroke="#3A3420" stroke-width="2"/><path d="M9 4 A5 5 0 0 1 14 9" fill="none" stroke="#F5B83D" stroke-width="2" stroke-linecap="round"/></svg>
+<div style="font-size: 14px; font-weight: 600">Starting</div>
+<div style="font-size: 12.5px; color: #8B8F98; line-height: 1.45">Amber arc that spins. Motion, not just yellow.</div>
+</div>
+<div style="background: #16171A; border: 1px solid #23252A; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="#3DD68C" opacity="0.18"/><circle cx="9" cy="9" r="4.5" fill="#3DD68C"/></svg>
+<div style="font-size: 14px; font-weight: 600">Running</div>
+<div style="font-size: 12.5px; color: #8B8F98; line-height: 1.45">Solid green with a soft halo; slow breathe.</div>
+</div>
+<div style="background: #16171A; border: 1px solid #23252A; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="#6B7079" stroke-width="1.6"/><path d="M6.3 9.2 L8.2 11 L11.8 7.2" fill="none" stroke="#C9CBD1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div style="font-size: 14px; font-weight: 600">Done · exit 0</div>
+<div style="font-size: 12.5px; color: #8B8F98; line-height: 1.45">Check in a ring. Distinct from stopped by shape.</div>
+</div>
+<div style="background: #16171A; border: 1px solid #23252A; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" stroke="#5A2626" stroke-width="2"/><path d="M9 2 A7 7 0 0 1 15.1 12.5" fill="none" stroke="#FF5C5C" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="9" r="3.5" fill="#FF5C5C"/></svg>
+<div style="font-size: 14px; font-weight: 600">Crashed · backoff</div>
+<div style="font-size: 12.5px; color: #8B8F98; line-height: 1.45">Red core; outer ring drains as "restarting in 16 s" counts down.</div>
+</div>
+<div style="background: #16171A; border: 1px solid #23252A; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.5 L16 15 H2 Z" fill="#FF8A3D" stroke="#FF8A3D" stroke-width="1.2" stroke-linejoin="round"/><path d="M9 7 V10.5" stroke="#1A1208" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="12.8" r="1" fill="#1A1208"/></svg>
+<div style="font-size: 14px; font-weight: 600">Error</div>
+<div style="font-size: 12.5px; color: #8B8F98; line-height: 1.45">Orange triangle. Start disabled; reason in header.</div>
+</div>
+</div>
+<div style="font-size: 13.5px; color: #8B8F98; line-height: 1.5">Each state differs by <b style="color: #C9CBD1">shape</b> as well as colour, so it reads at a glance and for colour-blind users. Glyph grows from 9 pt to 12 pt on a 14 pt hit area. Restart-to-apply stays a small ↻ badge after the name, upgraded to an accent chip in the pane header.</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: #8B8F98; letter-spacing: 0.04em; text-transform: uppercase">Structural moves (all directions)</div>
+<div style="font-size: 14px; color: #C9CBD1; line-height: 1.6">The unified toolbar becomes a slim titlebar; the pane gets its own header (identity · status chip · folder · Stop/Restart · ⋯). Footer drops identity and keeps vitals. Groups collapse to one line with a count ("Backend · 4 · 1 running"). Rows reserve the action slot so nothing jumps on hover.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: #8B8F98; letter-spacing: 0.04em; text-transform: uppercase">Assumptions to confirm</div>
+<div style="font-size: 14px; color: #C9CBD1; line-height: 1.6">Type stays SF Pro / SF Mono in the app (Geist stands in on the canvas). One accent colour for selection and links, separate from status hues. Dialogs become custom sheets presented by AppKit. Window title still set for Mission Control even when hidden.</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

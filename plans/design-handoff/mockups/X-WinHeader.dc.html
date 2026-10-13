@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Project window header states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; padding: 32px 40px; background: #F4F5F7; color: #17181B; font-family: Geist, -apple-system, sans-serif; font-size: 13px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; align-items: flex-end; gap: 24px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #7D838C">PROJECT WINDOW · SIDEBAR HEADER = THE WINDOW'S TITLE</div>
+<div style="font-size: 24px; font-weight: 600; letter-spacing: -0.01em">The project is the window</div>
+</div>
+<div style="font-size: 12.5px; color: #4F545C; max-width: 520px; line-height: 1.5">36 pt icon and a 20 pt name set it apart from rows. Project actions rest quietly in the header's own row, so they're discoverable without hover; on hover the header lifts onto a card and the buttons get their chrome. The window's title (Mission Control, Window menu) is "Kinpay".</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; flex: 1">
+<sc-for list="{{vs}}" as="v" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; font-weight: 600; color: #4F545C">{{v.label}}</div>
+<div style="position: relative; height: 300px; border-radius: 12px; overflow: hidden; background: {{v.c.side}}; border: 1px solid {{v.c.line}}; color: {{v.c.text}}; display: flex; flex-direction: column">
+<div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 14px; flex: none">
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FF5F57"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FEBC2E"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #28C840"></span>
+</div>
+<div style="margin: 0 8px 8px; padding: 12px 10px 12px 12px; border-radius: 12px; background: {{v.hbg}}; border: 1px solid {{v.hborder}}; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 11px">
+<span style="width: 36px; height: 36px; border-radius: 10px; background: #D7F25A; color: #7A2BD6; font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex: none">K</span>
+<div style="display: flex; flex-direction: column; gap: 3px; flex: 1">
+<span style="font-size: 20px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.1">Kinpay</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: {{v.c.t3}}"><span style="width: 7px; height: 7px; border-radius: 4px; background: {{v.dot}}"></span><span style="color: {{v.c.t2}}">{{v.run}}</span><span style="color: {{v.c.red}}">{{v.crash}}</span>{{v.of}}</span>
+</div>
+</div>
+<div style="display: flex; gap: 4px">
+<span style="flex: 1; height: 28px; border-radius: 7px; border: 1px solid {{v.bline}}; background: {{v.bbg}}; color: {{v.bfg}}; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px"><svg width="8" height="9" viewBox="0 0 8 9" aria-hidden="true"><path d="M0 0l8 4.5L0 9z" fill="currentColor"></path></svg>Start all</span>
+<span style="width: 32px; height: 28px; border-radius: 7px; border: 1px solid {{v.bline}}; background: {{v.bbg}}; color: {{v.bfg}}; display: flex; align-items: center; justify-content: center"><svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><rect width="8" height="8" rx="1.5" fill="currentColor"></rect></svg></span>
+<span style="width: 32px; height: 28px; border-radius: 7px; border: 1px solid {{v.bline}}; background: {{v.bbg}}; color: {{v.bfg}}; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M10 6a4 4 0 1 1-1.2-2.9M10 1.5v2.6H7.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></span>
+<span style="width: 32px; height: 28px; border-radius: 7px; border: 1px solid {{v.mline}}; background: {{v.mbg}}; color: {{v.mfg}}; display: flex; align-items: center; justify-content: center"><svg width="13" height="4" viewBox="0 0 14 4" aria-hidden="true"><circle cx="2" cy="2" r="1.5" fill="currentColor"></circle><circle cx="7" cy="2" r="1.5" fill="currentColor"></circle><circle cx="12" cy="2" r="1.5" fill="currentColor"></circle></svg></span>
+</div>
+</div>
+<div style="padding: 0 18px; height: 28px; display: flex; align-items: center; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: {{v.c.t3}}">FRONTEND</div>
+<div style="margin: 0 8px; height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px 0 22px; border-radius: 7px; background: {{v.c.sel}}; box-shadow: inset 2px 0 0 {{v.c.acc}}"><span style="width: 9px; height: 9px; border-radius: 5px; background: {{v.c.green}}"></span><span style="flex: 1; font-weight: 600">dev:app</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{v.c.t3}}">24:02</span></div>
+<div style="margin: 0 8px; height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px 0 22px; color: {{v.c.t2}}"><span style="width: 9px; height: 9px; border-radius: 5px; border: 2px solid {{v.c.ring}}; box-sizing: border-box"></span><span style="flex: 1">dev:dashboard</span></div>
+<sc-if value="{{v.menu}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 132px; right: 12px; width: 220px; padding: 5px; border-radius: 10px; background: {{v.c.menu}}; border: 1px solid {{v.c.menuLine}}; box-shadow: 0 14px 32px rgba(0,0,0,0.35); display: flex; flex-direction: column; font-size: 13px">
+<sc-for list="{{menuItems}}" as="m" hint-placeholder-count="8">
+<sc-if value="{{m.sep}}" hint-placeholder-val="{{ false }}"><div style="height: 1px; margin: 4px 6px; background: {{v.c.menuLine}}"></div></sc-if>
+<sc-if value="{{m.item}}" hint-placeholder-val="{{ true }}"><div style="height: 26px; display: flex; align-items: center; padding: 0 9px; border-radius: 6px; background: {{m.bg}}; color: {{m.fg}}"><span style="flex: 1">{{m.t}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.6">{{m.k}}</span></div></sc-if>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+  const D = { side:'#0E0F11', line:'#1E2025', text:'#E6E7EA', t2:'#A9ACB4', t3:'#7D828B', acc:'#7C9CFF', sel:'#1D2233', green:'#3DD68C', red:'#FF5C5C', ring:'#5A5F68', hover:'#16171A', btn:'#1B1C20', btnLine:'#2A2D33', menu:'#1B1C20', menuLine:'#2A2D33', menuHi:'#2A3150' };
+  const Lt = { side:'#F4F5F7', line:'#E1E3E8', text:'#17181B', t2:'#4F545C', t3:'#7D838C', acc:'#4A6CF7', sel:'#E3E9FF', green:'#14965A', red:'#D93A3F', ring:'#A8ADB6', hover:'#EAECF0', btn:'#FFFFFF', btnLine:'#DADDE3', menu:'#FFFFFF', menuLine:'#E1E3E8', menuHi:'#E3E9FF' };
+  const mk = (label, c, o) => {
+    const hov = !!o.hover; const menu = !!o.menu;
+    return { label, c, menu,
+      hbg: hov || menu ? c.hover : 'transparent', hborder: hov || menu ? c.line : 'transparent',
+      bbg: hov ? c.btn : 'transparent', bline: hov ? c.btnLine : 'transparent', bfg: hov ? c.text : c.t3,
+      mbg: menu ? c.menuHi : (hov ? c.btn : 'transparent'), mline: menu ? c.acc : (hov ? c.btnLine : 'transparent'), mfg: menu ? c.text : (hov ? c.text : c.t3),
+      dot: o.idle ? c.ring : c.green, run: o.idle ? 'Nothing running' : '2 running', crash: o.crash ? ' · 1 crashed' : '', of: o.idle ? '' : 'of 8' };
+  };
+  const vs = [
+    mk('Dark · at rest', D, {}),
+    mk('Dark · hover', D, { hover:true }),
+    mk('Dark · ⋯ menu open', D, { menu:true }),
+    mk('Light · at rest', Lt, {}),
+    mk('Light · running with a crash', Lt, { crash:true }),
+    mk('Light · nothing running', Lt, { idle:true })
+  ];
+  const it = (t, k, o) => ({ item:true, sep:false, t, k: k || '', bg: (o && o.hi) ? D.menuHi : 'transparent', fg: (o && o.red) ? D.red : D.text });
+  const sep = { sep:true, item:false };
+  const menuItems = [ it('Start All'), it('Stop All'), it('Restart All'), sep, it('Edit Config', '⌘E'), it('Reveal in Finder'), sep, it('Move to Board', '', { hi:true }), sep, it('Delete Project…', '', { red:true }) ];
+  return { vs, menuItems };
+}
+}
+</script>
+</body>
+</html>

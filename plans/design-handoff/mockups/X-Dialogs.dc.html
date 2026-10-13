@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dialogs Graphite dark</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 1020px; box-sizing: border-box; padding: 30px; background: #0B0C0E; color: #E6E7EA; font-family: Geist, -apple-system, sans-serif; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; align-items: flex-end; gap: 24px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #7D828B">DIALOGS · CUSTOM SHEETS PRESENTED BY APPKIT</div>
+<div style="font-size: 24px; font-weight: 600; letter-spacing: -0.01em">Invalid folder · name conflict · delete · leftover sessions</div>
+</div>
+<div style="font-size: 12.5px; color: #A9ACB4; max-width: 470px; line-height: 1.5">One card: the app icon, a title that says what happened, one line of consequence, the facts in a quiet box, buttons on the right. Default is the accent button (↩); Esc always cancels. Destructive buttons are red and never the default.</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="graphite" mode="dark" kind="invalid" hint-size="600px,440px"></dc-import></div>
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="graphite" mode="dark" kind="conflict" hint-size="600px,440px"></dc-import></div>
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="graphite" mode="dark" kind="delete" hint-size="600px,440px"></dc-import></div>
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="graphite" mode="dark" kind="leftover" hint-size="600px,440px"></dc-import></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1020}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

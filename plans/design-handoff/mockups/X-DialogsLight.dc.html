@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dialogs Graphite light</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 1020px; box-sizing: border-box; padding: 30px; background: #F4F5F7; color: #17181B; font-family: Geist, -apple-system, sans-serif; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; align-items: flex-end; gap: 24px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #7D838C">DIALOGS · GRAPHITE LIGHT</div>
+<div style="font-size: 24px; font-weight: 600; letter-spacing: -0.01em">Same four, light</div>
+</div>
+<div style="font-size: 12.5px; color: #4F545C; max-width: 470px; line-height: 1.5">Light mode uses the light icon variant and a softer scrim. Delete keeps Cancel as the default, shown with the focus ring, so ↩ never destroys anything.</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="graphite" mode="light" kind="invalid" hint-size="600px,440px"></dc-import></div>
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="graphite" mode="light" kind="conflict" hint-size="600px,440px"></dc-import></div>
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="graphite" mode="light" kind="delete" hint-size="600px,440px"></dc-import></div>
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="graphite" mode="light" kind="leftover" hint-size="600px,440px"></dc-import></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1020}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

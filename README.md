@@ -66,6 +66,7 @@ groups:
   with screenshots of each.
 - **[Agent guide](docs/agent-guide.md)**: how to build, test and iterate on this codebase
   quickly. Start here if you are an AI agent or new to the repo.
+- [`PLAN.md`](PLAN.md): what is left to build.
 - [`handoff/PRD.md`](handoff/PRD.md): the original product spec.
 
 ## Layout

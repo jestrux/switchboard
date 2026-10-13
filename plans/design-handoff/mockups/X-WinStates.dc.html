@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Project window states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; padding: 32px 40px; background: #0B0C0E; color: #E6E7EA; font-family: Geist, -apple-system, sans-serif; font-size: 13px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #7D828B">PROJECT WINDOW · WINDOW-LEVEL STATES</div>
+<div style="font-size: 24px; font-weight: 600; letter-spacing: -0.01em">When the project itself changes under the window</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 400px; border-radius: 12px; border: 1px solid #1E2025; overflow: hidden; display: flex; background: #111214">
+<div style="width: 150px; background: #0E0F11; border-right: 1px solid #1E2025; padding: 12px 8px; display: flex; flex-direction: column; gap: 10px; opacity: 0.45">
+<div style="display: flex; gap: 5px"><span style="width: 9px; height: 9px; border-radius: 5px; background: #3A3D44"></span><span style="width: 9px; height: 9px; border-radius: 5px; background: #3A3D44"></span><span style="width: 9px; height: 9px; border-radius: 5px; background: #3A3D44"></span></div>
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 26px; height: 26px; border-radius: 7px; background: #3A3D44; color: #7D828B; font-weight: 800; display: flex; align-items: center; justify-content: center">K</span><span style="font-size: 15px; font-weight: 650; text-decoration: line-through">Kinpay</span></div>
+</div>
+<div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px">
+<div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start">
+<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 6h14M9 6V3.5h4V6M6 6l1 13h8l1-13" fill="none" stroke="#A9ACB4" stroke-width="1.6" stroke-linejoin="round"></path></svg>
+<div style="font-size: 16px; font-weight: 600">Kinpay was deleted</div>
+<div style="font-size: 12.5px; color: #A9ACB4; line-height: 1.5">Its commands were stopped and its folder is in the Trash. Put it back from the Trash and it returns to the board.</div>
+<button style="height: 30px; padding: 0 12px; border-radius: 8px; border: 0; background: #7C9CFF; color: #0B0C0E; font-family: inherit; font-size: 12.5px; font-weight: 600">Close Window</button>
+</div>
+</div>
+</div>
+<div style="font-size: 14px; font-weight: 600">Deleted</div>
+<div style="font-size: 12.5px; color: #A9ACB4; line-height: 1.5">Deleted from this window's ⋯ menu, from Finder, or by hand. Nothing to return to the board, so the only action is Close.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 400px; border-radius: 12px; border: 1px solid #1E2025; overflow: hidden; display: flex; background: #111214">
+<div style="width: 170px; background: #0E0F11; border-right: 1px solid #1E2025; padding: 12px 8px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; gap: 5px"><span style="width: 9px; height: 9px; border-radius: 5px; background: #FF5F57"></span><span style="width: 9px; height: 9px; border-radius: 5px; background: #FEBC2E"></span><span style="width: 9px; height: 9px; border-radius: 5px; background: #28C840"></span></div>
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 26px; height: 26px; border-radius: 7px; background: #D7F25A; color: #7A2BD6; font-weight: 800; display: flex; align-items: center; justify-content: center">K</span><span style="font-size: 15px; font-weight: 650">Kinpay</span></div>
+<div style="padding: 8px; border-radius: 8px; background: #2A1A0F; border: 1px solid #FF8A3D; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2 L16.5 15.5 H1.5 Z" fill="#FF8A3D"></path></svg>config.yaml · 2 problems</div>
+<div style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #C9A98C; line-height: 1.45">line 14: "a" has an empty run<br>line 22: duplicate id "a"</div>
+<span style="font-size: 11.5px; color: #A3B8FF; font-weight: 500">Edit Config ⌘E</span>
+</div>
+<div style="font-size: 10.5px; color: #7D828B; padding: 0 2px">Showing the last good config</div>
+<div style="display: flex; align-items: center; gap: 7px; padding: 0 4px; font-size: 12px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #3DD68C"></span>dev:app</div>
+<div style="display: flex; align-items: center; gap: 7px; padding: 0 4px; font-size: 12px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #3DD68C"></span>api</div>
+<div style="display: flex; align-items: center; gap: 7px; padding: 0 4px; font-size: 12px; color: #A9ACB4"><span style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #5A5F68; box-sizing: border-box"></span>worker</div>
+</div>
+<div style="flex: 1; padding: 12px; font-family: 'Geist Mono', monospace; font-size: 11px; line-height: 1.7; color: #D5D7DC"><span style="color: #3DD68C"> ✓</span> Ready in 1.4s<br><span style="color: #3DD68C"> ✓</span> Compiled /dashboard<br><span style="color: #6B7079">GET /dashboard 200</span></div>
+</div>
+<div style="font-size: 14px; font-weight: 600">Config became invalid</div>
+<div style="font-size: 12.5px; color: #A9ACB4; line-height: 1.5">The window keeps its last good tree and its running sessions; the problems sit under the title until the file is fixed and the sidebar reloads.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 400px; border-radius: 12px; border: 1px solid #1E2025; overflow: hidden; display: flex; background: #111214">
+<div style="width: 150px; background: #0E0F11; border-right: 1px solid #1E2025; padding: 12px 8px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; gap: 5px"><span style="width: 9px; height: 9px; border-radius: 5px; background: #FF5F57"></span><span style="width: 9px; height: 9px; border-radius: 5px; background: #FEBC2E"></span><span style="width: 9px; height: 9px; border-radius: 5px; background: #28C840"></span></div>
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 26px; height: 26px; border-radius: 7px; background: #D7F25A; color: #7A2BD6; font-weight: 800; display: flex; align-items: center; justify-content: center">K</span><div style="display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 650">Kinpay</span><span style="font-size: 10.5px; color: #7D828B">Nothing running</span></div></div>
+<span style="height: 26px; border-radius: 7px; background: #7C9CFF; color: #0B0C0E; font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center">▶ Start all</span>
+<div style="display: flex; align-items: center; gap: 7px; padding: 0 4px; font-size: 12px; color: #A9ACB4"><span style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #5A5F68; box-sizing: border-box"></span>dev:app</div>
+<div style="display: flex; align-items: center; gap: 7px; padding: 0 4px; font-size: 12px; color: #A9ACB4"><span style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #5A5F68; box-sizing: border-box"></span>api</div>
+<div style="display: flex; align-items: center; gap: 7px; padding: 0 4px; font-size: 12px; color: #A9ACB4"><span style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #5A5F68; box-sizing: border-box"></span>worker</div>
+</div>
+<div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 18px">
+<div style="display: flex; flex-direction: column; gap: 10px; width: 100%">
+<div style="font-size: 15px; font-weight: 600">Nothing running in Kinpay</div>
+<div style="font-size: 12px; color: #A9ACB4; line-height: 1.5">Start everything marked autostart, or pick one.</div>
+<div style="border-radius: 8px; border: 1px solid #1E2025; overflow: hidden">
+<div style="height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 12px"><span style="flex: 1">dev:app</span><span style="color: #7D828B; font-size: 10.5px">autostart</span>▶</div>
+<div style="height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 12px; border-top: 1px solid #1E2025"><span style="flex: 1">api</span><span style="color: #7D828B; font-size: 10.5px">autostart</span>▶</div>
+<div style="height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 12px; border-top: 1px solid #1E2025; color: #A9ACB4"><span style="flex: 1">worker</span>▶</div>
+</div>
+</div>
+</div>
+</div>
+<div style="font-size: 14px; font-weight: 600">Nothing running</div>
+<div style="font-size: 12.5px; color: #A9ACB4; line-height: 1.5">Start all becomes the header's primary button. The pane lists commands with a Start each. The same state shows on the board for an idle project.</div>
+</div>
+</div>
+
+<div style="display: flex; gap: 24px; align-items: center; padding-top: 14px; border-top: 1px solid #1E2025">
+<div style="border-radius: 10px; overflow: hidden; border: 1px solid #1E2025; flex: none"><dc-import name="Pane" mode="dark" cmd="kdev" kind="elsewhere" size="mid" focused="{{ false }}" where="the Kinpay window" w="{{ 460 }}" h="{{ 120 }}" hint-size="460px,120px"></dc-import></div>
+<div style="font-size: 12.5px; color: #A9ACB4; line-height: 1.55"><b style="color: #E6E7EA">The quiet placeholder.</b> One muted line and an outlined Show Here, no icon tile or accent. With extraction it should only flash during the hand-off (a board pane that was showing Kinpay as it leaves) or if two attach requests race. The board then reselects, so in practice you'll rarely see it.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

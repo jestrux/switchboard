@@ -19,3 +19,5 @@ The essentials:
 - Never run `make migrate`, `make seed` or `make flush` in the sample projects unasked.
 
 Other guides: [docs/projects.md](docs/projects.md), [docs/theming.md](docs/theming.md).
+
+What is left to build: [PLAN.md](PLAN.md), with context in [plans/](plans).

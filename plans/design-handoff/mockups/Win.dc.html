@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Window component</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 800px; display: flex; background: {{c.win}}; color: {{c.text}}; font-family: Geist, -apple-system, sans-serif; font-size: 13px; overflow: hidden">
+
+<sc-if value="{{isBoard}}" hint-placeholder-val="{{ true }}">
+<div style="width: 72px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 18px; background: {{c.rail}}; border-right: 1px solid {{c.line}}; box-sizing: border-box">
+<div style="display: flex; gap: 6px; margin-bottom: 14px">
+<span style="width: 11px; height: 11px; border-radius: 6px; background: #FF5F57"></span>
+<span style="width: 11px; height: 11px; border-radius: 6px; background: #FEBC2E"></span>
+<span style="width: 11px; height: 11px; border-radius: 6px; background: #28C840"></span>
+</div>
+<sc-for list="{{rail}}" as="t" hint-placeholder-count="3">
+<div style="position: relative; width: 40px; height: 40px; border-radius: {{th.tileR}}px; background: {{t.bg}}; color: {{t.fg}}; border: {{t.border}}; box-sizing: border-box; box-shadow: {{t.ring}}; display: flex; align-items: center; justify-content: center; font-size: {{t.size}}px; font-weight: 700" title="{{t.title}}">{{t.av}}
+<sc-if value="{{t.badge}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; right: -5px; bottom: -5px; min-width: 17px; height: 17px; padding: 0 4px; box-sizing: border-box; border-radius: 9px; background: {{t.badgeBg}}; color: {{t.badgeFg}}; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px {{c.rail}}; filter: {{t.glow}}">{{t.badgeText}}</span></sc-if>
+</div>
+</sc-for>
+<sc-if value="{{hasRail}}" hint-placeholder-val="{{ true }}"><div style="width: 24px; height: 1px; background: {{c.line}}"></div></sc-if>
+<button aria-label="Add project" title="Add Project… ⌘O" style="width: 40px; height: 40px; border-radius: {{th.tileR}}px; border: 1px dashed {{c.btnLine}}; background: transparent; color: {{c.t2}}; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="14" height="14" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>
+</div>
+</sc-if>
+
+<sc-if value="{{showSide}}" hint-placeholder-val="{{ true }}">
+<div style="width: {{sideW}}px; flex: none; background: {{c.side}}; border-right: 1px solid {{sideBorder}}; display: flex; flex-direction: column">
+
+<sc-if value="{{isProj}}" hint-placeholder-val="{{ false }}">
+<div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 14px; flex: none">
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FF5F57"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FEBC2E"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #28C840"></span>
+</div>
+<div style="margin: 0 8px 8px; padding: 12px 10px 12px 12px; border-radius: 12px; background: {{hd.bg}}; border: 1px solid {{hd.border}}; display: flex; flex-direction: column; gap: 10px; flex: none">
+<div style="display: flex; align-items: center; gap: 11px">
+<span style="width: 36px; height: 36px; border-radius: 10px; background: #D7F25A; color: #7A2BD6; font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex: none">K</span>
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1">
+<span style="font-size: 20px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.1">Kinpay</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: {{c.t3}}"><span style="width: 7px; height: 7px; border-radius: 4px; background: {{c.green}}; filter: {{greenGlow}}"></span><span style="color: {{c.t2}}">2 running</span>of 8</span>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 4px">
+<sc-for list="{{hd.actions}}" as="a" hint-placeholder-count="4">
+<button aria-label="{{a.label}}" title="{{a.label}}" style="height: 28px; padding: 0 {{a.pad}}px; border-radius: 7px; border: 1px solid {{hd.btnLine}}; background: {{hd.btnBg}}; color: {{hd.btnFg}}; font-family: inherit; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; flex: {{a.flex}}">
+<sc-if value="{{a.isPlay}}" hint-placeholder-val="{{ true }}"><svg width="8" height="9" viewBox="0 0 8 9" aria-hidden="true"><path d="M0 0l8 4.5L0 9z" fill="currentColor"></path></svg></sc-if>
+<sc-if value="{{a.isStop}}" hint-placeholder-val="{{ false }}"><svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><rect width="8" height="8" rx="1.5" fill="currentColor"></rect></svg></sc-if>
+<sc-if value="{{a.isRestart}}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M10 6a4 4 0 1 1-1.2-2.9M10 1.5v2.6H7.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></sc-if>
+<sc-if value="{{a.isMore}}" hint-placeholder-val="{{ false }}"><svg width="13" height="4" viewBox="0 0 14 4" aria-hidden="true"><circle cx="2" cy="2" r="1.5" fill="currentColor"></circle><circle cx="7" cy="2" r="1.5" fill="currentColor"></circle><circle cx="12" cy="2" r="1.5" fill="currentColor"></circle></svg></sc-if>
+<span>{{a.text}}</span>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isBoard}}" hint-placeholder-val="{{ true }}">
+<div style="padding: 44px 14px 12px 14px; display: flex; flex-direction: column; gap: 4px; flex: none">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em; flex: 1">CityBuild</span>
+<button aria-label="Open CityBuild in new window" title="Open in New Window ⌘⇧N" style="width: 28px; height: 28px; border-radius: 7px; border: 1px solid {{c.btnLine}}; background: {{c.btn}}; color: {{c.t2}}; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="14" height="12" viewBox="0 0 22 18" aria-hidden="true"><rect x="1" y="1" width="13" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"></rect><path d="M9 7h11v10H9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg></button>
+<button style="height: 28px; padding: 0 10px; border-radius: 7px; border: 1px solid {{c.btnLine}}; background: {{c.btn}}; color: {{c.text}}; font-family: inherit; font-size: 12px; display: flex; align-items: center; gap: 6px"><svg width="7" height="8" viewBox="0 0 8 9" aria-hidden="true"><path d="M0 0l8 4.5L0 9z" fill="currentColor"></path></svg>Start all</button>
+</div>
+<div style="font-size: 12px; color: {{c.t3}}">{{boardSub}}</div>
+</div>
+</sc-if>
+
+<div style="flex: 1; padding: 0 8px; display: flex; flex-direction: column; gap: 1px; overflow: hidden">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<sc-if value="{{r.isGroup}}" hint-placeholder-val="{{ false }}">
+<div style="height: 28px; display: flex; align-items: center; gap: 6px; padding: 0 10px; color: {{c.t3}}; font-family: {{th.labelFont}}; font-size: {{th.labelSize}}px; font-weight: {{th.labelWeight}}; letter-spacing: {{th.labelSpacing}}; text-transform: {{th.labelTransform}}">{{r.label}}<span style="flex: 1"></span><span style="font-family: Geist, sans-serif; text-transform: none; letter-spacing: 0; font-weight: 500">{{r.summary}}</span></div>
+</sc-if>
+<sc-if value="{{r.isCmd}}" hint-placeholder-val="{{ true }}">
+<div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 8px 0 {{r.indent}}px; border-radius: {{th.rowR}}px; background: {{r.bg}}; box-shadow: {{r.shadow}}; color: {{r.color}}; opacity: {{r.op}}">
+<span style="width: 9px; height: 9px; border-radius: 5px; box-sizing: border-box; background: {{r.fill}}; border: 2px solid {{r.dot}}; flex: none; box-shadow: {{r.glow}}"></span>
+<span style="flex: 1; font-weight: {{r.weight}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.label}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{r.metaColor}}">{{r.meta}}</span>
+<sc-if value="{{r.hasPane}}" hint-placeholder-val="{{ false }}"><span title="Shown in pane {{r.pane}}" style="min-width: 16px; height: 16px; border-radius: 4px; border: 1px solid {{r.paneLine}}; color: {{r.paneFg}}; background: {{r.paneBg}}; font-family: 'Geist Mono', monospace; font-size: 10px; display: flex; align-items: center; justify-content: center; box-sizing: border-box">{{r.pane}}</span></sc-if>
+</div>
+</sc-if>
+</sc-for>
+</div>
+
+<sc-if value="{{showAway}}" hint-placeholder-val="{{ true }}">
+<button title="Window › Kinpay" style="margin: 0 8px 6px; height: 28px; padding: 0 8px; border-radius: 7px; border: 0; background: transparent; color: {{c.t3}}; font-family: inherit; font-size: 12px; display: flex; align-items: center; gap: 8px; text-align: left">
+<svg width="14" height="12" viewBox="0 0 22 18" aria-hidden="true"><rect x="1" y="1" width="13" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"></rect><path d="M9 7h11v10H9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+<span style="flex: 1">1 project in its own window</span>
+<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg>
+</button>
+</sc-if>
+<div style="height: 40px; flex: none; border-top: 1px solid {{c.line}}; display: flex; align-items: center; gap: 8px; padding: 0 14px; color: {{c.t3}}; font-size: 12px">
+<span style="width: 7px; height: 7px; border-radius: 4px; background: {{c.green}}; filter: {{greenGlow}}"></span>{{foot}}
+</div>
+</div>
+</sc-if>
+
+<div style="position: relative; flex: 1; min-width: 0; display: flex; margin: {{th.inset}}px; border-radius: {{th.paneR}}px; overflow: {{areaOverflow}}; background: {{c.line}}; box-shadow: {{areaShadow}}">
+<sc-if value="{{isEmptyBoard}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; background: {{c.term}}; display: flex; align-items: center; justify-content: center">
+<div style="width: 520px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em">The board is clear</div>
+<div style="font-size: 13.5px; color: {{c.t2}}; line-height: 1.5">Every project is open in its own window. Close a project's window, or bring it back, to put it on the board again.</div>
+</div>
+<div style="border-radius: 12px; border: 1px solid {{c.line}}; background: {{c.side}}; overflow: hidden">
+<sc-for list="{{away}}" as="w" hint-placeholder-count="3">
+<div style="height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 14px; border-top: 1px solid {{w.topLine}}">
+<span style="width: 28px; height: 28px; border-radius: 8px; background: {{w.bg}}; color: {{w.fg}}; font-size: {{w.size}}px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{w.av}}</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">{{w.name}}</span><span style="font-size: 12px; color: {{c.t3}}"><span style="color: {{c.green}}">●</span> {{w.run}}<span style="color: {{c.red}}">{{w.crash}}</span></span></div>
+<button style="height: 28px; padding: 0 10px; border-radius: 7px; border: 0; background: transparent; color: {{c.t2}}; font-family: inherit; font-size: 12px">Bring Back</button>
+<button style="height: 28px; padding: 0 12px; border-radius: 7px; border: 1px solid {{c.btnLine}}; background: {{c.btn}}; color: {{c.text}}; font-family: inherit; font-size: 12px">Show Window</button>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; font-size: 12.5px; color: {{c.t3}}">
+<button style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid {{c.btnLine}}; background: {{c.btn}}; color: {{c.text}}; font-family: inherit; font-size: 12.5px; display: flex; align-items: center; gap: 8px">Add Project…<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{c.t3}}">⌘O</span></button>or drop a project folder anywhere here
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isL1}}" hint-placeholder-val="{{ false }}">
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{A.cmd}}" kind="{{A.kind}}" focused="{{A.focused}}" where="{{A.where}}" show-project="{{A.sp}}" max-note="{{A.maxNote}}" w="{{A.w}}" h="{{A.h}}" hint-size="972px,800px"></dc-import>
+</sc-if>
+
+<sc-if value="{{isL2}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 1px">
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{A.cmd}}" kind="{{A.kind}}" focused="{{A.focused}}" where="{{A.where}}" show-project="{{A.sp}}" w="{{A.w}}" h="{{A.h}}" hint-size="583px,800px"></dc-import>
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{B.cmd}}" kind="{{B.kind}}" focused="{{B.focused}}" where="{{B.where}}" show-project="{{B.sp}}" w="{{B.w}}" h="{{B.h}}" hint-size="388px,800px"></dc-import>
+</div>
+<sc-if value="{{showGrip}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 0; bottom: 0; left: {{gripX}}px; width: 5px; background: {{c.accSoft}}; display: flex; align-items: center; justify-content: center">
+<div style="width: 2px; height: 100%; background: {{c.acc}}"></div>
+<div style="position: absolute; width: 9px; height: 34px; border-radius: 5px; background: {{c.acc}}; box-shadow: 0 0 0 3px {{c.term}}"></div>
+<div style="position: absolute; top: 46%; left: 14px; height: 24px; padding: 0 9px; border-radius: 6px; background: {{c.text}}; color: {{c.win}}; font-family: 'Geist Mono', monospace; font-size: 11px; display: flex; align-items: center; white-space: nowrap">{{gripText}}</div>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{isL3}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 1px">
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{A.cmd}}" kind="{{A.kind}}" focused="{{A.focused}}" where="{{A.where}}" show-project="{{A.sp}}" w="{{A.w}}" h="{{A.h}}" hint-size="563px,800px"></dc-import>
+<div style="display: flex; flex-direction: column; gap: 1px">
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{B.cmd}}" kind="{{B.kind}}" focused="{{B.focused}}" where="{{B.where}}" show-project="{{B.sp}}" w="{{B.w}}" h="{{B.h}}" hint-size="408px,399px"></dc-import>
+<div style="position: relative">
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{C.cmd}}" kind="{{C.kind}}" focused="{{C.focused}}" where="{{C.where}}" show-project="{{C.sp}}" w="{{C.w}}" h="{{C.h}}" hint-size="408px,400px"></dc-import>
+<sc-if value="{{showDrop}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 36px 0 0 0; padding: 14px; box-sizing: border-box; display: flex; gap: 8px">
+<div style="flex: 1; border-radius: 10px; border: 2px dashed {{c.acc}}; background: {{c.accSoft}}; opacity: 0.92; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: {{c.accSoftText}}">
+<span style="font-size: 14px; font-weight: 600">Show make:migrate here</span>
+<span style="font-size: 11.5px">replaces {{C.name}} in this pane</span>
+</div>
+<div style="width: 60px; border-radius: 10px; border: 1.5px dashed {{c.btnLine}}; display: flex; align-items: center; justify-content: center; color: {{c.t3}}; font-size: 11px; text-align: center; line-height: 1.3">split<br>right</div>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+<sc-if value="{{showDrop}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; left: -150px; top: 330px; height: 30px; padding: 0 12px; border-radius: 8px; background: {{c.btn}}; border: 1px solid {{c.btnLine}}; box-shadow: 0 10px 24px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; font-size: 13px; transform: rotate(-2deg); color: {{c.text}}"><span style="width: 9px; height: 9px; border-radius: 5px; border: 2px solid {{c.ring}}; box-sizing: border-box"></span>make:migrate</div></sc-if>
+</sc-if>
+
+<sc-if value="{{isL4}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 1px">
+<div style="display: flex; flex-direction: column; gap: 1px">
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{A.cmd}}" kind="{{A.kind}}" focused="{{A.focused}}" where="{{A.where}}" show-project="{{A.sp}}" w="{{A.w}}" h="{{A.h}}" hint-size="641px,399px"></dc-import>
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{B.cmd}}" kind="{{B.kind}}" focused="{{B.focused}}" where="{{B.where}}" show-project="{{B.sp}}" w="{{B.w}}" h="{{B.h}}" hint-size="641px,400px"></dc-import>
+</div>
+<div style="display: flex; flex-direction: column; gap: 1px; position: relative">
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{C.cmd}}" kind="{{C.kind}}" focused="{{C.focused}}" where="{{C.where}}" show-project="{{C.sp}}" w="{{C.w}}" h="{{C.h}}" hint-size="330px,399px"></dc-import>
+<dc-import name="Pane" theme="{{theme}}" mode="{{mode}}" cmd="{{D.cmd}}" kind="{{D.kind}}" focused="{{D.focused}}" where="{{D.where}}" show-project="{{D.sp}}" w="{{D.w}}" h="{{D.h}}" hint-size="330px,400px"></dc-import>
+<sc-if value="{{showRefuse}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; top: 40px; right: 8px; width: 230px; padding: 10px 12px; border-radius: 9px; background: {{c.text}}; color: {{c.win}}; font-size: 12px; line-height: 1.45; box-shadow: 0 10px 24px rgba(0,0,0,0.25)"><b>Can't split this pane</b><br>Each pane needs at least 320 × 180 pt. Widen the window or close a pane.</div></sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["graphite","patchbay","paper"],"default":"graphite"},"mode":{"editor":"enum","options":["dark","light"],"default":"dark"},"scope":{"editor":"enum","options":["board","project"],"default":"board"},"layout":{"editor":"enum","options":["1","2","3","4"],"default":"2"},"set":{"editor":"enum","options":["a","b","c"],"default":"a"},"focus":{"editor":"int","default":-1},"overlay":{"editor":"enum","options":["none","grip","drop","refuse"],"default":"none"},"maximized":{"editor":"boolean","default":false},"boardState":{"editor":"enum","options":["normal","empty"],"default":"normal"},"headerHover":{"editor":"boolean","default":false},"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+  const TOK = {
+    graphite: {
+      dark: { win:'#0B0C0E', rail:'#0B0C0E', side:'#0E0F11', line:'#1E2025', term:'#111214', text:'#E6E7EA', t2:'#A9ACB4', t3:'#7D828B', hover:'#16171A', sel:'#1D2233', selText:'#FFFFFF', acc:'#7C9CFF', accSoft:'#1D2233', accSoftText:'#A3B8FF', btn:'#16171A', btnLine:'#2A2D33', green:'#3DD68C', red:'#FF5C5C', orange:'#FF8A3D', amber:'#F5B83D', ring:'#5A5F68' },
+      light: { win:'#ECEEF1', rail:'#ECEEF1', side:'#F4F5F7', line:'#E1E3E8', term:'#FCFCFD', text:'#17181B', t2:'#4F545C', t3:'#7D838C', hover:'#E9EBEF', sel:'#E3E9FF', selText:'#17181B', acc:'#4A6CF7', accSoft:'#E3E9FF', accSoftText:'#2F4FD6', btn:'#FFFFFF', btnLine:'#DADDE3', green:'#14965A', red:'#D93A3F', orange:'#C9580B', amber:'#B07800', ring:'#A8ADB6' }
+    },
+    patchbay: {
+      dark: { win:'#12100D', rail:'#12100D', side:'#181511', line:'#2A251E', term:'#0F0D0B', text:'#EDE6DA', t2:'#A99F8E', t3:'#8A7F6C', hover:'#221E18', sel:'#2E1F17', selText:'#FFF8EC', acc:'#FFB224', accSoft:'#33250E', accSoftText:'#FFCB66', btn:'#1F1B16', btnLine:'#3A332A', green:'#9ACD6B', red:'#FF6B5A', orange:'#FF8A3D', amber:'#FFB224', ring:'#5A5246' },
+      light: { win:'#E6DECF', rail:'#E6DECF', side:'#EFE8DB', line:'#DDD2BF', term:'#FBF8F2', text:'#241E16', t2:'#5F5545', t3:'#857965', hover:'#E6DCCB', sel:'#F5DDB0', selText:'#241E16', acc:'#C47A00', accSoft:'#F5DDB0', accSoftText:'#7A4C00', btn:'#FBF8F2', btnLine:'#D6CAB4', green:'#4E8A1A', red:'#C2412E', orange:'#B8560B', amber:'#A86800', ring:'#A89B84' }
+    },
+    paper: {
+      dark: { win:'#161618', rail:'#161618', side:'#161618', line:'#2C2C30', term:'#1B1B1E', text:'#EDEDEB', t2:'#A3A29E', t3:'#85847F', hover:'#232326', sel:'#2A2A2F', selText:'#FFFFFF', acc:'#8B8BFF', accSoft:'#26264A', accSoftText:'#B4B4FF', btn:'#262629', btnLine:'#35353A', green:'#3FCB7E', red:'#FF6B6B', orange:'#FF9447', amber:'#F2B33D', ring:'#5F5E5A' },
+      light: { win:'#EFEEEA', rail:'#EFEEEA', side:'#EFEEEA', line:'#E2E0DA', term:'#FBFBF9', text:'#1A1A1C', t2:'#4A4946', t3:'#7A7873', hover:'#E6E4DF', sel:'#FFFFFF', selText:'#1A1A1C', acc:'#3B3BD9', accSoft:'#E7E7FB', accSoftText:'#3030B8', btn:'#FFFFFF', btnLine:'#E2E0DA', green:'#1F8A4C', red:'#D13434', orange:'#B9520E', amber:'#A6720A', ring:'#A5A39D' }
+    }
+  };
+  const META = {
+    graphite: { labelFont:"Geist, -apple-system, sans-serif", labelTransform:'uppercase', labelSpacing:'0.06em', labelSize:11, labelWeight:600, rowR:7, tileR:10, inset:0, paneR:0, sel:'bar' },
+    patchbay: { labelFont:"'Geist Mono', ui-monospace, monospace", labelTransform:'uppercase', labelSpacing:'0.1em', labelSize:10.5, labelWeight:500, rowR:6, tileR:9, inset:0, paneR:0, sel:'bar' },
+    paper: { labelFont:"Geist, -apple-system, sans-serif", labelTransform:'none', labelSpacing:'0', labelSize:11.5, labelWeight:600, rowR:8, tileR:11, inset:10, paneR:14, sel:'card' }
+  };
+  const theme = TOK[this.props.theme] ? this.props.theme : 'graphite';
+  const mode = this.props.mode === 'light' ? 'light' : 'dark';
+  const c = TOK[theme][mode]; const th = META[theme];
+  const glowOn = theme === 'patchbay' && mode === 'dark';
+  const glowF = (col) => glowOn ? 'drop-shadow(0 0 4px ' + col + ')' : 'none';
+  const scope = this.props.scope === 'project' ? 'project' : 'board';
+  const isBoard = scope === 'board';
+  const bs = this.props.boardState ?? 'normal';
+  const empty = isBoard && bs === 'empty';
+  const hover = !!this.props.headerHover;
+  const overlay = this.props.overlay ?? 'none';
+  const maximized = !!this.props.maximized;
+  let layout = this.props.layout ?? '2';
+  const set = this.props.set ?? 'a';
+  const inset = th.inset;
+  const outerW = isBoard ? (empty ? 1208 : 972) : 1012;
+  const AW = outerW - inset * 2, AH = 800 - inset * 2;
+
+  const SETS = { a:['dev','api','sb','empty'], b:['claude','boot','tc','never'], c:['dev','seed','api','tc'] };
+  let cmds = isBoard ? SETS[set] || SETS.a : ['kdev','kapi'];
+  if (!isBoard) layout = '2';
+  const n = Number(layout);
+  const defFocus = { 1:0, 2:0, 3:1, 4: set === 'a' ? 3 : 0 }[n];
+  const focusIdx = (this.props.focus ?? -1) >= 0 ? this.props.focus : defFocus;
+  const NAMES = { dev:'dev', api:'make:dev', sb:'Storybook', boot:'Storybook', claude:'Claude Code', tc:'typecheck', never:'test', seed:'make:seed', kdev:'dev:app', kapi:'api' };
+  const mkPane = (i, w, h, extra) => {
+    const id = cmds[i]; const isEmpty = id === 'empty';
+    return Object.assign({ cmd: isEmpty ? 'dev' : id, kind: isEmpty ? 'empty' : 'term', focused: i === focusIdx, w, h, where:'', sp:false, maxNote:'', name: NAMES[id] || '' }, extra || {});
+  };
+  let A = {}, B = {}, C = {}, D = {}; let L = layout;
+  if (empty) L = 'none';
+  else if (maximized) { L = '1'; A = mkPane(focusIdx, AW, AH, { maxNote: 'Maximized · ' + n + ' panes', focused:true }); }
+  else if (n === 1) { A = mkPane(0, AW, AH); }
+  else if (n === 2) { const aw = Math.round(AW * 0.6); A = mkPane(0, aw, AH); B = mkPane(1, AW - aw - 1, AH); }
+  else if (n === 3) { const aw = Math.round(AW * 0.58); const rw = AW - aw - 1; const bh = Math.floor((AH - 1) / 2); A = mkPane(0, aw, AH); B = mkPane(1, rw, bh); C = mkPane(2, rw, AH - 1 - bh); }
+  else { const lw = Math.round(AW * 0.66); const rw = AW - lw - 1; const bh = Math.floor((AH - 1) / 2); A = mkPane(0, lw, bh); B = mkPane(1, lw, AH - 1 - bh); C = mkPane(2, rw, bh); D = mkPane(3, rw, AH - 1 - bh); }
+
+  const dotOf = { run:[c.green,c.green], start:[c.amber,'transparent'], stop:[c.ring,'transparent'], crash:[c.red,c.red], done:[c.t3,c.t3], err:[c.orange,c.orange] };
+  const shown = maximized ? [cmds[focusIdx]] : cmds.slice(0, n);
+  const rowOf = { dev:'dev', api:'mdev', sb:'sb', boot:'sb', claude:'cc', tc:'tc', never:'test', seed:'mseed' };
+  const paneNum = {}; shown.forEach((id, i) => { if (rowOf[id]) paneNum[rowOf[id]] = String(maximized ? focusIdx + 1 : i + 1); });
+  const focusRow = rowOf[cmds[focusIdx]] || '';
+  const stOver = {}; if (shown.indexOf('boot') >= 0 || (cmds.indexOf('boot') >= 0)) stOver.sb = 'start'; if (cmds.indexOf('claude') >= 0) stOver.cc = 'run';
+  const cmdRow = (id, label, st, meta, indent) => {
+    st = stOver[id] || st; const d = dotOf[st]; const sel = id === focusRow; const live = ['run','start','crash','err'].indexOf(st) >= 0;
+    const metaOver = st === 'start' ? 'starting' : (id === 'cc' && st === 'run' ? '0:07' : meta);
+    return { isCmd:true, label, indent: indent ?? 22, dot:d[0], fill:d[1], glow: glowOn && live ? '0 0 6px ' + d[0] : 'none',
+      meta: metaOver || '', metaColor: st === 'crash' ? c.red : st === 'err' ? c.orange : st === 'start' ? c.amber : c.t3,
+      hasPane: !!paneNum[id], pane: paneNum[id] || '', paneLine: sel ? c.acc : c.btnLine, paneFg: sel ? c.accSoftText : c.t3, paneBg: sel ? c.accSoft : 'transparent',
+      bg: sel ? c.sel : 'transparent', shadow: sel ? (th.sel === 'card' ? '0 1px 2px rgba(0,0,0,0.08), 0 0 0 1px ' + c.line : 'inset 2px 0 0 ' + c.acc) : 'none',
+      color: sel ? c.selText : (st === 'stop' ? c.t2 : c.text), weight: sel ? 600 : 400, op: 1 };
+  };
+  const grp = (label, summary) => ({ isGroup:true, label, summary: summary || '' });
+  let rows = [];
+  if (isBoard && !empty) {
+    rows = [
+      cmdRow('cc', 'Claude Code', 'stop', '', 10),
+      grp('Frontend'),
+      cmdRow('dev', 'dev', 'run', '1:59'), cmdRow('sb', 'Storybook', 'run', '12:40'), cmdRow('tc', 'typecheck', 'done', 'exit 0'), cmdRow('test', 'test', 'stop', ''),
+      grp('Backend'),
+      cmdRow('mdev', 'make:dev', 'crash', '↻ 16s'), cmdRow('mig', 'make:migrate', 'stop', ''), cmdRow('mseed', 'make:seed', 'err', 'no folder'),
+      grp('E2E', '3 idle')
+    ];
+    if (overlay === 'drop') rows[8].op = 0.45;
+  } else if (!isBoard) {
+    const kr = (label, st, meta, pane, sel) => { const d = dotOf[st]; return { isCmd:true, label, indent:22, dot:d[0], fill:d[1], glow: glowOn && st === 'run' ? '0 0 6px ' + d[0] : 'none', meta: meta || '', metaColor:c.t3, hasPane: !!pane, pane: pane || '', paneLine: sel ? c.acc : c.btnLine, paneFg: sel ? c.accSoftText : c.t3, paneBg: sel ? c.accSoft : 'transparent', bg: sel ? c.sel : 'transparent', shadow: sel ? (th.sel === 'card' ? '0 1px 2px rgba(0,0,0,0.08), 0 0 0 1px ' + c.line : 'inset 2px 0 0 ' + c.acc) : 'none', color: sel ? c.selText : (st === 'stop' ? c.t2 : c.text), weight: sel ? 600 : 400, op:1 }; };
+    rows = [ grp('Frontend'), kr('dev:app','run','24:02','1',true), kr('dev:dashboard','stop'), kr('Storybook','stop'), kr('Studio','stop'), grp('Backend'), kr('api','run','23:58','2'), kr('worker','stop'), grp('E2E', '2 idle') ];
+  }
+  const badgeFg = mode === 'dark' ? '#0B0C0E' : '#FFFFFF';
+  const rail = empty ? [] : [
+    { av:'CB', title:'CityBuild', bg:'#F2EEE6', fg:'#D9541F', size:11, border:'0', ring:'0 0 0 2px ' + c.rail + ', 0 0 0 4px ' + c.acc, badge:true, badgeText:'3', badgeBg:c.green, badgeFg, glow:glowF(c.green) },
+    { av:'SD', title:'States Demo', bg:'#C94848', fg:'#FFFFFF', size:11, border:'0', ring:'none', badge:true, badgeText:'1', badgeBg:c.green, badgeFg, glow:glowF(c.green) },
+    { av:'br', title:'broken', bg:'transparent', fg:c.orange, size:11, border:'1px dashed ' + c.orange, ring:'none', badge:true, badgeText:'!', badgeBg:c.orange, badgeFg:'#1A1208', glow:glowF(c.orange) }
+  ];
+  const away = [
+    { av:'CB', name:'CityBuild', bg:'#F2EEE6', fg:'#D9541F', size:10, run:'3 running', crash:' · 1 crashed', topLine:'transparent' },
+    { av:'SD', name:'States Demo', bg:'#C94848', fg:'#FFFFFF', size:10, run:'1 running', crash:' · 1 crashed', topLine:c.line },
+    { av:'K', name:'Kinpay', bg:'#D7F25A', fg:'#7A2BD6', size:15, run:'2 running', crash:'', topLine:c.line }
+  ];
+  const HA = (k, label, text, pad, flex) => ({ label, text: text || '', pad, flex, isPlay:k==='play', isStop:k==='stop', isRestart:k==='restart', isMore:k==='more' });
+  const hd = {
+    bg: hover ? c.hover : 'transparent', border: hover ? c.line : 'transparent',
+    btnBg: hover ? c.btn : 'transparent', btnLine: hover ? c.btnLine : 'transparent', btnFg: hover ? c.text : c.t3,
+    actions: [HA('play','Start All','Start all',10,'1'), HA('stop','Stop All','',0,'0 0 32px'), HA('restart','Restart All','',0,'0 0 32px'), HA('more','Kinpay menu','',0,'0 0 32px')]
+  };
+  const paneCount = maximized ? '1 of ' + n + ' panes shown' : (n === 1 ? '1 pane' : n + ' panes');
+  return {
+    c, th, theme, mode, isBoard, isProj: !isBoard, showSide: !empty, hasRail: rail.length > 0, rail, rows, away, hd, A, B, C, D,
+    sideW: isBoard ? 236 : 268, sideBorder: inset ? 'transparent' : c.line,
+    areaOverflow: inset ? 'hidden' : 'visible', areaShadow: inset ? '0 0 0 1px ' + c.line + ', 0 8px 24px rgba(0,0,0,' + (mode === 'dark' ? '0.3' : '0.05') + ')' : 'none',
+    isEmptyBoard: empty, isL1: L === '1', isL2: L === '2', isL3: L === '3', isL4: L === '4',
+    showGrip: L === '2' && overlay === 'grip', gripX: (A.w || 0) - 2, gripText: Math.round(((A.w || 0) - 28) / 7.6) + ' × 46 · ' + Math.round(((B.w || 0) - 28) / 7.6) + ' × 46   double-click to even',
+    showDrop: L === '3' && overlay === 'drop', showRefuse: L === '4' && overlay === 'refuse',
+    boardSub: '3 of 9 running · ' + paneCount,
+    showAway: isBoard && !empty, greenGlow: glowF(c.green),
+    foot: isBoard ? '4 running · 2 crashed' : 'Kinpay · 2 running'
+  };
+}
+}
+</script>
+</body>
+</html>

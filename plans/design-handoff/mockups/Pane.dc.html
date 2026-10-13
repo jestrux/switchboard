@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pane component</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: {{w}}px; height: {{h}}px; position: relative; display: flex; flex-direction: column; background: {{c.term}}; color: {{c.text}}; font-family: Geist, -apple-system, sans-serif; font-size: 13px; overflow: hidden; box-sizing: border-box">
+<div style="height: 36px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; background: {{barBg}}; border-bottom: 1px solid {{c.line}}; box-shadow: {{barRule}}; color: {{barText}}">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true" style="flex: none; overflow: visible; filter: {{g.glow}}">
+<sc-if value="{{g.isRun}}" hint-placeholder-val="{{ true }}"><circle cx="9" cy="9" r="8.5" fill="{{g.c}}" opacity="0.22"></circle><circle cx="9" cy="9" r="4.5" fill="{{g.c}}"></circle></sc-if>
+<sc-if value="{{g.isStop}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="9" r="5" fill="none" stroke="{{g.c}}" stroke-width="2"></circle></sc-if>
+<sc-if value="{{g.isStart}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="9" r="5.5" fill="none" stroke="{{c.amberSoft}}" stroke-width="2"></circle><path d="M9 3.5 A5.5 5.5 0 0 1 14.5 9" fill="none" stroke="{{g.c}}" stroke-width="2" stroke-linecap="round"></path></sc-if>
+<sc-if value="{{g.isDone}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="9" r="6.5" fill="none" stroke="{{c.ring}}" stroke-width="1.6"></circle><path d="M6.3 9.2 L8.2 11 L11.8 7.2" fill="none" stroke="{{g.c}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></sc-if>
+<sc-if value="{{g.isCrash}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="9" r="7.5" fill="none" stroke="{{c.redSoft}}" stroke-width="2"></circle><path d="M9 1.5 A7.5 7.5 0 0 1 15.5 12.75" fill="none" stroke="{{g.c}}" stroke-width="2" stroke-linecap="round"></path><circle cx="9" cy="9" r="3.5" fill="{{g.c}}"></circle></sc-if>
+<sc-if value="{{g.isErr}}" hint-placeholder-val="{{ false }}"><path d="M9 2 L16.5 15.5 H1.5 Z" fill="{{g.c}}"></path></sc-if>
+<sc-if value="{{g.isEmpty}}" hint-placeholder-val="{{ false }}"><rect x="3" y="3" width="12" height="12" rx="3" fill="none" stroke="{{c.t3}}" stroke-width="1.6" stroke-dasharray="3 2"></rect></sc-if>
+</svg>
+<sc-if value="{{showAvatar}}" hint-placeholder-val="{{ false }}"><span style="width: 16px; height: 16px; border-radius: 4px; background: {{p.avBg}}; color: {{p.avFg}}; font-size: {{p.avSize}}px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">{{p.av}}</span></sc-if>
+<button style="height: 26px; padding: 0 6px; margin-left: -4px; border-radius: 6px; border: 0; background: transparent; color: inherit; font-family: inherit; font-size: 13px; display: flex; align-items: center; gap: 5px; min-width: 0; cursor: pointer" aria-label="Choose command for this pane">
+<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="color: {{c.t3}}">{{groupText}}</span><span style="font-weight: 600">{{nameText}}</span></span>
+<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true" style="flex: none; opacity: 0.6"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg>
+</button>
+<sc-if value="{{showApply}}" hint-placeholder-val="{{ false }}"><span style="height: 20px; padding: 0 7px; border-radius: 10px; background: {{c.accSoft}}; color: {{c.accSoftText}}; font-size: 11px; font-weight: 600; display: flex; align-items: center; white-space: nowrap; flex: none">{{applyText}}</span></sc-if>
+<sc-if value="{{showStatus}}" hint-placeholder-val="{{ true }}"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{statusColor}}; white-space: nowrap; flex: none">{{statusText}}</span></sc-if>
+<sc-if value="{{showMax}}" hint-placeholder-val="{{ false }}"><span title="Maximized: ⌘⇧↩ restores the split" style="height: 20px; padding: 0 7px; border-radius: 10px; border: 1px solid {{c.btnLine}}; color: {{c.t2}}; font-size: 11px; display: flex; align-items: center; gap: 5px; white-space: nowrap; flex: none"><svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><path d="M7 1h4v4M5 11H1V7M11 1L7 5M1 11l4-4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>{{maxText}}</span></sc-if>
+<span style="flex: 1; min-width: 4px"></span>
+<sc-for list="{{actions}}" as="a" hint-placeholder-count="3">
+<button aria-label="{{a.label}}" title="{{a.tip}}" style="width: 26px; height: 26px; border-radius: 6px; border: 0; background: {{a.bg}}; color: {{a.fg}}; opacity: {{a.op}}; display: flex; align-items: center; justify-content: center; padding: 0; flex: none">
+<sc-if value="{{a.isStop}}" hint-placeholder-val="{{ false }}"><svg width="9" height="9" viewBox="0 0 8 8" aria-hidden="true"><rect width="8" height="8" rx="1.5" fill="currentColor"></rect></svg></sc-if>
+<sc-if value="{{a.isPlay}}" hint-placeholder-val="{{ false }}"><svg width="9" height="10" viewBox="0 0 8 9" aria-hidden="true"><path d="M0 0l8 4.5L0 9z" fill="currentColor"></path></svg></sc-if>
+<sc-if value="{{a.isRestart}}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 12 12" aria-hidden="true"><path d="M10 6a4 4 0 1 1-1.2-2.9M10 1.5v2.6H7.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></sc-if>
+<sc-if value="{{a.isSplit}}" hint-placeholder-val="{{ false }}"><svg width="14" height="12" viewBox="0 0 14 12" aria-hidden="true"><rect x="0.75" y="0.75" width="12.5" height="10.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"></rect><path d="M7 1v10" stroke="currentColor" stroke-width="1.3"></path></svg></sc-if>
+<sc-if value="{{a.isMax}}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M7 1h4v4M5 11H1V7M11 1L7 5M1 11l4-4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg></sc-if>
+<sc-if value="{{a.isClose}}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></sc-if>
+<sc-if value="{{a.isMore}}" hint-placeholder-val="{{ false }}"><svg width="13" height="4" viewBox="0 0 14 4" aria-hidden="true"><circle cx="2" cy="2" r="1.5" fill="currentColor"></circle><circle cx="7" cy="2" r="1.5" fill="currentColor"></circle><circle cx="12" cy="2" r="1.5" fill="currentColor"></circle></svg></sc-if>
+</button>
+</sc-for>
+</div>
+<sc-if value="{{backoff}}" hint-placeholder-val="{{ false }}"><div style="height: 2px; flex: none; background: {{c.redSoft}}"><div style="width: 47%; height: 2px; background: {{c.red}}"></div></div></sc-if>
+
+<sc-if value="{{isTerm}}" hint-placeholder-val="{{ true }}">
+<div style="flex: 1; min-height: 0; padding: 10px 14px; font-family: 'Geist Mono', monospace; font-size: 12.5px; line-height: 1.7; color: {{c.tText}}; overflow: hidden">
+<sc-for list="{{lines}}" as="ln" hint-placeholder-count="5">
+<sc-if value="{{ln.sep}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px; color: {{ln.color}}; font-size: 11px"><span style="white-space: nowrap">{{ln.text}}</span><span style="flex: 1; height: 1px; background: {{ln.lineColor}}"></span></div></sc-if>
+<sc-if value="{{ln.isText}}" hint-placeholder-val="{{ true }}"><div style="white-space: pre; overflow: hidden"><sc-for list="{{ln.parts}}" as="pt" hint-placeholder-count="2"><span style="color: {{pt.c}}; font-weight: {{pt.w}}">{{pt.t}}</span></sc-for></div></sc-if>
+</sc-for>
+<sc-if value="{{cursor}}" hint-placeholder-val="{{ true }}"><div style="width: 8px; height: 15px; margin-top: 2px; background: {{cursorFill}}; border: 1.5px solid {{c.acc}}; box-sizing: border-box"></div></sc-if>
+<sc-if value="{{idleNote}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 9px; border: 1px solid {{c.line}}; background: {{c.pane}}; font-family: Geist, sans-serif">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12.5px; color: {{c.text}}"><span style="color: {{c.t3}}">$ </span>{{p.run}}</span>
+<span style="flex: 1"></span>
+<span style="font-size: 11.5px; color: {{c.t3}}">never run</span>
+<button style="height: 26px; padding: 0 10px; border-radius: 7px; border: 0; background: {{c.acc}}; color: {{c.onAcc}}; font-family: inherit; font-size: 12px; font-weight: 600">Start</button>
+</div>
+</sc-if>
+<sc-if value="{{errNote}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 9px; border: 1px solid {{c.orange}}; background: {{c.orangeSoft}}; font-family: Geist, sans-serif">
+<span style="font-size: 12.5px; font-weight: 600; color: {{c.text}}">Folder not found</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11.5px; color: {{c.orange}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.folder}}</span>
+<span style="font-size: 12px; color: {{c.accSoftText}}; font-weight: 500">Edit Config ⌘E</span>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isEmpty}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 14px; background: {{c.pane}}">
+<div style="width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 14px; font-weight: 600">Show a command</div>
+<div style="height: 32px; border-radius: 8px; border: 1px solid {{c.acc}}; background: {{c.term}}; display: flex; align-items: center; gap: 8px; padding: 0 10px; color: {{c.t3}}; box-shadow: 0 0 0 3px {{c.accSoft}}; white-space: nowrap; overflow: hidden">
+<svg width="12" height="12" viewBox="0 0 13 13" aria-hidden="true" style="flex: none"><circle cx="5.5" cy="5.5" r="4" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M8.6 8.6l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>Filter CityBuild
+</div>
+<div style="display: flex; flex-direction: column; gap: 1px">
+<sc-for list="{{picks}}" as="k" hint-placeholder-count="5">
+<div style="height: 28px; display: flex; align-items: center; gap: 9px; padding: 0 8px; border-radius: 6px; background: {{k.bg}}; color: {{k.fg}}">
+<span style="width: 8px; height: 8px; border-radius: 4px; box-sizing: border-box; background: {{k.dotFill}}; border: 1.5px solid {{k.dot}}; flex: none"></span>
+<span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="color: {{c.t3}}">{{k.group}}</span>{{k.name}}</span>
+<span style="font-size: 11px; color: {{c.t3}}; white-space: nowrap">{{k.meta}}</span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{showDragHint}}" hint-placeholder-val="{{ true }}"><div style="font-size: 11.5px; color: {{c.t3}}">↩ to show · or drag a command from the sidebar</div></sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isElsewhere}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: {{c.term}}">
+<div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; font-size: 12.5px; color: {{c.t3}}; text-align: center">
+<svg width="15" height="12" viewBox="0 0 22 18" aria-hidden="true"><rect x="1" y="1" width="13" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M8 7h13v10H8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path></svg>
+<span>Showing in {{where}}</span>
+<button style="height: 26px; padding: 0 10px; border-radius: 7px; border: 1px solid {{c.btnLine}}; background: transparent; color: {{c.t2}}; font-family: inherit; font-size: 12px">Show Here</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{showFoot}}" hint-placeholder-val="{{ true }}">
+<div style="height: 22px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; background: {{c.head}}; border-top: 1px solid {{c.line}}; font-family: 'Geist Mono', monospace; font-size: 10.5px; color: {{c.t3}}; white-space: nowrap; overflow: hidden">
+<sc-for list="{{foot}}" as="f" hint-placeholder-count="3"><span>{{f.k}} <span style="color: {{f.vc}}">{{f.v}}</span></span></sc-for>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["graphite","patchbay","paper"],"default":"graphite"},"mode":{"editor":"enum","options":["dark","light"],"default":"dark"},"cmd":{"editor":"enum","options":["dev","boot","api","tc","seed","never","sb","claude","kdev","kapi"],"default":"dev"},"kind":{"editor":"enum","options":["term","empty","elsewhere"],"default":"term"},"size":{"editor":"enum","options":["auto","full","mid","min"],"default":"auto"},"focused":{"editor":"boolean","default":true},"hover":{"editor":"boolean","default":false},"maxNote":{"editor":"text","default":""},"where":{"editor":"text","default":"the Kinpay window"},"showProject":{"editor":"boolean","default":false},"w":{"editor":"int","default":640},"h":{"editor":"int","default":400},"$preview":{"width":640,"height":400}}'>
+class Component extends DCLogic {
+renderVals() {
+  const ALL = {
+    graphite: {
+      dark: { side:'#0E0F11', line:'#1E2025', pane:'#0E0F11', head:'#0E0F11', term:'#111214', tText:'#D5D7DC', tDim:'#6B7079', text:'#E6E7EA', t2:'#A9ACB4', t3:'#7D828B', acc:'#7C9CFF', onAcc:'#0B0C0E', accSoft:'#1D2233', accSoftText:'#A3B8FF', btn:'#16171A', btnLine:'#2A2D33', hover:'#1B1C20', green:'#3DD68C', amber:'#F5B83D', amberSoft:'#33280F', red:'#FF5C5C', redSoft:'#3A1A1A', orange:'#FF8A3D', orangeSoft:'#2A1A0F', ring:'#5A5F68',
+        a:['#1E2025','#FF5C5C','#3DD68C','#F5B83D','#7C9CFF','#C792EA','#5FD7E8','#C9CBD1'] },
+      light: { side:'#F4F5F7', line:'#E1E3E8', pane:'#FFFFFF', head:'#FAFAFB', term:'#FCFCFD', tText:'#24262B', tDim:'#8A9099', text:'#17181B', t2:'#4F545C', t3:'#7D838C', acc:'#4A6CF7', onAcc:'#FFFFFF', accSoft:'#E3E9FF', accSoftText:'#2F4FD6', btn:'#FFFFFF', btnLine:'#DADDE3', hover:'#EEF0F3', green:'#14965A', amber:'#B07800', amberSoft:'#FBF0D6', red:'#D93A3F', redSoft:'#FCE3E3', orange:'#C9580B', orangeSoft:'#FDEEE2', ring:'#A8ADB6',
+        a:['#1A1B1E','#D93A3F','#128A4A','#A86F00','#3B5BDB','#8E44AD','#0E8399','#D9DCE1'] }
+    },
+    patchbay: {
+      dark: { side:'#181511', line:'#2A251E', pane:'#1C1813', head:'#1C1813', term:'#0F0D0B', tText:'#D8D0C2', tDim:'#7A705F', text:'#EDE6DA', t2:'#A99F8E', t3:'#8A7F6C', acc:'#FFB224', onAcc:'#1A1208', accSoft:'#33250E', accSoftText:'#FFCB66', btn:'#1F1B16', btnLine:'#3A332A', hover:'#26211A', green:'#9ACD6B', amber:'#FFB224', amberSoft:'#33250E', red:'#FF6B5A', redSoft:'#3A1E18', orange:'#FF8A3D', orangeSoft:'#2C1C0E', ring:'#5A5246',
+        a:['#2A251E','#FF6B5A','#9ACD6B','#FFB224','#7FA7D9','#D08BB8','#6CC4B0','#D8D0C2'] },
+      light: { side:'#EFE8DB', line:'#DDD2BF', pane:'#F7F2E9', head:'#F7F2E9', term:'#FBF8F2', tText:'#2B241A', tDim:'#8F836E', text:'#241E16', t2:'#5F5545', t3:'#857965', acc:'#C47A00', onAcc:'#1A1208', accSoft:'#F5DDB0', accSoftText:'#7A4C00', btn:'#FBF8F2', btnLine:'#D6CAB4', hover:'#F3EADB', green:'#4E8A1A', amber:'#A86800', amberSoft:'#F7E4BE', red:'#C2412E', redSoft:'#F6DDD6', orange:'#B8560B', orangeSoft:'#F8E6D3', ring:'#A89B84',
+        a:['#2B241A','#C2412E','#4E8A1A','#A86800','#2F64A8','#A0457D','#1F8573','#E0D6C4'] }
+    },
+    paper: {
+      dark: { side:'#161618', line:'#2C2C30', pane:'#1F1F22', head:'#1F1F22', term:'#1B1B1E', tText:'#E2E1DD', tDim:'#7C7B77', text:'#EDEDEB', t2:'#A3A29E', t3:'#85847F', acc:'#8B8BFF', onAcc:'#121214', accSoft:'#26264A', accSoftText:'#B4B4FF', btn:'#262629', btnLine:'#35353A', hover:'#2A2A2E', green:'#3FCB7E', amber:'#F2B33D', amberSoft:'#33280F', red:'#FF6B6B', redSoft:'#3A1C1C', orange:'#FF9447', orangeSoft:'#2E1D10', ring:'#5F5E5A',
+        a:['#2A2A2D','#FF6B6B','#3FCB7E','#F2B33D','#8B8BFF','#C99BFF','#5CC9D6','#D6D5D1'] },
+      light: { side:'#EFEEEA', line:'#E2E0DA', pane:'#FFFFFF', head:'#FFFFFF', term:'#FBFBF9', tText:'#1F1F21', tDim:'#8C8A84', text:'#1A1A1C', t2:'#4A4946', t3:'#7A7873', acc:'#3B3BD9', onAcc:'#FFFFFF', accSoft:'#E7E7FB', accSoftText:'#3030B8', btn:'#FFFFFF', btnLine:'#E2E0DA', hover:'#F4F3EF', green:'#1F8A4C', amber:'#A6720A', amberSoft:'#F8EDD4', red:'#D13434', redSoft:'#FBE2E2', orange:'#B9520E', orangeSoft:'#FCEDE1', ring:'#A5A39D',
+        a:['#1A1A1C','#CC2F2F','#1F8A4C','#9A6A00','#3B3BD9','#8B3FC1','#0F7F8F','#D6D4CE'] }
+    }
+  };
+  const theme = ALL[this.props.theme] ? this.props.theme : 'graphite';
+  const mode = this.props.mode === 'light' ? 'light' : 'dark';
+  const c = ALL[theme][mode]; const a = c.a;
+  const glowOn = theme === 'patchbay' && mode === 'dark';
+  const w = this.props.w ?? 640, h = this.props.h ?? 400;
+  const kind = this.props.kind ?? 'term';
+  let size = this.props.size ?? 'auto';
+  if (size === 'auto') size = w >= 560 ? 'full' : (w >= 360 ? 'mid' : 'min');
+  const focused = this.props.focused ?? true;
+  const hover = !!this.props.hover;
+  const CB = { av:'CB', avBg:'#F2EEE6', avFg:'#D9541F', avSize:7 };
+  const KP = { av:'K', avBg:'#D7F25A', avFg:'#7A2BD6', avSize:10 };
+  const P = (...parts) => ({ isText:true, sep:false, parts: parts.map((x) => ({ t:x[0], c:x[1] || c.tText, w:x[2] ? 600 : 400 })) });
+  const S = (text, color, lineColor) => ({ sep:true, isText:false, text, color: color || c.t3, lineColor: lineColor || c.line });
+  const devLines = [S('started 10:14:04'), P(['> ', c.tDim], ['react-router dev --port 3006']), P([' ']), P(['  ➜  ', a[2]], ['Local:', null, 1], ['   '], ['http://localhost:3006/', a[6]]), P(['  ➜  ', a[2]], ['press ', c.tDim], ['h + enter', null, 1], [' to show help', c.tDim]), P(['10:16:12 ', c.tDim], ['[vite] hmr update ', a[2]], ['/app/routes/home.tsx', c.tDim])];
+  const PRE = {
+    dev: { ...CB, group:'Frontend', name:'dev', st:'run', status:'Running · 1:59', short:'1:59', folder:'~/…/citybuild/frontend', foot:[['pid','6964'],['up','1:59']], lines:devLines },
+    boot: { ...CB, group:'Frontend', name:'Storybook', st:'start', status:'Starting', short:'starting', folder:'~/…/citybuild/frontend', foot:[['pid','6981'],['','starting','amber']], lines:[S('started 10:22:40'), P(['> ', c.tDim], ['storybook dev -p 6006']), P(['info => Starting manager..', c.tDim])] },
+    api: { ...CB, group:'Backend', name:'make:dev', st:'crash', status:'Crashed · restarting in 16 s', short:'↻ 16s', folder:'~/…/citybuild/backend', backoff:true, foot:[['exit','1','red'],['ran','0:11'],['last pid','7120']], lines:[S('started 10:15:41'), P(['go run ./cmd/api']), P(['listening on :8080', c.tDim]), P(['panic: dial tcp 127.0.0.1:5432: connect: connection refused', a[1]]), P(['goroutine 1 [running]:', c.tDim]), S('exited 1 at 10:15:52', c.red, c.redSoft)] },
+    tc: { ...CB, group:'Frontend', name:'typecheck', st:'done', status:'Done · exit 0', short:'✓ exit 0', folder:'~/…/citybuild/frontend', foot:[['exit','0'],['ran','0:04'],['at','10:16:04']], lines:[S('started 10:16:00'), P(['> ', c.tDim], ['tsc --noEmit']), P([' ']), P(['Found 0 errors.']), S('exited 0 at 10:16:04')] },
+    seed: { ...CB, group:'Backend', name:'make:seed', st:'err', status:'Folder not found', short:'no folder', folder:'~/Documents/web/citybuild/seed-data', foot:[['cwd','missing','orange']], lines:[], errNote:true },
+    never: { ...CB, group:'Frontend', name:'test', st:'stop', status:'Never run', short:'', folder:'~/…/citybuild/frontend', run:'npx vitest run', foot:[['','not started']], lines:[], idleNote:true },
+    sb: { ...CB, group:'Frontend', name:'Storybook', st:'run', status:'Running · 12:40', short:'12:40', folder:'~/…/citybuild/frontend', foot:[['pid','6981'],['up','12:40']], lines:[S('started 10:03:23'), P(['> ', c.tDim], ['storybook dev -p 6006']), P([' ']), P(['Storybook started', a[2], 1]), P(['  Local:            ', c.tDim], ['http://localhost:6006/', a[6]]), P(['  Ready in 2.1 s', c.tDim])] },
+    claude: { ...CB, group:'', name:'Claude Code', st:'run', status:'Running · 0:07', short:'0:07', folder:'~/…/web/citybuild', foot:[['pid','16211'],['up','0:07']], lines:[S('started 10:22:51'), P(['✻ ', a[1]], ['Claude Code', null, 1]), P(['  ~/Documents/web/citybuild', c.tDim]), P([' ']), P(['╭──────────────────────────────────────────────────────╮', c.tDim]), P(['│ ', c.tDim], ['> ', a[4]], ['Try "how do I log an error?"', c.tDim]), P(['╰──────────────────────────────────────────────────────╯', c.tDim])] },
+    kdev: { ...KP, group:'Frontend', name:'dev:app', st:'run', status:'Running · 24:02', short:'24:02', apply:true, folder:'~/…/kinpay/app', foot:[['pid','7302'],['up','24:02']], lines:[S('started 09:52:10'), P(['> ', c.tDim], ['next dev --turbo']), P(['  ▲ Next.js', null, 1]), P(['  - Local:   ', c.tDim], ['http://localhost:3000', a[6]]), P([' ✓ Ready in 1.4s', a[2]]), P([' ✓ Compiled /dashboard in 312ms', a[2]])] },
+    kapi: { ...KP, group:'Backend', name:'api', st:'run', status:'Running · 23:58', short:'23:58', folder:'~/…/kinpay/api', foot:[['pid','7288'],['up','23:58']], lines:[S('started 09:52:14'), P(['> ', c.tDim], ['tsx watch src/server.ts']), P(['[api] listening on ', c.tDim], [':4000', a[6]]), P(['POST /v1/payouts ', c.tDim], ['201', a[2]], [' 48ms', c.tDim]), P(['GET  /v1/balance ', c.tDim], ['200', a[2]], [' 9ms', c.tDim]), P(['GET  /v1/rates ', c.tDim], ['429', a[3]], [' 3ms', c.tDim])] }
+  };
+  const p = PRE[this.props.cmd] || PRE.dev;
+  const st = kind === 'empty' ? 'empty' : (kind === 'elsewhere' ? 'stop' : p.st);
+  const col = { run:c.green, start:c.amber, crash:c.red, done:c.t2, stop:c.ring, err:c.orange, empty:c.t3 };
+  const g = { c:col[st], glow: glowOn && ['run','start','crash','err'].indexOf(st) >= 0 ? 'drop-shadow(0 0 4px ' + col[st] + ')' : 'none',
+    isRun: st === 'run', isStop: st === 'stop', isStart: st === 'start', isDone: st === 'done', isCrash: st === 'crash', isErr: st === 'err', isEmpty: st === 'empty' };
+  const statusColor = { run:c.t3, start:c.amber, crash:c.red, done:c.t3, err:c.orange, stop:c.t3 }[p.st] || c.t3;
+  const actFg = focused || hover ? c.t2 : c.t3;
+  const A = (k, label, tip, o) => ({ label, tip: tip || label, isStop:k==='stop', isPlay:k==='play', isRestart:k==='restart', isSplit:k==='split', isMax:k==='max', isClose:k==='close', isMore:k==='more',
+    bg: (o && o.primary) ? c.accSoft : 'transparent', fg: (o && o.primary) ? c.accSoftText : actFg, op: (o && o.off) ? 0.35 : 1 });
+  const s = p.st;
+  const primary = s === 'run' || s === 'start' ? A('stop','Stop','Stop ⌘.')
+    : s === 'crash' ? A('play','Start now','Start now, skip the wait', { primary:true })
+    : s === 'err' ? A('play','Start','Folder not found', { off:true })
+    : A('play','Start','Start', { primary: s === 'stop' });
+  let actions;
+  if (kind !== 'term') actions = [A('close','Close pane','Close pane ⌘⇧W')];
+  else if (size === 'full') {
+    actions = [primary];
+    if (s === 'run') actions.push(A('restart','Restart','Restart ⌘R'));
+    if (s === 'crash') actions.push(A('stop','Stop','Stop, cancel the restart ⌘.'));
+    actions = actions.concat([A('split','Split right','Split right ⌘D · ⌥-click splits down'), A('max','Maximize pane','Maximize ⌘⇧↩'), A('close','Close pane','Close pane ⌘⇧W')]);
+  }
+  else if (size === 'mid') actions = [primary, A('more','More: restart, split, maximize, close')];
+  else actions = [A('more','More: start, stop, restart, split, maximize, close')];
+  const fc = { red:c.red, amber:c.amber, orange:c.orange };
+  const footAll = p.foot.map((f) => ({ k:f[0], v:f[1], vc: fc[f[2]] || c.t2 }));
+  const foot = size === 'full' && s !== 'err' ? [{ k:'', v:p.folder, vc:c.t3 }].concat(footAll) : footAll;
+  const picks = [
+    ['','Claude Code','in pane 1',c.green,true], ['Frontend / ','dev','in pane 2',c.green,true], ['Frontend / ','Storybook','12:40',c.green,true],
+    ['Frontend / ','typecheck','done',c.ring,false], ['Backend / ','make:dev','crashed',c.red,true], ['Backend / ','make:migrate','',c.ring,false]
+  ].map((k, i) => ({ group: size === 'min' ? '' : k[0], name:k[1], meta:k[2], dot:k[3], dotFill: k[4] ? k[3] : 'transparent', bg: i === 2 ? c.accSoft : 'transparent', fg: k[2].indexOf('in pane') === 0 ? c.t3 : c.text }));
+  const maxNote = this.props.maxNote || '';
+  return {
+    c, p, g, actions, foot, picks, lines: p.lines, w, h,
+    isTerm: kind === 'term', isEmpty: kind === 'empty', isElsewhere: kind === 'elsewhere',
+    where: this.props.where ?? 'the Kinpay window',
+    showAvatar: size !== 'min' && !!this.props.showProject,
+    groupText: size === 'full' && p.group && kind !== 'empty' ? p.group + ' / ' : '',
+    nameText: kind === 'empty' ? 'Empty pane' : p.name,
+    showApply: !!p.apply && kind === 'term', applyText: size === 'full' ? '↻ restart to apply' : '↻',
+    showStatus: kind === 'term' && size !== 'min' && !!(size === 'full' ? p.status : p.short),
+    statusText: size === 'full' ? p.status : p.short, statusColor,
+    showMax: !!maxNote && kind === 'term', maxText: size === 'full' ? maxNote : maxNote.split(' ')[0],
+    showFoot: kind === 'term' && size !== 'min',
+    backoff: !!p.backoff && kind === 'term',
+    idleNote: !!p.idleNote && kind === 'term', errNote: !!p.errNote && kind === 'term',
+    showDragHint: size !== 'min',
+    barBg: hover ? c.hover : (focused ? c.btn : c.side), barRule: focused ? 'inset 0 2px 0 ' + c.acc : 'none',
+    barText: focused || hover ? c.text : c.t3,
+    cursor: focused && kind === 'term' && (s === 'run' || s === 'start'), cursorFill: c.acc
+  };
+}
+}
+</script>
+</body>
+</html>

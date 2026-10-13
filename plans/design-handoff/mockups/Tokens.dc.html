@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Switchboard tokens</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 1180px; box-sizing: border-box; padding: 40px 44px; background: #0B0C0E; color: #E6E7EA; font-family: Geist, -apple-system, sans-serif; display: flex; flex-direction: column; gap: 24px">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; font-weight: 600; color: #7D828B; letter-spacing: 0.06em">TYPE · SF PRO / SF MONO</div>
+<div style="font-size: 17px; font-weight: 600">Sidebar title 17 / 600</div>
+<div style="font-size: 14px; font-weight: 600">Pane title 14 / 600</div>
+<div style="font-size: 13px">Row · body 13 / 400</div>
+<div style="font-size: 12px; color: #A9ACB4">Secondary 12 / 400</div>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #A9ACB4">GROUP LABEL 11 / 600</div>
+<div style="font-family: 'Geist Mono', monospace; font-size: 12.5px">Terminal 12.5 mono</div>
+<div style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #A9ACB4">Meta 11 mono, tabular</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; font-weight: 600; color: #7D828B; letter-spacing: 0.06em">RADII (G · PB · P)</div>
+<div style="font-size: 13px; line-height: 1.7; color: #C9CBD1">row 7 · 6 · 8<br>button 8 · 9 · 8<br>chip 12 (pill)<br>card 10 · 12 · 14<br>project tile 10 · 9 · 11<br>pane 0 · 0 · 14 (Paper floats, inset 10)</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; font-weight: 600; color: #7D828B; letter-spacing: 0.06em">SPACING · SIZES</div>
+<div style="font-size: 13px; line-height: 1.7; color: #C9CBD1">scale 2 · 4 · 6 · 8 · 10 · 12 · 14 · 16 · 20 · 24<br>row 30 · group 28 · project 34<br>pane header 56 · footer 30<br>rail 72 · sidebar 236 (rail) / 272 (tree)<br>status glyph 12 in 18 box</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; font-weight: 600; color: #7D828B; letter-spacing: 0.06em">THEME FLAGS</div>
+<div style="font-size: 13px; line-height: 1.7; color: #C9CBD1">labels: caps sans · caps mono · sentence<br>selection: accent bar · accent bar · card<br>glow: off · dark only · off<br>config warning: solid · dashed · solid<br>motion: breathe 2.4s, spin 0.9s, backoff ring linear</div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; flex: 1">
+<sc-for list="{{cards}}" as="k" hint-placeholder-count="6">
+<div style="border-radius: 14px; background: {{k.c.win}}; border: 1px solid {{k.c.line}}; padding: 16px; display: flex; flex-direction: column; gap: 12px; color: {{k.c.text}}">
+<div style="display: flex; align-items: baseline; gap: 8px">
+<span style="font-size: 15px; font-weight: 600">{{k.name}}</span>
+<span style="font-size: 12px; color: {{k.c.t3}}">{{k.mode}}</span>
+<span style="flex: 1"></span>
+<span style="height: 20px; padding: 0 8px; border-radius: 6px; background: {{k.c.acc}}; color: {{k.c.onAcc}}; font-size: 11px; font-weight: 600; display: flex; align-items: center; font-family: 'Geist Mono', monospace">{{k.c.acc}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{k.surf}}" as="s" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 3px">
+<span style="height: 30px; border-radius: 6px; background: {{s.v}}; border: 1px solid {{k.c.line}}"></span>
+<span style="font-size: 10px; color: {{k.c.t3}}">{{s.k}}</span>
+<span style="font-size: 9.5px; color: {{k.c.t3}}; font-family: 'Geist Mono', monospace">{{s.v}}</span>
+</div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{k.status}}" as="s" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 3px">
+<span style="height: 22px; border-radius: 6px; background: {{s.soft}}; display: flex; align-items: center; justify-content: center"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{s.v}}"></span></span>
+<span style="font-size: 10px; color: {{k.c.t3}}">{{s.k}}</span>
+<span style="font-size: 9.5px; color: {{k.c.t3}}; font-family: 'Geist Mono', monospace">{{s.v}}</span>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 10px; color: {{k.c.t3}}; letter-spacing: 0.06em">ANSI 0–7 · 8–15 on terminal</div>
+<div style="border-radius: 8px; background: {{k.c.term}}; border: 1px solid {{k.c.line}}; padding: 6px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{k.ansi}}" as="x" hint-placeholder-count="16"><span style="height: 18px; border-radius: 4px; background: {{x.v}}" title="{{x.v}}"></span></sc-for>
+</div>
+<div style="border-radius: 8px; background: {{k.c.term}}; border: 1px solid {{k.c.line}}; padding: 8px 10px; font-family: 'Geist Mono', monospace; font-size: 11.5px; line-height: 1.6; white-space: pre; color: {{k.c.tText}}"><span style="color: {{k.a2}}">➜</span>  <b>Local:</b>   <span style="color: {{k.a6}}">http://localhost:3006/</span>
+<span style="color: {{k.a1}}">error</span> <span style="color: {{k.c.tDim}}">upstream reset</span> <span style="color: {{k.a3}}">warn</span> <span style="color: {{k.a4}}">info</span> <span style="color: {{k.a5}}">debug</span></div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() {
+  const TOK = {
+    graphite: {
+      dark: { win:'#0B0C0E', side:'#0E0F11', line:'#1E2025', pane:'#0E0F11', term:'#111214', tText:'#D5D7DC', tDim:'#6B7079', text:'#E6E7EA', t2:'#A9ACB4', t3:'#7D828B', acc:'#7C9CFF', onAcc:'#0B0C0E', sel:'#1D2233', green:'#3DD68C', greenSoft:'#12301F', amber:'#F5B83D', amberSoft:'#33280F', red:'#FF5C5C', redSoft:'#3A1A1A', orange:'#FF8A3D', orangeSoft:'#2A1A0F', ring:'#5A5F68', hover:'#16171A',
+        a:['#1E2025','#FF5C5C','#3DD68C','#F5B83D','#7C9CFF','#C792EA','#5FD7E8','#C9CBD1','#4D525B','#FF7B7B','#6BE5A8','#FFD06B','#A3B8FF','#DDB3F5','#8AE6F2','#FFFFFF'] },
+      light: { win:'#ECEEF1', side:'#F4F5F7', line:'#E1E3E8', pane:'#FFFFFF', term:'#FCFCFD', tText:'#24262B', tDim:'#8A9099', text:'#17181B', t2:'#4F545C', t3:'#7D838C', acc:'#4A6CF7', onAcc:'#FFFFFF', sel:'#E3E9FF', green:'#14965A', greenSoft:'#DDF4E8', amber:'#B07800', amberSoft:'#FBF0D6', red:'#D93A3F', redSoft:'#FCE3E3', orange:'#C9580B', orangeSoft:'#FDEEE2', ring:'#A8ADB6', hover:'#E9EBEF',
+        a:['#1A1B1E','#D93A3F','#128A4A','#A86F00','#3B5BDB','#8E44AD','#0E8399','#D9DCE1','#5F646D','#E5484D','#18A058','#C98A0B','#4A6CF7','#A660C8','#12A3BD','#F4F5F7'] }
+    },
+    patchbay: {
+      dark: { win:'#12100D', side:'#181511', line:'#2A251E', pane:'#1C1813', term:'#0F0D0B', tText:'#D8D0C2', tDim:'#7A705F', text:'#EDE6DA', t2:'#A99F8E', t3:'#8A7F6C', acc:'#FFB224', onAcc:'#1A1208', sel:'#2E1F17', green:'#9ACD6B', greenSoft:'#22301A', amber:'#FFB224', amberSoft:'#33250E', red:'#FF6B5A', redSoft:'#3A1E18', orange:'#FF8A3D', orangeSoft:'#2C1C0E', ring:'#5A5246', hover:'#221E18',
+        a:['#2A251E','#FF6B5A','#9ACD6B','#FFB224','#7FA7D9','#D08BB8','#6CC4B0','#D8D0C2','#5A5246','#FF8C7D','#B5E08C','#FFCB66','#A3C2E8','#E3A9CE','#92DCC9','#FFF8EC'] },
+      light: { win:'#E6DECF', side:'#EFE8DB', line:'#DDD2BF', pane:'#F7F2E9', term:'#FBF8F2', tText:'#2B241A', tDim:'#8F836E', text:'#241E16', t2:'#5F5545', t3:'#857965', acc:'#C47A00', onAcc:'#1A1208', sel:'#F5DDB0', green:'#4E8A1A', greenSoft:'#E1EDCF', amber:'#A86800', amberSoft:'#F7E4BE', red:'#C2412E', redSoft:'#F6DDD6', orange:'#B8560B', orangeSoft:'#F8E6D3', ring:'#A89B84', hover:'#E6DCCB',
+        a:['#2B241A','#C2412E','#4E8A1A','#A86800','#2F64A8','#A0457D','#1F8573','#E0D6C4','#6F6453','#D2402E','#5FA02A','#C27F00','#3F78C2','#B85A93','#2A9C88','#FBF8F2'] }
+    },
+    paper: {
+      dark: { win:'#161618', side:'#161618', line:'#2C2C30', pane:'#1F1F22', term:'#1B1B1E', tText:'#E2E1DD', tDim:'#7C7B77', text:'#EDEDEB', t2:'#A3A29E', t3:'#85847F', acc:'#8B8BFF', onAcc:'#121214', sel:'#2A2A2F', green:'#3FCB7E', greenSoft:'#16301F', amber:'#F2B33D', amberSoft:'#33280F', red:'#FF6B6B', redSoft:'#3A1C1C', orange:'#FF9447', orangeSoft:'#2E1D10', ring:'#5F5E5A', hover:'#232326',
+        a:['#2A2A2D','#FF6B6B','#3FCB7E','#F2B33D','#8B8BFF','#C99BFF','#5CC9D6','#D6D5D1','#6E6D69','#FF8A8A','#6BDDA0','#FFCC6B','#A9A9FF','#DAB8FF','#86DCE6','#FFFFFF'] },
+      light: { win:'#EFEEEA', side:'#EFEEEA', line:'#E2E0DA', pane:'#FFFFFF', term:'#FBFBF9', tText:'#1F1F21', tDim:'#8C8A84', text:'#1A1A1C', t2:'#4A4946', t3:'#7A7873', acc:'#3B3BD9', onAcc:'#FFFFFF', sel:'#FFFFFF', green:'#1F8A4C', greenSoft:'#DFF2E6', amber:'#A6720A', amberSoft:'#F8EDD4', red:'#D13434', redSoft:'#FBE2E2', orange:'#B9520E', orangeSoft:'#FCEDE1', ring:'#A5A39D', hover:'#E6E4DF',
+        a:['#1A1A1C','#CC2F2F','#1F8A4C','#9A6A00','#3B3BD9','#8B3FC1','#0F7F8F','#D6D4CE','#6E6D69','#D93A3A','#1F9D55','#B07800','#5555E8','#9F55D6','#14A0B3','#FBFBF9'] }
+    }
+  };
+  const names = { graphite:'Graphite', patchbay:'Patch Bay', paper:'Paper' };
+  const cards = [];
+  ['dark','light'].forEach((m) => ['graphite','patchbay','paper'].forEach((t) => {
+    const c = TOK[t][m];
+    cards.push({
+      name:names[t], mode: m === 'dark' ? 'Dark' : 'Light', c,
+      a1:c.a[1], a2:c.a[2], a3:c.a[3], a4:c.a[4], a5:c.a[5], a6:c.a[6],
+      surf:[['window',c.win],['sidebar',c.side],['pane',c.pane],['terminal',c.term],['selected',c.sel]].map(([k,v]) => ({ k, v })),
+      status:[['running',c.green,c.greenSoft],['starting',c.amber,c.amberSoft],['crashed',c.red,c.redSoft],['error',c.orange,c.orangeSoft],['stopped',c.ring,c.hover],['done',c.t2,c.hover]].map(([k,v,soft]) => ({ k, v, soft })),
+      ansi:c.a.map((v) => ({ v }))
+    });
+  }));
+  return { cards };
+}
+}
+</script>
+</body>
+</html>

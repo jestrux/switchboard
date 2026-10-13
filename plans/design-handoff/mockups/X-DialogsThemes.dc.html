@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dialogs other themes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 1020px; box-sizing: border-box; padding: 30px; background: #0B0C0E; color: #E6E7EA; font-family: Geist, -apple-system, sans-serif; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #7D828B">DIALOGS · PATCH BAY (TOP) · PAPER (BOTTOM)</div>
+<div style="font-size: 24px; font-weight: 600; letter-spacing: -0.01em">The same card picks up each theme's tokens</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="patchbay" mode="dark" kind="conflict" hint-size="600px,440px"></dc-import></div>
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="patchbay" mode="light" kind="delete" hint-size="600px,440px"></dc-import></div>
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="paper" mode="dark" kind="leftover" hint-size="600px,440px"></dc-import></div>
+<div style="border-radius: 12px; overflow: hidden"><dc-import name="Dialog" theme="paper" mode="light" kind="invalid" hint-size="600px,440px"></dc-import></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1020}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

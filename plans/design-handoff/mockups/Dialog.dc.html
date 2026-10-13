@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dialog component</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 600px; height: 440px; position: relative; background: {{c.win}}; font-family: Geist, -apple-system, sans-serif; font-size: 13px; color: {{c.text}}; overflow: hidden; display: flex; align-items: center; justify-content: center">
+<div style="position: absolute; inset: 0; display: flex; opacity: 0.55">
+<div style="width: 120px; background: {{c.side}}; border-right: 1px solid {{c.line}}"></div>
+<div style="flex: 1; background: {{c.term}}"><div style="height: 36px; background: {{c.btn}}; border-bottom: 1px solid {{c.line}}"></div></div>
+</div>
+<div style="position: absolute; inset: 0; background: {{scrim}}"></div>
+<div role="dialog" aria-labelledby="t" style="position: relative; width: 460px; box-sizing: border-box; padding: 22px 22px 18px; border-radius: 14px; background: {{c.pane}}; border: 1px solid {{c.line}}; box-shadow: 0 24px 60px rgba(0,0,0,{{shadowA}}); display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; gap: 14px; align-items: flex-start">
+<img src="{{iconSrc}}" alt="" style="width: 48px; height: 48px; flex: none; margin: -4px -2px 0 -4px">
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<div id="t" style="font-size: 15px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.3">{{d.title}}</div>
+<div style="font-size: 12.5px; color: {{c.t2}}; line-height: 1.5">{{d.sub}}</div>
+</div>
+</div>
+
+<sc-if value="{{isInvalid}}" hint-placeholder-val="{{ false }}">
+<div style="border-radius: 10px; border: 1px solid {{c.line}}; background: {{c.side}}; overflow: hidden">
+<div style="padding: 10px 12px; display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 12px; color: {{c.t2}}; border-bottom: 1px solid {{c.line}}"><svg width="13" height="11" viewBox="0 0 14 11" aria-hidden="true"><path d="M1 2h4l1.5 1.5H13V10H1z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg>~/Library/Caches</div>
+<div style="padding: 10px 12px; display: flex; align-items: center; gap: 8px; font-size: 12.5px"><svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2 L16.5 15.5 H1.5 Z" fill="{{c.orange}}"></path></svg>No <span style="font-family: 'Geist Mono', monospace">config.yaml</span> at the top of this folder</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isConflict}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="padding: 11px 12px; border-radius: 10px; border: 1.5px solid {{c.acc}}; background: {{c.accSoft}}; display: flex; flex-direction: column; gap: 3px">
+<span style="font-weight: 600; color: {{c.text}}">Keep Both</span>
+<span style="font-size: 12px; color: {{c.t2}}">Adds this one as <span style="font-family: 'Geist Mono', monospace">kinpay-2</span>. Nothing changes for the existing Kinpay.</span>
+</div>
+<div style="padding: 11px 12px; border-radius: 10px; border: 1px solid {{c.line}}; display: flex; flex-direction: column; gap: 3px">
+<span style="font-weight: 600; color: {{c.text}}">Replace</span>
+<span style="font-size: 12px; color: {{c.t2}}">Stops Kinpay's <span style="color: {{c.red}}">2 running commands</span> and moves its folder to the Trash.</span>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isDelete}}" hint-placeholder-val="{{ false }}">
+<div style="border-radius: 10px; border: 1px solid {{c.line}}; background: {{c.side}}; overflow: hidden">
+<div style="height: 34px; padding: 0 12px; display: flex; align-items: center; gap: 9px; font-size: 12.5px"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{c.green}}"></span><span style="flex: 1"><span style="color: {{c.t3}}">Services / </span>worker</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{c.t3}}">running · stops</span></div>
+<div style="height: 34px; padding: 0 12px; display: flex; align-items: center; gap: 9px; font-size: 12.5px; border-top: 1px solid {{c.line}}"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{c.red}}"></span><span style="flex: 1"><span style="color: {{c.t3}}">Services / </span>flaky api</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{c.t3}}">restarting · stops</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{isLeftover}}" hint-placeholder-val="{{ false }}">
+<div style="border-radius: 10px; border: 1px solid {{c.line}}; background: {{c.side}}; overflow: hidden">
+<div style="height: 40px; padding: 0 12px; display: flex; align-items: center; gap: 10px; font-size: 12.5px"><span style="width: 20px; height: 20px; border-radius: 5px; background: #F2EEE6; color: #D9541F; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center">CB</span><span style="flex: 1"><span style="color: {{c.t3}}">CityBuild · Backend / </span><b style="font-weight: 600">make:dev</b></span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{c.t3}}">pid 24784</span></div>
+</div>
+<div style="font-size: 12px; color: {{c.t3}}; line-height: 1.5">Left running, it keeps its port but Switchboard can't show its output. Start the command again later to replace it.</div>
+</sc-if>
+
+<div style="display: flex; align-items: center; gap: 8px; padding-top: 4px">
+<sc-if value="{{d.hasAlt}}" hint-placeholder-val="{{ false }}"><button style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid {{c.btnLine}}; background: transparent; color: {{c.t2}}; font-family: inherit; font-size: 12.5px">{{d.alt}}</button></sc-if>
+<span style="flex: 1"></span>
+<sc-for list="{{d.buttons}}" as="b" hint-placeholder-count="2">
+<button style="height: 30px; padding: 0 14px; border-radius: 8px; border: 1px solid {{b.border}}; background: {{b.bg}}; color: {{b.fg}}; font-family: inherit; font-size: 12.5px; font-weight: {{b.weight}}; box-shadow: {{b.ring}}; display: flex; align-items: center; gap: 8px">{{b.label}}<span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.6">{{b.kbd}}</span></button>
+</sc-for>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["graphite","patchbay","paper"],"default":"graphite"},"mode":{"editor":"enum","options":["dark","light"],"default":"dark"},"kind":{"editor":"enum","options":["invalid","conflict","delete","leftover"],"default":"conflict"},"$preview":{"width":600,"height":440}}'>
+class Component extends DCLogic {
+renderVals() {
+  const TOK = {
+    graphite: {
+      dark: { win:'#0B0C0E', side:'#16171A', line:'#2A2D33', pane:'#1B1C20', term:'#111214', text:'#E6E7EA', t2:'#A9ACB4', t3:'#7D828B', acc:'#7C9CFF', onAcc:'#0B0C0E', accSoft:'#1D2233', btn:'#16171A', btnLine:'#2A2D33', green:'#3DD68C', red:'#FF5C5C', redFill:'#E5484D', orange:'#FF8A3D' },
+      light: { win:'#ECEEF1', side:'#F4F5F7', line:'#E1E3E8', pane:'#FFFFFF', term:'#FCFCFD', text:'#17181B', t2:'#4F545C', t3:'#7D838C', acc:'#4A6CF7', onAcc:'#FFFFFF', accSoft:'#EEF2FF', btn:'#FFFFFF', btnLine:'#DADDE3', green:'#14965A', red:'#D93A3F', redFill:'#D93A3F', orange:'#C9580B' }
+    },
+    patchbay: {
+      dark: { win:'#12100D', side:'#1F1B16', line:'#3A332A', pane:'#221E18', term:'#0F0D0B', text:'#EDE6DA', t2:'#A99F8E', t3:'#8A7F6C', acc:'#FFB224', onAcc:'#1A1208', accSoft:'#33250E', btn:'#1F1B16', btnLine:'#3A332A', green:'#9ACD6B', red:'#FF6B5A', redFill:'#E0503F', orange:'#FF8A3D' },
+      light: { win:'#E6DECF', side:'#F3EDE2', line:'#DDD2BF', pane:'#FBF8F2', term:'#FBF8F2', text:'#241E16', t2:'#5F5545', t3:'#857965', acc:'#C47A00', onAcc:'#1A1208', accSoft:'#F7E8C9', btn:'#FBF8F2', btnLine:'#D6CAB4', green:'#4E8A1A', red:'#C2412E', redFill:'#C2412E', orange:'#B8560B' }
+    },
+    paper: {
+      dark: { win:'#161618', side:'#232326', line:'#35353A', pane:'#26262A', term:'#1B1B1E', text:'#EDEDEB', t2:'#A3A29E', t3:'#85847F', acc:'#8B8BFF', onAcc:'#121214', accSoft:'#26264A', btn:'#262629', btnLine:'#35353A', green:'#3FCB7E', red:'#FF6B6B', redFill:'#E5484D', orange:'#FF9447' },
+      light: { win:'#EFEEEA', side:'#F7F6F3', line:'#E2E0DA', pane:'#FFFFFF', term:'#FBFBF9', text:'#1A1A1C', t2:'#4A4946', t3:'#7A7873', acc:'#3B3BD9', onAcc:'#FFFFFF', accSoft:'#EFEFFC', btn:'#FFFFFF', btnLine:'#E2E0DA', green:'#1F8A4C', red:'#D13434', redFill:'#D13434', orange:'#B9520E' }
+    }
+  };
+  const theme = TOK[this.props.theme] ? this.props.theme : 'graphite';
+  const mode = this.props.mode === 'light' ? 'light' : 'dark';
+  const c = TOK[theme][mode];
+  const kind = this.props.kind ?? 'conflict';
+  const B = (label, kbd, style) => {
+    const s = style || 'sec';
+    return { label, kbd: kbd || '',
+      bg: s === 'pri' ? c.acc : s === 'danger' ? c.redFill : 'transparent',
+      fg: s === 'pri' ? c.onAcc : s === 'danger' ? '#FFFFFF' : s === 'dangerOutline' ? c.red : c.text,
+      border: s === 'pri' ? c.acc : s === 'danger' ? c.redFill : s === 'dangerOutline' ? c.red : c.btnLine,
+      weight: s === 'pri' || s === 'danger' ? 600 : 500,
+      ring: s === 'defaultSec' ? '0 0 0 3px ' + c.accSoft + ', inset 0 0 0 1px ' + c.acc : 'none' };
+  };
+  const D = {
+    invalid: { title:'This folder isn’t a Switchboard project', sub:'Nothing was copied. A project folder needs a config.yaml at its top level.', hasAlt:true, alt:'Reveal in Finder', buttons:[B('OK','↩','pri')] },
+    conflict: { title:'A project named “Kinpay” is already here', sub:'You’re adding another folder with the same name. Pick what should happen.', hasAlt:false, buttons:[B('Cancel','esc'), B('Replace','','dangerOutline'), B('Keep Both','↩','pri')] },
+    delete: { title:'Delete “States Demo”?', sub:'Its commands stop and its folder moves to the Trash. Put it back from the Trash and it returns to the board.', hasAlt:false, buttons:[B('Cancel','↩','defaultSec'), B('Delete Project','','danger')] },
+    leftover: { title:'1 command is still running from last time', sub:'Switchboard didn’t quit cleanly, so this process outlived it.', hasAlt:false, buttons:[B('Leave Running'), B('Stop It','↩','pri')] }
+  };
+  return {
+    c, d: D[kind] || D.conflict,
+    isInvalid: kind === 'invalid', isConflict: kind === 'conflict', isDelete: kind === 'delete', isLeftover: kind === 'leftover',
+    scrim: mode === 'dark' ? 'rgba(0,0,0,0.45)' : 'rgba(20,20,30,0.18)', shadowA: mode === 'dark' ? '0.55' : '0.18',
+    iconSrc: mode === 'dark' ? '/_blob/6a40550e9d6459f37788aceb63ae2d22' : '/_blob/8cccc22e1b52ce395daae9f677d8ab1d'
+  };
+}
+}
+</script>
+</body>
+</html>

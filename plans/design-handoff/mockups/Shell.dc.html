@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Switchboard shell</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; display: flex; background: {{c.win}}; color: {{c.text}}; font-family: Geist, -apple-system, sans-serif; font-size: 13px; overflow: hidden">
+
+<sc-if value="{{rail}}" hint-placeholder-val="{{ true }}">
+<div style="width: 72px; flex: none; background: {{c.rail}}; border-right: 1px solid {{c.line}}; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 18px">
+<div style="display: flex; gap: 6px; margin-bottom: 14px">
+<span style="width: 11px; height: 11px; border-radius: 6px; background: #FF5F57"></span>
+<span style="width: 11px; height: 11px; border-radius: 6px; background: #FEBC2E"></span>
+<span style="width: 11px; height: 11px; border-radius: 6px; background: #28C840"></span>
+</div>
+<sc-for list="{{railItems}}" as="p" hint-placeholder-count="4">
+<div style="position: relative; width: 40px; height: 40px; border-radius: {{th.tileR}}px; background: {{p.bg}}; color: {{p.fg}}; border: {{p.border}}; box-sizing: border-box; box-shadow: {{p.ring}}; display: flex; align-items: center; justify-content: center; font-size: {{p.size}}px; font-weight: 700" title="{{p.title}}">{{p.initials}}
+<sc-if value="{{p.hasBadge}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; right: -5px; bottom: -5px; min-width: 17px; height: 17px; padding: 0 4px; box-sizing: border-box; border-radius: 9px; background: {{p.badgeBg}}; color: {{p.badgeFg}}; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px {{c.rail}}; filter: {{p.badgeGlow}}">{{p.badgeText}}</span></sc-if>
+<sc-if value="{{p.hasAlert}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: -4px; top: -4px; width: 10px; height: 10px; border-radius: 5px; background: {{c.red}}; box-shadow: 0 0 0 2px {{c.rail}}; filter: {{p.alertGlow}}"></span></sc-if>
+</div>
+</sc-for>
+<div style="width: 24px; height: 1px; background: {{c.line}}"></div>
+<button aria-label="Add project" style="width: 40px; height: 40px; border-radius: {{th.tileR}}px; border: 1px dashed {{c.btnLine}}; background: transparent; color: {{c.t2}}; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="14" height="14" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+</div>
+</sc-if>
+
+<div style="width: {{sideW}}px; flex: none; background: {{c.side}}; border-right: 1px solid {{sideBorder}}; display: flex; flex-direction: column">
+<sc-if value="{{rail}}" hint-placeholder-val="{{ true }}">
+<div style="padding: 44px 14px 12px 14px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em; flex: 1">CityBuild</span>
+<button style="height: 26px; padding: 0 10px; border-radius: 7px; border: 1px solid {{c.btnLine}}; background: {{c.btn}}; color: {{c.text}}; font-family: inherit; font-size: 12px; display: flex; align-items: center; gap: 6px"><svg width="7" height="8" viewBox="0 0 8 9" aria-hidden="true"><path d="M0 0l8 4.5L0 9z" fill="currentColor"/></svg>Start all</button>
+</div>
+<div style="font-size: 12px; color: {{c.t3}}">{{projRun}} of 9 running · <span style="color: {{c.red}}">1 crashed</span></div>
+</div>
+</sc-if>
+<sc-if value="{{tree}}" hint-placeholder-val="{{ false }}">
+<div style="height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 14px; flex: none">
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FF5F57"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FEBC2E"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #28C840"></span>
+<span style="flex: 1"></span>
+<button aria-label="Add project" style="width: 26px; height: 26px; border-radius: 7px; border: 1px solid {{c.btnLine}}; background: {{c.btn}}; color: {{c.t2}}; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+</div>
+<div style="margin: 0 10px 10px; padding: 10px 12px; border-radius: {{th.cardR}}px; background: {{c.orangeSoft}}; border: 1px {{th.warnStyle}} {{c.orange}}; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 8px">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.5 L16 15 H2 Z" fill="{{c.orange}}"/></svg>
+<span style="font-weight: 600; flex: 1">broken</span>
+<span style="font-size: 12px; color: {{c.acc}}; font-weight: 500">Edit Config</span>
+</div>
+<div style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{c.t2}}">2 problems · command "a" has an empty run</div>
+</div>
+</sc-if>
+
+<div style="flex: 1; padding: 0 8px; display: flex; flex-direction: column; gap: 1px; overflow: hidden">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+<sc-if value="{{r.isProject}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; margin-top: {{r.gapTop}}px; border-radius: {{th.rowR}}px; border-top: 1px solid {{r.topLine}}">
+<div style="display: flex; align-items: center; gap: 9px">
+<span style="width: 22px; height: 22px; border-radius: 6px; background: {{r.bg}}; color: {{r.fg}}; font-size: {{r.size}}px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{r.initials}}</span>
+<span style="font-weight: 600; font-size: 13.5px; flex: 1; color: {{r.color}}">{{r.label}}</span>
+<sc-if value="{{r.hasCrash}}" hint-placeholder-val="{{ false }}"><span style="height: 18px; padding: 0 7px; border-radius: 9px; background: {{c.redSoft}}; color: {{c.red}}; font-size: 11px; font-weight: 600; display: flex; align-items: center">1 crashed</span></sc-if>
+<sc-if value="{{r.hasRun}}" hint-placeholder-val="{{ true }}"><span style="height: 18px; padding: 0 7px; border-radius: 9px; background: {{c.greenSoft}}; color: {{c.green}}; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 5px"><span style="width: 6px; height: 6px; border-radius: 3px; background: {{c.green}}"></span>{{r.runText}}</span></sc-if>
+<sc-if value="{{r.hasIdle}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; color: {{c.t3}}">{{r.idleText}}</span></sc-if>
+</div>
+<sc-if value="{{r.collapsed}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 4px; padding-left: 31px">
+<sc-for list="{{r.leds}}" as="l" hint-placeholder-count="5"><span style="width: 10px; height: 5px; border-radius: 2px; background: {{l.c}}; filter: {{l.glow}}"></span></sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{r.isGroup}}" hint-placeholder-val="{{ false }}">
+<div style="height: 28px; display: flex; align-items: center; gap: 6px; padding: 0 10px 0 {{r.indent}}px; color: {{c.t3}}; font-family: {{th.labelFont}}; font-size: {{th.labelSize}}px; font-weight: {{th.labelWeight}}; letter-spacing: {{th.labelSpacing}}; text-transform: {{th.labelTransform}}">
+<sc-if value="{{r.open}}" hint-placeholder-val="{{ true }}"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></sc-if>
+<sc-if value="{{r.closed}}" hint-placeholder-val="{{ false }}"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.5 2l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></sc-if>
+<span>{{r.label}}</span>
+<span style="flex: 1"></span>
+<span style="font-family: Geist, sans-serif; font-weight: 500; letter-spacing: 0; text-transform: none; color: {{r.sumColor}}">{{r.summary}}</span>
+</div>
+</sc-if>
+<sc-if value="{{r.isCmd}}" hint-placeholder-val="{{ true }}">
+<div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 6px 0 {{r.indent}}px; border-radius: {{th.rowR}}px; background: {{r.bg}}; box-shadow: {{r.shadow}}; color: {{r.color}}">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true" style="flex: none; overflow: visible; filter: {{r.glow}}">
+<sc-if value="{{r.isRun}}" hint-placeholder-val="{{ true }}"><circle cx="9" cy="9" r="8.5" fill="{{r.gc}}" opacity="0.22"></circle><circle cx="9" cy="9" r="4.5" fill="{{r.gc}}"></circle></sc-if>
+<sc-if value="{{r.isStop}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="9" r="5" fill="none" stroke="{{r.gc}}" stroke-width="2"></circle></sc-if>
+<sc-if value="{{r.isDone}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="9" r="6.5" fill="none" stroke="{{r.gc2}}" stroke-width="1.6"></circle><path d="M6.3 9.2 L8.2 11 L11.8 7.2" fill="none" stroke="{{r.gc}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></sc-if>
+<sc-if value="{{r.isCrash}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="9" r="7.5" fill="none" stroke="{{r.gc2}}" stroke-width="2"></circle><path d="M9 1.5 A7.5 7.5 0 0 1 15.5 12.75" fill="none" stroke="{{r.gc}}" stroke-width="2" stroke-linecap="round"></path><circle cx="9" cy="9" r="3.5" fill="{{r.gc}}"></circle></sc-if>
+<sc-if value="{{r.isErr}}" hint-placeholder-val="{{ false }}"><path d="M9 2 L16.5 15.5 H1.5 Z" fill="{{r.gc}}" stroke="{{r.gc}}" stroke-width="1" stroke-linejoin="round"></path></sc-if>
+<sc-if value="{{r.isStart}}" hint-placeholder-val="{{ false }}"><circle cx="9" cy="9" r="5.5" fill="none" stroke="{{r.gc2}}" stroke-width="2"></circle><path d="M9 3.5 A5.5 5.5 0 0 1 14.5 9" fill="none" stroke="{{r.gc}}" stroke-width="2" stroke-linecap="round"></path></sc-if>
+</svg>
+<span style="flex: 1; font-weight: {{r.weight}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.label}}</span>
+<sc-if value="{{r.apply}}" hint-placeholder-val="{{ false }}"><span style="height: 18px; padding: 0 6px; border-radius: 5px; background: {{c.accSoft}}; color: {{c.accSoftText}}; font-size: 10.5px; font-weight: 600; display: flex; align-items: center">↻ apply</span></sc-if>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{r.metaColor}}; padding-right: {{r.metaPad}}px">{{r.meta}}</span>
+<sc-if value="{{r.actStop}}" hint-placeholder-val="{{ false }}"><button aria-label="Stop" style="width: 22px; height: 22px; border-radius: 6px; border: 0; background: {{c.accSoft}}; color: {{c.accSoftText}}; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><rect width="8" height="8" rx="1.5" fill="currentColor"></rect></svg></button></sc-if>
+<sc-if value="{{r.actPlay}}" hint-placeholder-val="{{ false }}"><button aria-label="Start" style="width: 22px; height: 22px; border-radius: 6px; border: 0; background: {{c.acc}}; color: {{c.onAcc}}; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="7" height="8" viewBox="0 0 8 9" aria-hidden="true"><path d="M0 0l8 4.5L0 9z" fill="currentColor"></path></svg></button></sc-if>
+</div>
+</sc-if>
+</sc-for>
+</div>
+
+<div style="height: 40px; flex: none; border-top: 1px solid {{c.line}}; display: flex; align-items: center; gap: 8px; padding: 0 14px; color: {{c.t3}}; font-size: 12px">
+<span style="width: 7px; height: 7px; border-radius: 4px; background: {{c.green}}; filter: {{greenGlow}}"></span>{{allRun}} running<span style="color: {{c.t4}}">·</span><span style="color: {{c.red}}">2 crashed</span><span style="flex: 1"></span><span>Stop all</span>
+</div>
+</div>
+
+<div style="flex: 1; display: flex; flex-direction: column; min-width: 0; background: {{c.pane}}; margin: {{th.inset}}px {{th.inset}}px {{th.inset}}px 0; border-radius: {{th.paneR}}px; box-shadow: {{paneShadow}}; overflow: hidden">
+<div style="height: 56px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 14px 0 20px; background: {{c.head}}; border-bottom: 1px solid {{c.line}}">
+<span style="width: 26px; height: 26px; border-radius: 7px; background: #F2EEE6; color: #D9541F; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">CB</span>
+<div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+<div style="font-size: 14px; font-weight: 600; white-space: nowrap"><span style="color: {{c.t3}}; font-weight: 500">{{h.group}} /</span> {{h.name}}</div>
+<div style="font-family: 'Geist Mono', monospace; font-size: 11px; color: {{h.subColor}}; white-space: nowrap">{{h.folder}}<span style="color: {{c.red}}">{{h.subExtra}}</span></div>
+</div>
+<span style="height: 24px; padding: 0 10px; border-radius: 12px; background: {{h.chipBg}}; color: {{h.chipFg}}; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-left: 6px; white-space: nowrap; flex: none">
+<sc-if value="{{h.chipCheck}}" hint-placeholder-val="{{ false }}"><span>✓</span></sc-if>
+<sc-if value="{{h.chipDot}}" hint-placeholder-val="{{ true }}"><span style="width: 7px; height: 7px; border-radius: 4px; background: {{h.chipFg}}; filter: {{h.chipGlow}}"></span></sc-if>{{h.chip}}</span>
+<sc-if value="{{h.notice}}" hint-placeholder-val="{{ false }}"><span style="height: 24px; padding: 0 10px; border-radius: 12px; background: {{c.accSoft}}; color: {{c.accSoftText}}; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap">↻ Config changed · restart to apply</span></sc-if>
+<span style="flex: 1"></span>
+<sc-for list="{{h.buttons}}" as="b" hint-placeholder-count="2">
+<button style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid {{b.border}}; background: {{b.bg}}; color: {{b.fg}}; opacity: {{b.op}}; font-family: inherit; font-size: 12.5px; font-weight: {{b.weight}}; display: flex; align-items: center; gap: 8px; white-space: nowrap; flex: none">{{b.label}}<span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.6">{{b.kbd}}</span></button>
+</sc-for>
+<button aria-label="More: Edit Config, Reveal in Finder, Clear" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid {{c.btnLine}}; background: {{c.btn}}; color: {{c.t2}}; display: flex; align-items: center; justify-content: center; padding: 0; flex: none"><svg width="14" height="4" viewBox="0 0 14 4" aria-hidden="true"><circle cx="2" cy="2" r="1.5" fill="currentColor"></circle><circle cx="7" cy="2" r="1.5" fill="currentColor"></circle><circle cx="12" cy="2" r="1.5" fill="currentColor"></circle></svg></button>
+</div>
+<sc-if value="{{h.backoff}}" hint-placeholder-val="{{ false }}"><div style="height: 3px; flex: none; background: {{c.redSoft}}"><div style="width: 47%; height: 3px; background: {{c.red}}"></div></div></sc-if>
+
+<div style="flex: 1; background: {{c.term}}; padding: 16px 22px; font-family: 'Geist Mono', monospace; font-size: 12.5px; line-height: 1.75; color: {{c.tText}}; display: flex; flex-direction: column">
+<sc-for list="{{lines}}" as="ln" hint-placeholder-count="6">
+<sc-if value="{{ln.sep}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 10px; color: {{ln.color}}; font-size: 11px"><span>{{ln.text}}</span><span style="flex: 1; height: 1px; background: {{ln.lineColor}}"></span></div></sc-if>
+<sc-if value="{{ln.isText}}" hint-placeholder-val="{{ true }}"><div style="white-space: pre"><sc-for list="{{ln.parts}}" as="p" hint-placeholder-count="2"><span style="color: {{p.c}}; font-weight: {{p.w}}">{{p.t}}</span></sc-for></div></sc-if>
+</sc-for>
+<sc-if value="{{cursor}}" hint-placeholder-val="{{ true }}"><div style="width: 8px; height: 16px; background: {{c.acc}}; margin-top: 3px"></div></sc-if>
+<sc-if value="{{idleCard}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; display: flex; align-items: center; justify-content: center">
+<div style="width: 500px; display: flex; flex-direction: column; align-items: center; gap: 16px; font-family: Geist, sans-serif">
+<div style="width: 100%; border-radius: {{th.cardR}}px; background: {{c.pane}}; border: 1px solid {{c.line}}; overflow: hidden">
+<div style="padding: 16px 18px; font-family: 'Geist Mono', monospace; font-size: 15px; display: flex; gap: 10px; color: {{c.text}}"><span style="color: {{c.t3}}">$</span>npm run dev</div>
+<div style="padding: 10px 18px; border-top: 1px solid {{c.line}}; background: {{c.head}}; display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 11.5px; color: {{c.t3}}">~/Documents/web/citybuild/frontend<span style="flex: 1"></span><span>autostart off</span></div>
+</div>
+<div style="font-size: 12.5px; color: {{c.t3}}; line-height: 1.5; text-align: center">Output appears here once it starts.<br>It keeps running when you switch to another command.</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{errCard}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; display: flex; align-items: center; justify-content: center">
+<div style="width: 500px; border-radius: {{th.cardR}}px; background: {{c.orangeSoft}}; border: 1px solid {{c.orange}}; padding: 20px 22px; display: flex; gap: 14px; font-family: Geist, sans-serif">
+<svg width="20" height="20" viewBox="0 0 18 18" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M9 2 L16.5 15.5 H1.5 Z" fill="{{c.orange}}"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 15px; font-weight: 600; color: {{c.text}}">This command's folder doesn't exist</div>
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: {{c.orange}}">~/Documents/web/citybuild/seed-data</div>
+<div style="font-size: 12.5px; color: {{c.t2}}; line-height: 1.5">Fix <span style="font-family: 'Geist Mono', monospace">cwd</span> in config.yaml or create the folder. The sidebar reloads on save.</div>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div style="height: 30px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 20px; background: {{c.head}}; border-top: 1px solid {{c.line}}; font-size: 11.5px; color: {{c.t3}}; font-family: 'Geist Mono', monospace">
+<sc-for list="{{foot}}" as="f" hint-placeholder-count="2"><span>{{f.k}} <span style="color: {{f.vc}}">{{f.v}}</span></span></sc-for>
+<span style="flex: 1"></span>
+<span>{{footRight}}</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["graphite","patchbay","paper"],"default":"graphite"},"mode":{"editor":"enum","options":["dark","light"],"default":"dark"},"rail":{"editor":"boolean","default":true},"scenario":{"editor":"enum","options":["running","starting","apply","crashed","done","error","idle"],"default":"running"},"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+  const TOK = {
+    graphite: {
+      dark: { win:'#0B0C0E', rail:'#0B0C0E', side:'#0E0F11', line:'#1E2025', pane:'#0E0F11', head:'#0E0F11', term:'#111214', tText:'#D5D7DC', tDim:'#6B7079', text:'#E6E7EA', t2:'#A9ACB4', t3:'#6B7079', t4:'#4D525B', hover:'#16171A', sel:'#1D2233', selText:'#FFFFFF', acc:'#7C9CFF', onAcc:'#0B0C0E', accSoft:'#1D2233', accSoftText:'#A3B8FF', btn:'#16171A', btnLine:'#2A2D33', green:'#3DD68C', greenSoft:'#12301F', amber:'#F5B83D', amberSoft:'#33280F', red:'#FF5C5C', redSoft:'#3A1A1A', orange:'#FF8A3D', orangeSoft:'#2A1A0F', ring:'#5A5F68', ringSoft:'#2A2D33',
+        a:['#1E2025','#FF5C5C','#3DD68C','#F5B83D','#7C9CFF','#C792EA','#5FD7E8','#C9CBD1','#4D525B','#FF7B7B','#6BE5A8','#FFD06B','#A3B8FF','#DDB3F5','#8AE6F2','#FFFFFF'] },
+      light: { win:'#ECEEF1', rail:'#ECEEF1', side:'#F4F5F7', line:'#E1E3E8', pane:'#FFFFFF', head:'#FFFFFF', term:'#FCFCFD', tText:'#24262B', tDim:'#8A9099', text:'#17181B', t2:'#4F545C', t3:'#7D838C', t4:'#B3B8C0', hover:'#E9EBEF', sel:'#E3E9FF', selText:'#17181B', acc:'#4A6CF7', onAcc:'#FFFFFF', accSoft:'#E3E9FF', accSoftText:'#2F4FD6', btn:'#FFFFFF', btnLine:'#DADDE3', green:'#14965A', greenSoft:'#DDF4E8', amber:'#B07800', amberSoft:'#FBF0D6', red:'#D93A3F', redSoft:'#FCE3E3', orange:'#C9580B', orangeSoft:'#FDEEE2', ring:'#A8ADB6', ringSoft:'#DADDE3',
+        a:['#1A1B1E','#D93A3F','#128A4A','#A86F00','#3B5BDB','#8E44AD','#0E8399','#D9DCE1','#5F646D','#E5484D','#18A058','#C98A0B','#4A6CF7','#A660C8','#12A3BD','#F4F5F7'] }
+    },
+    patchbay: {
+      dark: { win:'#12100D', rail:'#12100D', side:'#181511', line:'#2A251E', pane:'#1C1813', head:'#1C1813', term:'#0F0D0B', tText:'#D8D0C2', tDim:'#7A705F', text:'#EDE6DA', t2:'#A99F8E', t3:'#8A7F6C', t4:'#5A5246', hover:'#221E18', sel:'#2E1F17', selText:'#FFF8EC', acc:'#FFB224', onAcc:'#1A1208', accSoft:'#33250E', accSoftText:'#FFCB66', btn:'#1F1B16', btnLine:'#3A332A', green:'#9ACD6B', greenSoft:'#22301A', amber:'#FFB224', amberSoft:'#33250E', red:'#FF6B5A', redSoft:'#3A1E18', orange:'#FF8A3D', orangeSoft:'#2C1C0E', ring:'#5A5246', ringSoft:'#3A332A',
+        a:['#2A251E','#FF6B5A','#9ACD6B','#FFB224','#7FA7D9','#D08BB8','#6CC4B0','#D8D0C2','#5A5246','#FF8C7D','#B5E08C','#FFCB66','#A3C2E8','#E3A9CE','#92DCC9','#FFF8EC'] },
+      light: { win:'#E6DECF', rail:'#E6DECF', side:'#EFE8DB', line:'#DDD2BF', pane:'#F7F2E9', head:'#F7F2E9', term:'#FBF8F2', tText:'#2B241A', tDim:'#8F836E', text:'#241E16', t2:'#5F5545', t3:'#857965', t4:'#B8AC96', hover:'#E6DCCB', sel:'#F5DDB0', selText:'#241E16', acc:'#C47A00', onAcc:'#1A1208', accSoft:'#F5DDB0', accSoftText:'#7A4C00', btn:'#FBF8F2', btnLine:'#D6CAB4', green:'#4E8A1A', greenSoft:'#E1EDCF', amber:'#A86800', amberSoft:'#F7E4BE', red:'#C2412E', redSoft:'#F6DDD6', orange:'#B8560B', orangeSoft:'#F8E6D3', ring:'#A89B84', ringSoft:'#D6CAB4',
+        a:['#2B241A','#C2412E','#4E8A1A','#A86800','#2F64A8','#A0457D','#1F8573','#E0D6C4','#6F6453','#D2402E','#5FA02A','#C27F00','#3F78C2','#B85A93','#2A9C88','#FBF8F2'] }
+    },
+    paper: {
+      dark: { win:'#161618', rail:'#161618', side:'#161618', line:'#2C2C30', pane:'#1F1F22', head:'#1F1F22', term:'#1B1B1E', tText:'#E2E1DD', tDim:'#7C7B77', text:'#EDEDEB', t2:'#A3A29E', t3:'#85847F', t4:'#55544F', hover:'#232326', sel:'#2A2A2F', selText:'#FFFFFF', acc:'#8B8BFF', onAcc:'#121214', accSoft:'#26264A', accSoftText:'#B4B4FF', btn:'#262629', btnLine:'#35353A', green:'#3FCB7E', greenSoft:'#16301F', amber:'#F2B33D', amberSoft:'#33280F', red:'#FF6B6B', redSoft:'#3A1C1C', orange:'#FF9447', orangeSoft:'#2E1D10', ring:'#5F5E5A', ringSoft:'#35353A',
+        a:['#2A2A2D','#FF6B6B','#3FCB7E','#F2B33D','#8B8BFF','#C99BFF','#5CC9D6','#D6D5D1','#6E6D69','#FF8A8A','#6BDDA0','#FFCC6B','#A9A9FF','#DAB8FF','#86DCE6','#FFFFFF'] },
+      light: { win:'#EFEEEA', rail:'#EFEEEA', side:'#EFEEEA', line:'#E2E0DA', pane:'#FFFFFF', head:'#FFFFFF', term:'#FBFBF9', tText:'#1F1F21', tDim:'#8C8A84', text:'#1A1A1C', t2:'#4A4946', t3:'#7A7873', t4:'#B8B6B0', hover:'#E6E4DF', sel:'#FFFFFF', selText:'#1A1A1C', acc:'#3B3BD9', onAcc:'#FFFFFF', accSoft:'#E7E7FB', accSoftText:'#3030B8', btn:'#FFFFFF', btnLine:'#E2E0DA', green:'#1F8A4C', greenSoft:'#DFF2E6', amber:'#A6720A', amberSoft:'#F8EDD4', red:'#D13434', redSoft:'#FBE2E2', orange:'#B9520E', orangeSoft:'#FCEDE1', ring:'#A5A39D', ringSoft:'#D6D4CE',
+        a:['#1A1A1C','#CC2F2F','#1F8A4C','#9A6A00','#3B3BD9','#8B3FC1','#0F7F8F','#D6D4CE','#6E6D69','#D93A3A','#1F9D55','#B07800','#5555E8','#9F55D6','#14A0B3','#FBFBF9'] }
+    }
+  };
+  const META = {
+    graphite: { labelFont:"Geist, -apple-system, sans-serif", labelTransform:'uppercase', labelSpacing:'0.06em', labelSize:11, labelWeight:600, rowR:7, cardR:10, tileR:10, inset:0, paneR:0, warnStyle:'solid', selStyle:'bar' },
+    patchbay: { labelFont:"'Geist Mono', ui-monospace, monospace", labelTransform:'uppercase', labelSpacing:'0.1em', labelSize:10.5, labelWeight:500, rowR:6, cardR:12, tileR:9, inset:0, paneR:0, warnStyle:'dashed', selStyle:'bar' },
+    paper: { labelFont:"Geist, -apple-system, sans-serif", labelTransform:'none', labelSpacing:'0', labelSize:11.5, labelWeight:600, rowR:8, cardR:14, tileR:11, inset:10, paneR:14, warnStyle:'solid', selStyle:'card' }
+  };
+  const theme = TOK[this.props.theme] ? this.props.theme : 'graphite';
+  const mode = this.props.mode === 'light' ? 'light' : 'dark';
+  const rail = this.props.rail ?? true;
+  const sc = this.props.scenario ?? 'running';
+  const c = TOK[theme][mode];
+  const th = META[theme];
+  const a = c.a;
+  const glowOn = theme === 'patchbay' && mode === 'dark';
+  const glow = (col) => glowOn ? 'drop-shadow(0 0 4px ' + col + ')' : 'none';
+  const col = { run:c.green, start:c.amber, crash:c.red, err:c.orange, stop:c.ring, done:c.t2 };
+  const track = { run:c.green, start:c.amberSoft, crash:c.redSoft, err:c.orange, stop:c.ring, done:c.ring };
+
+  const selId = { running:'dev', starting:'dev', apply:'dev', idle:'dev', crashed:'mdev', done:'tc', error:'mseed' }[sc] || 'dev';
+  const devSt = { starting:'start', idle:'stop' }[sc] || 'run';
+  const devMeta = { run:'1:59', start:'starting', stop:'' }[devSt];
+  const cmds = {
+    cc: { label:'Claude Code', st:'stop' },
+    dev: { label:'dev', st:devSt, meta:devMeta },
+    sb: { label:'Storybook', st:'run', meta:'12:40' },
+    tc: { label:'typecheck', st:'done', meta:'exit 0' },
+    test: { label:'test', st:'stop' },
+    mdev: { label:'make:dev', st:'crash', meta:'↻ 16s' },
+    mmig: { label:'make:migrate', st:'stop' },
+    mseed: { label:'make:seed', st:'err', meta:'no folder' }
+  };
+  const paperSel = th.selStyle === 'card';
+  const mk = (id, indent) => {
+    const cmd = cmds[id]; const s = cmd.st; const isSel = id === selId;
+    const live = s === 'run' || s === 'start';
+    return {
+      isCmd:true, label:cmd.label, indent,
+      isRun:s==='run', isStop:s==='stop', isDone:s==='done', isCrash:s==='crash', isErr:s==='err', isStart:s==='start',
+      gc:col[s], gc2:track[s], glow:(s==='stop'||s==='done') ? 'none' : glow(col[s]),
+      bg: isSel ? c.sel : 'transparent',
+      shadow: isSel ? (paperSel ? '0 1px 2px rgba(0,0,0,0.08), 0 0 0 1px ' + c.line : 'inset 2px 0 0 ' + c.acc) : 'none',
+      color: isSel ? c.selText : (s === 'stop' ? c.t2 : c.text),
+      weight: isSel ? 600 : 400,
+      meta: cmd.meta || '', metaPad: isSel ? 0 : 4,
+      metaColor: s==='crash' ? c.red : s==='err' ? c.orange : s==='start' ? c.amber : c.t3,
+      apply: isSel && sc === 'apply',
+      actStop: isSel && live, actPlay: isSel && !live && s !== 'err'
+    };
+  };
+  const grp = (label, indent, open, summary, sumColor) => ({ isGroup:true, label, indent, open, closed:!open, summary: summary || '', sumColor: sumColor || c.t3 });
+  const base = (o) => [
+    mk('cc', 10 + o),
+    grp('Frontend', 10 + o, true),
+    mk('dev', 22 + o), mk('sb', 22 + o), mk('tc', 22 + o), mk('test', 22 + o),
+    grp('Backend', 10 + o, true),
+    mk('mdev', 22 + o), mk('mmig', 22 + o), mk('mseed', 22 + o),
+    grp('E2E', 10 + o, false, '3 idle')
+  ];
+  const devLive = devSt === 'run';
+  const projRun = (devLive ? 1 : 0) + 1;
+  const led = (s) => ({ c: s === 'stop' ? c.ringSoft : col[s], glow: (s==='stop'||s==='done') ? 'none' : glow(col[s]) });
+  let rows;
+  if (rail) {
+    rows = base(0);
+  } else {
+    rows = [ { isProject:true, label:'CityBuild', initials:'CB', bg:'#F2EEE6', fg:'#D9541F', size:9, color:c.text, hasRun:true, runText:String(projRun), hasCrash:true, hasIdle:false, collapsed:false, leds:[], gapTop:0, topLine:'transparent' } ]
+      .concat(base(12))
+      .concat([
+        { isProject:true, label:'States Demo', initials:'SD', bg:'#C94848', fg:'#FFFFFF', size:9, color:c.text, hasRun:true, runText:'1', hasCrash:true, hasIdle:false, collapsed:true, leds:['stop','run','crash','done','err'].map(led), gapTop:8, topLine:c.line },
+        { isProject:true, label:'Kinpay', initials:'K', bg:'#D7F25A', fg:'#7A2BD6', size:13, color:c.t2, hasRun:false, hasCrash:false, hasIdle:true, idleText:'9 idle', collapsed:true, leds:['stop','stop','stop','stop','stop','stop','stop','stop','stop'].map(led), gapTop:0, topLine:'transparent' }
+      ]);
+  }
+  const railItems = [
+    { initials:'CB', title:'CityBuild', bg:'#F2EEE6', fg:'#D9541F', size:11, border:'0', ring:'0 0 0 2px ' + c.win + ', 0 0 0 4px ' + c.acc, hasBadge:true, badgeText:String(projRun), badgeBg:c.green, badgeFg: mode === 'dark' ? '#0B0C0E' : '#FFFFFF', badgeGlow:glow(c.green), hasAlert:true, alertGlow:glow(c.red) },
+    { initials:'SD', title:'States Demo', bg:'#C94848', fg:'#FFFFFF', size:11, border:'0', ring:'none', hasBadge:true, badgeText:'1', badgeBg:c.green, badgeFg: mode === 'dark' ? '#0B0C0E' : '#FFFFFF', badgeGlow:glow(c.green), hasAlert:true, alertGlow:glow(c.red) },
+    { initials:'K', title:'Kinpay', bg:'#D7F25A', fg:'#7A2BD6', size:16, border:'0', ring:'none', hasBadge:false, hasAlert:false },
+    { initials:'br', title:'broken: 2 config problems', bg:c.orangeSoft, fg:c.orange, size:11, border:'1px dashed ' + c.orange, ring:'none', hasBadge:true, badgeText:'!', badgeBg:c.orange, badgeFg:'#1A1208', badgeGlow:glow(c.orange), hasAlert:false }
+  ];
+
+  const P = (...parts) => ({ isText:true, sep:false, parts: parts.map((p) => ({ t:p[0], c:p[1] || c.tText, w:p[2] ? 600 : 400 })) });
+  const S = (text, color, lineColor) => ({ sep:true, isText:false, text, color: color || c.t4, lineColor: lineColor || c.line });
+  const B = [' '];
+  const devOut = [
+    S('started 10:14:04'),
+    P(['> ', c.tDim], ['dev']),
+    P(['> ', c.tDim], ['react-router dev --port 3006']),
+    P(B),
+    P(['  ➜  ', a[2]], ['Local:', null, 1], ['   '], ['http://localhost:', a[6]], ['3006', a[6], 1], ['/', a[6]]),
+    P(['  ➜  ', a[2]], ['Network: use ', c.tDim], ['--host', null, 1], [' to expose', c.tDim]),
+    P(['  ➜  ', a[2]], ['press ', c.tDim], ['h + enter', null, 1], [' to show help', c.tDim])
+  ];
+  const H = {
+    running: { group:'Frontend', name:'dev', folder:'~/Documents/web/citybuild/frontend', chip:'Running · 1:59', tone:'green', btns:[['Stop','⌘.',0],['Restart','⌘R',0]] },
+    apply: { group:'Frontend', name:'dev', folder:'~/Documents/web/citybuild/frontend', chip:'Running · 1:59', tone:'green', notice:true, btns:[['Restart to apply','⌘R',1],['Stop','⌘.',0]] },
+    starting: { group:'Frontend', name:'dev', folder:'~/Documents/web/citybuild/frontend', chip:'Starting', tone:'amber', btns:[['Stop','⌘.',0]] },
+    idle: { group:'Frontend', name:'dev', folder:'~/Documents/web/citybuild/frontend', chip:'Never run', tone:'neutral', btns:[['Start','',1]] },
+    crashed: { group:'Backend', name:'make:dev', folder:'~/Documents/web/citybuild/backend', subExtra:'  ·  restarting in 16 s', chip:'Crashed · exit 1', tone:'red', backoff:true, btns:[['Start now','',1],['Stop','⌘.',0]] },
+    done: { group:'Frontend', name:'typecheck', folder:'~/Documents/web/citybuild/frontend', chip:'Done · exit 0', tone:'done', btns:[['Run again','',1]] },
+    error: { group:'Backend', name:'make:seed', folder:'~/Documents/web/citybuild/seed-data', subOrange:true, chip:'Folder not found', tone:'orange', btns:[['Start','',2],['Edit Config','⌘E',1]] }
+  }[sc] || {};
+  const tones = { green:[c.greenSoft, c.green], amber:[c.amberSoft, c.amber], red:[c.redSoft, c.red], orange:[c.orangeSoft, c.orange], neutral:[c.hover, c.t2], done:[c.hover, c.t2] };
+  const tn = tones[H.tone];
+  const h = {
+    group:H.group, name:H.name, folder:H.folder, subExtra:H.subExtra || '', subColor: H.subOrange ? c.orange : c.t3,
+    chip:H.chip, chipBg:tn[0], chipFg:tn[1], chipCheck:H.tone === 'done', chipDot:H.tone !== 'done', chipGlow: H.tone === 'neutral' ? 'none' : glow(tn[1]),
+    notice:!!H.notice, backoff:!!H.backoff,
+    buttons: H.btns.map((b) => ({ label:b[0], kbd:b[1], bg: b[2] === 1 ? c.acc : c.btn, fg: b[2] === 1 ? c.onAcc : c.text, border: b[2] === 1 ? c.acc : c.btnLine, weight: b[2] === 1 ? 600 : 400, op: b[2] === 2 ? 0.4 : 1 }))
+  };
+  const L = {
+    running: devOut, apply: devOut,
+    starting: [S('started 10:14:04'), P(['> ', c.tDim], ['dev']), P(['> ', c.tDim], ['react-router dev --port 3006'])],
+    idle: [], error: [],
+    crashed: [
+      S('started 10:15:41'), P(['go run ./cmd/api']), P(['listening on :8080', c.tDim]),
+      P(['panic: dial tcp 127.0.0.1:5432: connect: connection refused', a[1]]), P(B),
+      P(['goroutine 1 [running]:', c.tDim]), P(['main.main()', c.tDim]), P(['    /cmd/api/main.go:42 +0x1d4', c.tDim]),
+      S('exited 1 at 10:15:52', c.red, c.redSoft)
+    ],
+    done: [ S('started 10:16:00'), P(['> ', c.tDim], ['tsc --noEmit']), P(B), P(['Found 0 errors.']), S('exited 0 at 10:16:04') ]
+  }[sc] || [];
+  const F = {
+    running: [[['pid','6964'],['up','1:59']], '132×38'],
+    apply: [[['pid','6964'],['up','1:59']], '132×38'],
+    starting: [[['pid','6964'],['', 'starting', c.amber]], '132×38'],
+    idle: [[['','not started']], 'autostart · off'],
+    crashed: [[['last pid','7120'],['ran','0:11'],['exit','1', c.red]], 'restart on crash · on'],
+    done: [[['finished','10:16:04'],['ran','0:04'],['exit','0']], ''],
+    error: [[['','cwd not found', c.orange]], '']
+  }[sc] || [[], ''];
+  return {
+    c, th, rail, tree: !rail, rows, railItems, h, lines: L,
+    sideW: rail ? 236 : 272,
+    sideBorder: th.inset ? 'transparent' : c.line,
+    paneShadow: th.inset ? '0 0 0 1px ' + c.line + ', 0 8px 24px rgba(0,0,0,' + (mode === 'dark' ? '0.3' : '0.05') + ')' : 'none',
+    projRun, allRun: projRun + 1, greenGlow: glow(c.green),
+    cursor: sc === 'running' || sc === 'apply' || sc === 'starting',
+    idleCard: sc === 'idle', errCard: sc === 'error',
+    foot: F[0].map((f) => ({ k:f[0], v:f[1], vc:f[2] || c.t2 })), footRight: F[1]
+  };
+}
+}
+</script>
+</body>
+</html>

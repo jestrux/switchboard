@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pane spec</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 1180px; box-sizing: border-box; padding: 30px 26px; background: #0B0C0E; color: #E6E7EA; font-family: Geist, -apple-system, sans-serif; font-size: 13px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: flex-end; gap: 24px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: #7D828B">PANE · 36 PT BAR + SWIFTTERM + 22 PT FOOTER · GRAPHITE DARK</div>
+<div style="font-size: 24px; font-weight: 600; letter-spacing: -0.01em">Every state at full, mid and min width</div>
+</div>
+<div style="font-size: 12.5px; color: #A9ACB4; max-width: 560px; line-height: 1.5">Bar order never changes: glyph · Group / name ▾ · chips · status · actions. Width only removes things, right to left in priority: group prefix, long status, secondary actions (into ⋯), footer. The first action is always the state's primary.</div>
+</div>
+<div style="display: grid; grid-template-columns: 100px 480px 360px 240px; column-gap: 16px; font-size: 11.5px; color: #7D828B; font-family: 'Geist Mono', monospace">
+<span></span><span>FULL · ≥ 560 pt</span><span>MID · 360–559</span><span>MIN · 320–359</span>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<div style="display: grid; grid-template-columns: 100px 480px 360px 240px; column-gap: 16px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 3px; padding-top: 8px"><span style="font-weight: 600; font-size: 13px">{{r.label}}</span><span style="font-size: 11px; color: #7D828B; line-height: 1.4">{{r.note}}</span></div>
+<div style="border-radius: 8px; overflow: hidden; border: 1px solid #1E2025"><dc-import name="Pane" theme="graphite" mode="dark" cmd="{{r.cmd}}" kind="{{r.kind}}" size="full" focused="{{r.f1}}" hover="{{r.h1}}" w="{{ 480 }}" h="{{ 104 }}" hint-size="480px,112px"></dc-import></div>
+<div style="border-radius: 8px; overflow: hidden; border: 1px solid #1E2025"><dc-import name="Pane" theme="graphite" mode="dark" cmd="{{r.cmd}}" kind="{{r.kind}}" size="mid" focused="{{r.f2}}" hover="{{r.h2}}" w="{{ 360 }}" h="{{ 104 }}" hint-size="360px,112px"></dc-import></div>
+<div style="border-radius: 8px; overflow: hidden; border: 1px solid #1E2025"><dc-import name="Pane" theme="graphite" mode="dark" cmd="{{r.cmd}}" kind="{{r.kind}}" size="min" focused="{{r.f3}}" hover="{{r.h3}}" w="{{ 240 }}" h="{{ 104 }}" hint-size="240px,112px"></dc-import></div>
+</div>
+</sc-for>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding-top: 12px; border-top: 1px solid #1E2025">
+<div style="font-size: 12px; color: #A9ACB4; line-height: 1.55"><b style="color: #E6E7EA">Primary action by state.</b> Running / starting: Stop. Crashed: Start now (accent-tinted) plus Stop, which cancels the pending restart. Done / never run: Start. Error: Start, disabled, with the reason as its tooltip.</div>
+<div style="font-size: 12px; color: #A9ACB4; line-height: 1.55"><b style="color: #E6E7EA">Footer.</b> Full: folder · pid · uptime, or exit · ran for finished runs. Mid drops the folder. Min drops the footer; the bar's tooltip carries the vitals. Backoff is a 2 pt red bar under the header that drains.</div>
+<div style="font-size: 12px; color: #A9ACB4; line-height: 1.55"><b style="color: #E6E7EA">Focus.</b> Focused: accent rule, raised bar, full-contrast text, filled cursor. Unfocused: flat bar, secondary text; terminal text is never dimmed. Hover: the bar lifts so actions read as buttons.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() {
+  const R = (label, note, cmd, kind) => ({ label, note, cmd, kind: kind || 'term', f1:true, f2:true, f3:true, h1:false, h2:false, h3:false });
+  const rows = [
+    R('Running', 'Stop · Restart', 'dev'),
+    R('Starting', 'amber arc, Stop', 'boot'),
+    R('Restart to apply', 'chip shrinks to ↻', 'kdev'),
+    R('Crashed', 'backoff bar, Start now', 'api'),
+    R('Done', 'exit 0 · ran', 'tc'),
+    R('Error', 'Start disabled', 'seed'),
+    R('Never run', 'inline Start card', 'never'),
+    Object.assign(R('Focus', 'focused · unfocused · hover', 'dev'), { f2:false, f3:false, h3:true })
+  ];
+  return { rows };
+}
+}
+</script>
+</body>
+</html>

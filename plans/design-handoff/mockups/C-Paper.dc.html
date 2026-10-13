@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C Paper</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B3BD9}a:hover{color:#2525A8}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; display: flex; background: #EFEEEA; color: #1A1A1C; font-family: Geist, -apple-system, sans-serif; font-size: 13px; overflow: hidden">
+
+<div style="width: 64px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 14px">
+<div style="display: flex; gap: 6px; margin-bottom: 18px">
+<span style="width: 11px; height: 11px; border-radius: 6px; background: #FF5F57"></span>
+<span style="width: 11px; height: 11px; border-radius: 6px; background: #FEBC2E"></span>
+<span style="width: 11px; height: 11px; border-radius: 6px; background: #28C840"></span>
+</div>
+<div style="position: relative; width: 40px; height: 40px; border-radius: 11px; background: #FFFFFF; box-shadow: 0 0 0 2px #3B3BD9; display: flex; align-items: center; justify-content: center; color: #D9541F; font-size: 11px; font-weight: 700">CB<span style="position: absolute; right: -4px; bottom: -4px; min-width: 16px; height: 16px; border-radius: 8px; background: #1F9D55; color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #EFEEEA">2</span></div>
+<div style="position: relative; width: 40px; height: 40px; border-radius: 11px; background: #C94848; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700">SD<span style="position: absolute; right: -4px; bottom: -4px; width: 16px; height: 16px; border-radius: 8px; background: #D93A3A; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #EFEEEA">!</span></div>
+<div style="width: 40px; height: 40px; border-radius: 11px; background: #D7F25A; display: flex; align-items: center; justify-content: center; color: #7A2BD6; font-size: 16px; font-weight: 800">K</div>
+<div style="position: relative; width: 40px; height: 40px; border-radius: 11px; background: #FFFFFF; border: 1px dashed #E08A4A; box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: #C25A12; font-size: 11px; font-weight: 700">br<span style="position: absolute; right: -4px; bottom: -4px; width: 16px; height: 16px; border-radius: 8px; background: #E07A2A; box-shadow: 0 0 0 2px #EFEEEA"></span></div>
+<div style="width: 24px; height: 1px; background: #D6D4CE"></div>
+<button aria-label="Add project" style="width: 40px; height: 40px; border-radius: 11px; border: 1px solid #D6D4CE; background: transparent; color: #6E6D69; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="14" height="14" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+</div>
+
+<div style="width: 244px; flex: none; display: flex; flex-direction: column; padding: 14px 10px 10px 4px">
+<div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 8px; margin-top: 24px">
+<span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em; flex: 1">CityBuild</span>
+<button style="height: 26px; padding: 0 10px; border-radius: 7px; border: 1px solid #D6D4CE; background: #FFFFFF; color: #1A1A1C; font-family: inherit; font-size: 12px; display: flex; align-items: center; gap: 6px"><svg width="8" height="9" viewBox="0 0 8 9" aria-hidden="true"><path d="M0 0l8 4.5L0 9z" fill="currentColor"/></svg>All</button>
+</div>
+<div style="padding: 0 8px 12px; font-size: 12px; color: #6E6D69">2 of 12 running</div>
+
+<div style="display: flex; flex-direction: column; gap: 1px">
+<div style="height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: 8px">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="5" fill="none" stroke="#A5A39D" stroke-width="2"/></svg>
+<span style="flex: 1">Claude Code</span>
+</div>
+<div style="height: 30px; display: flex; align-items: flex-end; padding: 0 8px 6px; font-size: 11.5px; font-weight: 600; color: #8C8A84">Frontend</div>
+<div style="height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 6px 0 8px; border-radius: 8px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(20,20,20,0.06), 0 0 0 1px #E2E0DA">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="5" fill="none" stroke="#A5A39D" stroke-width="2"/></svg>
+<span style="flex: 1; font-weight: 600">dev</span>
+<button aria-label="Start dev" style="width: 22px; height: 22px; border-radius: 6px; border: 0; background: #3B3BD9; color: #fff; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="7" height="8" viewBox="0 0 8 9" aria-hidden="true"><path d="M0 0l8 4.5L0 9z" fill="currentColor"/></svg></button>
+</div>
+<div style="height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: 8px">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="#1F9D55" opacity="0.18"/><circle cx="9" cy="9" r="4.5" fill="#1F9D55"/></svg>
+<span style="flex: 1">Storybook</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #8C8A84">12:40</span>
+</div>
+<div style="height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: 8px">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="5" fill="none" stroke="#E2B13C" stroke-width="2" opacity="0.35"/><path d="M9 4 A5 5 0 0 1 14 9" fill="none" stroke="#C98A0B" stroke-width="2" stroke-linecap="round"/></svg>
+<span style="flex: 1">typecheck</span>
+<span style="font-size: 11px; color: #A6720A">starting</span>
+</div>
+<div style="height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: 8px">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="#A5A39D" stroke-width="1.6"/><path d="M6.3 9.2 L8.2 11 L11.8 7.2" fill="none" stroke="#4A4946" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<span style="flex: 1">test</span>
+<span style="font-size: 11px; color: #8C8A84">done</span>
+</div>
+<div style="height: 30px; display: flex; align-items: flex-end; padding: 0 8px 6px; font-size: 11.5px; font-weight: 600; color: #8C8A84">Backend</div>
+<div style="height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: 8px">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="#1F9D55" opacity="0.18"/><circle cx="9" cy="9" r="4.5" fill="#1F9D55"/></svg>
+<span style="flex: 1">make:dev</span>
+<span style="height: 18px; padding: 0 6px; border-radius: 5px; background: #E7E7FB; color: #3B3BD9; font-size: 10.5px; font-weight: 600; display: flex; align-items: center">↻ apply</span>
+</div>
+<div style="height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: 8px">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="5" fill="none" stroke="#A5A39D" stroke-width="2"/></svg>
+<span style="flex: 1">make:migrate</span>
+</div>
+<div style="height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: 8px; color: #6E6D69">
+<span style="width: 12px"></span><span style="flex: 1">2 more</span>
+</div>
+<div style="height: 30px; display: flex; align-items: flex-end; padding: 0 8px 6px; font-size: 11.5px; font-weight: 600; color: #8C8A84">E2E <span style="font-weight: 400; margin-left: 6px">· 3 idle</span></div>
+</div>
+<span style="flex: 1"></span>
+<div style="padding: 10px 8px 4px; border-top: 1px solid #DEDCD6; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6E6D69">
+<span style="width: 7px; height: 7px; border-radius: 4px; background: #1F9D55"></span>3 running everywhere<span style="flex: 1"></span><span style="color: #D93A3A">1 crashed</span>
+</div>
+</div>
+
+<div style="flex: 1; display: flex; flex-direction: column; min-width: 0; margin: 10px 10px 10px 0; background: #FFFFFF; border-radius: 14px; box-shadow: 0 0 0 1px #E2E0DA, 0 8px 24px rgba(20,20,20,0.05); overflow: hidden">
+<div style="height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 16px 0 22px; border-bottom: 1px solid #EEECE7">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 14px">
+<span style="color: #8C8A84">CityBuild</span><span style="color: #C8C6C0">/</span><span style="color: #8C8A84">Frontend</span><span style="color: #C8C6C0">/</span><span style="font-weight: 600">dev</span>
+</div>
+<span style="height: 22px; padding: 0 9px; border-radius: 6px; background: #F2F1ED; color: #6E6D69; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px">Stopped · never run</span>
+<span style="flex: 1"></span>
+<button style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #E2E0DA; background: #FFFFFF; color: #1A1A1C; font-family: inherit; font-size: 12.5px; display: flex; align-items: center; gap: 6px">Edit Config<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #A5A39D">⌘E</span></button>
+<button aria-label="Reveal in Finder" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #E2E0DA; background: #FFFFFF; color: #4A4946; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="14" height="11" viewBox="0 0 14 11" aria-hidden="true"><path d="M1 2h4l1.5 1.5H13V10H1z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></button>
+</div>
+
+<div style="flex: 1; background: #FBFBF9; display: flex; align-items: center; justify-content: center">
+<div style="width: 520px; display: flex; flex-direction: column; align-items: center; gap: 18px">
+<div style="width: 100%; border-radius: 12px; background: #FFFFFF; box-shadow: 0 0 0 1px #E2E0DA, 0 2px 6px rgba(20,20,20,0.04); overflow: hidden">
+<div style="padding: 16px 18px; font-family: 'Geist Mono', monospace; font-size: 15px; display: flex; gap: 10px"><span style="color: #A5A39D">$</span>npm run dev</div>
+<div style="padding: 10px 18px; border-top: 1px solid #EEECE7; background: #FAF9F6; display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 11.5px; color: #6E6D69">
+<svg width="12" height="10" viewBox="0 0 14 11" aria-hidden="true"><path d="M1 2h4l1.5 1.5H13V10H1z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>~/Documents/web/citybuild/frontend<span style="flex: 1"></span><span>autostart off</span>
+</div>
+</div>
+<button style="height: 40px; padding: 0 20px; border-radius: 10px; border: 0; background: #3B3BD9; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px"><svg width="9" height="10" viewBox="0 0 8 9" aria-hidden="true"><path d="M0 0l8 4.5L0 9z" fill="currentColor"/></svg>Start dev<span style="font-family: 'Geist Mono', monospace; font-size: 11.5px; opacity: 0.7">↩</span></button>
+<div style="font-size: 12px; color: #8C8A84">Output appears here. It keeps running when you switch away.</div>
+</div>
+</div>
+
+<div style="height: 32px; display: flex; align-items: center; gap: 16px; padding: 0 22px; border-top: 1px solid #EEECE7; font-family: 'Geist Mono', monospace; font-size: 11.5px; color: #8C8A84">
+<span>not started</span>
+<span style="flex: 1"></span>
+<span>⌘K clear · ⌘R restart</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

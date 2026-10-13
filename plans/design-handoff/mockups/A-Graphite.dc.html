@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Graphite</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#9DB2FF}a:hover{color:#C7D3FF}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; display: flex; background: #0B0C0E; color: #E6E7EA; font-family: Geist, -apple-system, sans-serif; font-size: 13px; overflow: hidden">
+
+<div style="width: 268px; flex: none; background: #0E0F11; border-right: 1px solid #1E2025; display: flex; flex-direction: column">
+<div style="height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 14px">
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FF5F57"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FEBC2E"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #28C840"></span>
+<span style="flex: 1"></span>
+<button aria-label="Add project" style="width: 26px; height: 26px; border-radius: 7px; border: 1px solid #2A2D33; background: #16171A; color: #C9CBD1; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+</div>
+<div style="padding: 0 12px 10px">
+<div style="height: 30px; border-radius: 8px; background: #16171A; border: 1px solid #1E2025; display: flex; align-items: center; gap: 8px; padding: 0 10px; color: #6B7079">
+<svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><circle cx="5.5" cy="5.5" r="4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8.6 8.6l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+<span style="flex: 1">Jump to command</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #4D525B">⌘P</span>
+</div>
+</div>
+
+<div style="flex: 1; padding: 4px 8px; display: flex; flex-direction: column; gap: 2px; overflow: hidden">
+<div style="margin: 0 4px 10px; padding: 10px 12px; border-radius: 9px; background: #1F1610; border: 1px solid #3A2614; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 8px">
+<svg width="13" height="13" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.5 L16 15 H2 Z" fill="#FF8A3D"/></svg>
+<span style="font-weight: 600; flex: 1">broken</span>
+<a href="#" style="font-size: 12px; text-decoration: none">Edit Config</a>
+</div>
+<div style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #B98B66; line-height: 1.5">2 problems · command "a" has an empty run</div>
+</div>
+
+<div style="height: 34px; display: flex; align-items: center; gap: 9px; padding: 0 10px; border-radius: 8px">
+<span style="width: 22px; height: 22px; border-radius: 6px; background: #F2EEE6; color: #D9541F; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center">CB</span>
+<span style="font-weight: 600; font-size: 13.5px; flex: 1">CityBuild</span>
+<span style="height: 18px; padding: 0 7px; border-radius: 9px; background: #12301F; color: #3DD68C; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 5px"><span style="width: 6px; height: 6px; border-radius: 3px; background: #3DD68C"></span>2</span>
+</div>
+<div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px 0 22px; border-radius: 7px; color: #A9ACB4">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="5" fill="none" stroke="#5A5F68" stroke-width="2"/></svg>
+<span style="flex: 1">Claude Code</span>
+</div>
+<div style="height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 10px 0 22px; color: #6B7079; font-size: 11px; font-weight: 600; letter-spacing: 0.06em">
+<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>FRONTEND<span style="flex: 1; height: 1px; background: #1E2025; margin-left: 6px"></span>
+</div>
+<div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 6px 0 22px; border-radius: 7px; background: #1D2233; box-shadow: inset 2px 0 0 #7C9CFF; color: #FFFFFF">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="#3DD68C" opacity="0.22"/><circle cx="9" cy="9" r="4.5" fill="#3DD68C"/></svg>
+<span style="flex: 1; font-weight: 500">dev</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #7E8AB0">1:59</span>
+<button aria-label="Stop dev" style="width: 22px; height: 22px; border-radius: 6px; border: 0; background: #2A3150; color: #C7D3FF; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><rect width="8" height="8" rx="1.5" fill="currentColor"/></svg></button>
+</div>
+<div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px 0 22px; border-radius: 7px; color: #A9ACB4">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="5" fill="none" stroke="#5A5F68" stroke-width="2"/></svg>
+<span style="flex: 1">Storybook</span>
+</div>
+<div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px 0 22px; border-radius: 7px; color: #A9ACB4">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="#5A5F68" stroke-width="1.6"/><path d="M6.3 9.2 L8.2 11 L11.8 7.2" fill="none" stroke="#C9CBD1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<span style="flex: 1">typecheck</span>
+<span style="font-size: 11px; color: #5A5F68">exit 0</span>
+</div>
+<div style="height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 10px 0 22px; color: #6B7079; font-size: 11px; font-weight: 600; letter-spacing: 0.06em">
+<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.5 2l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>BACKEND<span style="flex: 1"></span><span style="font-weight: 500; letter-spacing: 0; color: #3DD68C">● 1</span><span style="font-weight: 500; letter-spacing: 0; margin-left: 6px">/ 4</span>
+</div>
+<div style="height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 10px 0 22px; color: #6B7079; font-size: 11px; font-weight: 600; letter-spacing: 0.06em">
+<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.5 2l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>E2E<span style="flex: 1"></span><span style="font-weight: 500; letter-spacing: 0">3</span>
+</div>
+
+<div style="height: 1px; background: #1E2025; margin: 8px 6px"></div>
+
+<div style="height: 34px; display: flex; align-items: center; gap: 9px; padding: 0 10px; border-radius: 8px">
+<span style="width: 22px; height: 22px; border-radius: 6px; background: #C94848; color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center">SD</span>
+<span style="font-weight: 600; font-size: 13.5px; flex: 1">States Demo</span>
+<span style="height: 18px; padding: 0 7px; border-radius: 9px; background: #3A1A1A; color: #FF7B7B; font-size: 11px; font-weight: 600; display: flex; align-items: center">1 crashed</span>
+<span style="height: 18px; padding: 0 7px; border-radius: 9px; background: #12301F; color: #3DD68C; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 5px"><span style="width: 6px; height: 6px; border-radius: 3px; background: #3DD68C"></span>1</span>
+</div>
+<div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px 0 22px; border-radius: 7px; color: #E6E7EA">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="#3DD68C" opacity="0.22"/><circle cx="9" cy="9" r="4.5" fill="#3DD68C"/></svg>
+<span style="flex: 1">worker</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5A5F68">0:07</span>
+</div>
+<div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px 0 22px; border-radius: 7px; background: #1A1416; color: #E6E7EA">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" stroke="#5A2626" stroke-width="2"/><path d="M9 2 A7 7 0 0 1 15.1 12.5" fill="none" stroke="#FF5C5C" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="9" r="3.5" fill="#FF5C5C"/></svg>
+<span style="flex: 1">flaky api</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #FF7B7B">↻ 16s</span>
+</div>
+<div style="height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px 0 22px; border-radius: 7px; color: #E6E7EA">
+<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.5 L16 15 H2 Z" fill="#FF8A3D"/></svg>
+<span style="flex: 1">missing folder</span>
+<span style="font-size: 11px; color: #FF8A3D">no folder</span>
+</div>
+
+<div style="height: 1px; background: #1E2025; margin: 8px 6px"></div>
+<div style="height: 34px; display: flex; align-items: center; gap: 9px; padding: 0 10px; border-radius: 8px; color: #A9ACB4">
+<span style="width: 22px; height: 22px; border-radius: 6px; background: #D7F25A; color: #7A2BD6; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">K</span>
+<span style="font-weight: 600; font-size: 13.5px; flex: 1">Kinpay</span>
+<span style="font-size: 11px; color: #5A5F68">9 idle</span>
+</div>
+</div>
+<div style="height: 40px; border-top: 1px solid #1E2025; display: flex; align-items: center; gap: 8px; padding: 0 14px; color: #6B7079; font-size: 12px">
+<span style="width: 7px; height: 7px; border-radius: 4px; background: #3DD68C"></span>3 running<span style="color: #3A3D44">·</span><span style="color: #FF7B7B">1 crashed</span><span style="flex: 1"></span><span style="font-family: 'Geist Mono', monospace; font-size: 11px">⌘⇧.</span>
+</div>
+</div>
+
+<div style="flex: 1; display: flex; flex-direction: column; min-width: 0">
+<div style="height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px 0 20px; border-bottom: 1px solid #1E2025; background: #0E0F11">
+<span style="width: 26px; height: 26px; border-radius: 7px; background: #F2EEE6; color: #D9541F; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center">CB</span>
+<div style="display: flex; flex-direction: column; gap: 1px">
+<div style="font-size: 14px; font-weight: 600"><span style="color: #8B8F98; font-weight: 500">Frontend /</span> dev</div>
+<div style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #6B7079">~/Documents/web/citybuild/frontend</div>
+</div>
+<span style="height: 24px; padding: 0 10px; border-radius: 12px; background: #12301F; border: 1px solid #1C4A30; color: #3DD68C; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-left: 8px"><span style="width: 7px; height: 7px; border-radius: 4px; background: #3DD68C"></span>Running · 1:59</span>
+<span style="flex: 1"></span>
+<button style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2A2D33; background: #16171A; color: #E6E7EA; font-family: inherit; font-size: 12.5px; display: flex; align-items: center; gap: 8px"><svg width="9" height="9" viewBox="0 0 8 8" aria-hidden="true"><rect width="8" height="8" rx="1.5" fill="currentColor"/></svg>Stop<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #6B7079">⌘.</span></button>
+<button style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2A2D33; background: #16171A; color: #E6E7EA; font-family: inherit; font-size: 12.5px; display: flex; align-items: center; gap: 8px"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M10 6a4 4 0 1 1-1.2-2.9M10 1.5v2.6H7.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Restart<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #6B7079">⌘R</span></button>
+<button aria-label="More: Edit Config, Reveal in Finder" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #2A2D33; background: #16171A; color: #C9CBD1; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="14" height="4" viewBox="0 0 14 4" aria-hidden="true"><circle cx="2" cy="2" r="1.5" fill="currentColor"/><circle cx="7" cy="2" r="1.5" fill="currentColor"/><circle cx="12" cy="2" r="1.5" fill="currentColor"/></svg></button>
+</div>
+
+<div style="flex: 1; background: #111214; padding: 18px 22px; font-family: 'Geist Mono', monospace; font-size: 12.5px; line-height: 1.75; color: #D5D7DC">
+<div style="display: flex; align-items: center; gap: 10px; color: #4D525B; font-size: 11px; margin-bottom: 6px"><span>started 10:14:04</span><span style="flex: 1; height: 1px; background: #1E2025"></span></div>
+<div><span style="color: #6B7079">&gt;</span> dev</div>
+<div><span style="color: #6B7079">&gt;</span> react-router dev --port 3006</div>
+<div style="height: 12px"></div>
+<div>  <span style="color: #3DD68C">➜</span>  <b>Local:</b>   <span style="color: #5FD7E8">http://localhost:<b>3006</b>/</span></div>
+<div style="color: #6B7079">  <span style="color: #3DD68C">➜</span>  Network: use <b style="color: #D5D7DC">--host</b> to expose</div>
+<div style="color: #6B7079">  <span style="color: #3DD68C">➜</span>  press <b style="color: #D5D7DC">h + enter</b> to show help</div>
+<div style="width: 8px; height: 16px; background: #7C9CFF; margin-top: 4px"></div>
+</div>
+
+<div style="height: 30px; display: flex; align-items: center; gap: 16px; padding: 0 20px; background: #0E0F11; border-top: 1px solid #1E2025; font-size: 11.5px; color: #6B7079; font-family: 'Geist Mono', monospace">
+<span>pid <span style="color: #A9ACB4">6964</span></span>
+<span>up <span style="color: #A9ACB4">1:59</span></span>
+<span style="flex: 1"></span>
+<span>132×38</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
