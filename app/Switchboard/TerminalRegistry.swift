@@ -79,6 +79,18 @@ final class TerminalRegistry {
         return started.contains(ref)
     }
 
+    /// The terminal view under a window point, if any (main thread).
+    @MainActor
+    func terminal(in window: NSWindow, at pointInWindow: NSPoint) -> (CommandRef, TerminalView)? {
+        lock.lock(); let all = Array(hosts.values); lock.unlock()
+        for host in all {
+            let t = host.terminal
+            guard t.window === window, t.superview != nil else { continue }
+            if t.bounds.contains(t.convert(pointInWindow, from: nil)) { return (host.ref, t) }
+        }
+        return nil
+    }
+
     @MainActor
     func existingHost(for ref: CommandRef) -> TerminalHost? {
         lock.lock(); defer { lock.unlock() }
@@ -156,7 +168,7 @@ final class TerminalHost: NSObject, TerminalViewDelegate {
     func bell(source: TerminalView) { NSSound.beep() }
 
     func requestOpenLink(source: TerminalView, link: String, params: [String: String]) {
-        if let url = URL(string: link) { NSWorkspace.shared.open(url) }
+        LinkHandling.open(link)
     }
 
     func clipboardCopy(source: TerminalView, content: Data) {

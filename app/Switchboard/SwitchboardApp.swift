@@ -120,6 +120,10 @@ struct SwitchboardApp: App {
 /// Stops every session before the process exits, and keeps running when the window closes
 /// so sessions survive until the user quits.
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        LinkHandling.install()
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {

@@ -141,6 +141,7 @@ private struct WindowConfigurator: NSViewRepresentable {
         guard let window else { return }
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
+        window.acceptsMouseMovedEvents = true // ⌘-hover link underlines
         window.styleMask.insert(.fullSizeContentView)
         window.isMovableByWindowBackground = false
     }

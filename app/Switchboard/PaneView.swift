@@ -126,9 +126,10 @@ struct PaneView: View {
             .onAppear { context.paneSizes[leaf.id] = geo.size }
             .onChange(of: geo.size) { _, size in context.paneSizes[leaf.id] = size }
         }
-        .contentShape(Rectangle())
-        .onTapGesture { context.setFocus(leaf.id) }
-        .overlay { DropZones(leaf: leaf, zone: $dropZone, size: paneSize) }
+        // Drops land on the pane itself (the terminal NSView is not a drag destination, so
+        // AppKit passes drags up to this view); the zone overlay only draws, never hit-tests.
+        .onDrop(of: [.plainText, .utf8PlainText, .text], delegate: PaneDropDelegate(leaf: leaf, context: context, zone: $dropZone, size: paneSize))
+        .overlay { DropZones(leaf: leaf, zone: $dropZone, size: paneSize).allowsHitTesting(false) }
         .background(GeometryReader { g in Color.clear.onAppear { paneSize = g.size }.onChange(of: g.size) { _, v in paneSize = v } })
     }
 
@@ -139,16 +140,13 @@ struct PaneView: View {
 /// Where a dragged command would land: the centre replaces, an edge splits on that side.
 enum DropZone: Equatable { case center, left, right, top, bottom }
 
-/// Invisible drop targets over a pane plus the highlight for the zone under the cursor.
+/// The highlight for the drop zone under the cursor (drawn only; never hit-tested).
 struct DropZones: View {
-    @EnvironmentObject var store: EngineStore
-    @EnvironmentObject var context: WindowContext
     @Environment(\.sbTheme) private var theme
     @Environment(\.colorScheme) private var scheme
     let leaf: PaneLeaf
     @Binding var zone: DropZone?
     let size: CGSize
-    @State private var dragging = false
 
     var body: some View {
         let p = theme.palette(scheme)
@@ -172,8 +170,6 @@ struct DropZones: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .contentShape(Rectangle())
-        .onDrop(of: [.plainText, .utf8PlainText, .text], delegate: PaneDropDelegate(leaf: leaf, context: context, zone: $zone, size: size))
     }
 
     private var edge: CGFloat { max(40, min(size.width, size.height) * 0.22) }
@@ -749,7 +745,8 @@ struct EmptyPane: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(p.terminal)
-        .onAppear { filterFocused = true }
+        .onAppear { if context.focusedPane == leaf.id { filterFocused = true } }
+        .onChange(of: context.focusedPane) { _, f in if f != leaf.id { filterFocused = false } }
     }
 
     private func pick(_ i: Int) {

@@ -6,6 +6,7 @@
 //   uidrive resize W H               resize (and position) the main window
 //   uidrive move X Y                 move the cursor (hover)
 //   uidrive click X Y | rclick X Y   left / right click at screen point (origin top-left)
+//   uidrive cmdclick X Y             ⌘-click
 //   uidrive drag X1 Y1 X2 Y2          drag with the left button
 //   uidrive key CODE [cmd|shift|ctrl|alt]*   press a key by virtual key code
 //   uidrive type TEXT                type a string
@@ -84,6 +85,26 @@ while !args.isEmpty {
         AXUIElementSetAttributeValue(win, kAXPositionAttribute as CFString, AXValueCreate(.cgPoint, &pos)!)
         AXUIElementSetAttributeValue(win, kAXSizeAttribute as CFString, AXValueCreate(.cgSize, &size)!)
         usleep(300_000)
+    case "cmdmove":
+        // Pointer move with the Command key held (link hover).
+        let p = CGPoint(x: num(), y: num())
+        let e = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: p, mouseButton: .left)
+        e?.flags = .maskCommand
+        e?.post(tap: .cghidEventTap)
+        usleep(60_000)
+    case "cmdclick":
+        // Left click with the Command key held (link activation).
+        let p = CGPoint(x: num(), y: num())
+        post(.mouseMoved, p)
+        let flagsDown = CGEvent(keyboardEventSource: nil, virtualKey: 55, keyDown: true); flagsDown?.flags = .maskCommand; flagsDown?.post(tap: .cghidEventTap)
+        usleep(80_000)
+        for type in [CGEventType.leftMouseDown, .leftMouseUp] {
+            let e = CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: p, mouseButton: .left)
+            e?.flags = .maskCommand
+            e?.post(tap: .cghidEventTap)
+            usleep(60_000)
+        }
+        let flagsUp = CGEvent(keyboardEventSource: nil, virtualKey: 55, keyDown: false); flagsUp?.post(tap: .cghidEventTap)
     case "move", "click", "rclick", "rdown", "rup":
         let p = CGPoint(x: num(), y: num())
         post(.mouseMoved, p)

@@ -96,6 +96,9 @@ What the app does:
   `samples/citybuild` and `samples/kinpay` carry palettes lifted from those products'
   CSS variables. The Project rail setting switches between a rail of project tiles with
   one project in the sidebar and a full tree.
+- **Links**: ⌘-hover underlines a link and ⌘-click opens it. Plain URLs, Markdown links
+  (`[text](url)`, the way Claude Code prints them; clicking the text or the URL both work)
+  and OSC 8 terminal hyperlinks are all supported.
 - **Split panes**: Pane > Split Right (⌘D) or Split Down (⇧⌘D) shows up to four
   terminals in one window, each with a header that picks its command (or pick from the
   sidebar: selection always targets the focused pane). Drag a sidebar row onto a pane: the centre replaces that pane's command, an edge splits
