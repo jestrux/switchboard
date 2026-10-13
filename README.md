@@ -33,7 +33,13 @@ https://github.com/user-attachments/assets/f5857738-879c-42da-b913-c22b9c89c70e
 | ![Board, dark](docs/media/board-dark.png) | ![Split panes](docs/media/split-panes.png) |
 | ![A terminal in a group](docs/media/terminal.png) | ![CityBuild in its own themed window](docs/media/themes/citybuild-dark.png) |
 
-## Get started
+## Install
+
+Download `Switchboard-<version>.zip` from the
+[latest release](https://github.com/jestrux/switchboard/releases/latest), unzip it and drag
+Switchboard to Applications. It is signed and notarized, and needs macOS 14 or later.
+
+## Build from source
 
 Requires macOS 14+, Xcode 15+, a Rust toolchain and [xcodegen](https://github.com/yonaskolb/XcodeGen).
 

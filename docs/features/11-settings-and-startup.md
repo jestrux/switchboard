@@ -34,6 +34,15 @@ description: The Settings window, opening at login, and what the app remembers p
   written to a config or a repo. The keys are listed in the [Agent guide](../agent-guide.md).
 - **Limits:** State for a deleted project is not cleaned out of the preferences.
 
+## Downloadable build
+
+- **What:** A universal build, signed with Developer ID and notarized by Apple, that opens
+  on any Mac without a Gatekeeper warning.
+- **Reach it:** The latest GitHub release. `scripts/release.sh` builds it, and
+  `scripts/release.sh --publish` also creates the release.
+- **State:** `dist/Switchboard-<version>.zip`. The version is read from `app/project.yml`.
+- **Limits:** There is no auto-update. The script needs Xcode signed in to the developer account.
+
 ## Folder access
 
 - **What:** The app is signed with a stable identity, so macOS asks once for access to

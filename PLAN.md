@@ -31,7 +31,7 @@ Status key: **Next** is the item to pick up now, **Ready** can start any time,
 | 2 | Split into repo fragments | Blocked on the shared-folder question |
 | 3 | Remaining M5 features | Find bar and menu bar extra are Ready; quick add waits on item 1; export needs a yes from the author |
 | 4 | Design handoff gaps | Ready, independent of the rest |
-| 5 | Release | Ready when the author wants to distribute |
+| 5 | Release | Signed, notarized builds work via `scripts/release.sh`; updates and versioning undecided |
 
 Update this table and the "Next step" line in each plan file as work lands.
 
