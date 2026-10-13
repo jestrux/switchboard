@@ -21,6 +21,9 @@ https://github.com/user-attachments/assets/f5857738-879c-42da-b913-c22b9c89c70e
   own theme.
 - **Live links.** ⌘-click plain URLs, Markdown links and terminal hyperlinks.
 - **Themes.** Three built-in themes in light and dark, plus per-project custom palettes.
+- **Arrange it your way.** Drag to reorder projects, groups and commands. Groups get an
+  icon from context, or pick one.
+- **Coming from Solo?** Drop a folder with a `solo.yml` and it is converted.
 - **Config you can version.** YAML on disk, live-reloaded, and optionally kept in your
   repos so a new machine is one drop away.
 - **Nothing left behind.** Stop and Quit take down whole process groups.
@@ -62,6 +65,8 @@ groups:
 
 - **[Projects, config and repo files](docs/projects.md)**: the config format, keeping
   settings in your repos with `.switchboard/`, terminals, and the `sb` CLI.
+- **[Setting up a project](docs/setting-up-a-project.md)**: a checklist for taking a
+  product folder to a themed, verified project, including converting from Solo.
 - **[Theming](docs/theming.md)**: built-in themes, per-project themes and custom palettes,
   with screenshots of each.
 - **[Agent guide](docs/agent-guide.md)**: how to build, test and iterate on this codebase

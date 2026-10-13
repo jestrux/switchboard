@@ -56,6 +56,19 @@ enum Cmd {
         #[arg(long, conflicts_with = "replace")]
         keep_both: bool,
     },
+    /// Convert Solo's solo.yml into a Switchboard project and install it
+    ImportSolo {
+        /// Folders containing solo.yml (or whose subfolders do). Several are merged into one project.
+        #[arg(required = true)]
+        paths: Vec<PathBuf>,
+        /// Print the converted config instead of installing it
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        replace: bool,
+        #[arg(long, conflicts_with = "replace")]
+        keep_both: bool,
+    },
     /// Kill sessions left behind by a crashed app or CLI
     Cleanup,
 }
@@ -69,6 +82,7 @@ fn main() {
         Cmd::Run { project, target } => run(&projects_dir, &project, target.as_deref()),
         Cmd::Install { path, replace, keep_both } => install(&projects_dir, &path, replace, keep_both),
         Cmd::Import { path, replace, keep_both } => import(&projects_dir, &path, replace, keep_both),
+        Cmd::ImportSolo { paths, dry_run, replace, keep_both } => import_solo(&projects_dir, &paths, dry_run, replace, keep_both),
         Cmd::Cleanup => cleanup(&projects_dir),
     };
     match code {
@@ -264,6 +278,51 @@ fn import(projects_dir: &Path, path: &Path, replace: bool, keep_both: bool) -> R
         }
         Err(e) => {
             eprintln!("{} {e}", "not imported:".red().bold());
+            Ok(1)
+        }
+    }
+}
+
+fn import_solo(projects_dir: &Path, paths: &[PathBuf], dry_run: bool, replace: bool, keep_both: bool) -> Result<i32> {
+    use sb_core::solo;
+    let files: Vec<PathBuf> = paths.iter().flat_map(|p| if p.is_file() { vec![p.clone()] } else { solo::find_solo_files(p) }).collect();
+    if files.is_empty() {
+        eprintln!("no solo.yml found in {}", paths.iter().map(|p| p.display().to_string()).collect::<Vec<_>>().join(", "));
+        return Ok(1);
+    }
+    let import = match solo::convert(&files) {
+        Ok(i) => i,
+        Err(e) => {
+            eprintln!("{} {e}", "could not convert:".red().bold());
+            return Ok(1);
+        }
+    };
+    for f in &import.sources {
+        println!("  {} {}", "read".dimmed(), sb_core::config::collapse_tilde(f));
+    }
+    for g in &import.config.groups {
+        println!("  {:<22} {}  {}", g.display_name(), g.cwd.clone().unwrap_or_default().dimmed(),
+                 g.commands.iter().map(|c| c.display_name().to_string()).collect::<Vec<_>>().join(", "));
+    }
+    for n in &import.notes {
+        println!("  {} {n}", "note".yellow());
+    }
+    if dry_run {
+        println!("\n{}", import.config.to_yaml().map_err(|e| anyhow!("{e}"))?);
+        return Ok(0);
+    }
+    let conflict = if replace { Conflict::Replace } else if keep_both { Conflict::KeepBoth } else { Conflict::Fail };
+    match solo::install(&import, projects_dir, conflict) {
+        Ok(dest) => {
+            println!("{} converted {} to {}", "ok".green().bold(), import.config.name, dest.display());
+            Ok(0)
+        }
+        Err(project::InstallError::Exists(slug)) => {
+            eprintln!("a project folder named {slug:?} already exists; pass --replace or --keep-both");
+            Ok(1)
+        }
+        Err(e) => {
+            eprintln!("{} {e}", "not installed:".red().bold());
             Ok(1)
         }
     }

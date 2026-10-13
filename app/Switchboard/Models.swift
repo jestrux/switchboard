@@ -131,3 +131,54 @@ extension Error {
         return localizedDescription
     }
 }
+
+/// Group icon keys (from the engine) → SF Symbols and picker labels.
+enum GroupIcon {
+    static func symbol(_ key: String) -> String {
+        switch key {
+        case "frontend": return "macwindow"
+        case "backend": return "server.rack"
+        case "e2e": return "checkmark.seal"
+        case "terminal": return "terminal"
+        case "mobile": return "iphone"
+        case "docs": return "book"
+        case "database": return "cylinder"
+        case "worker": return "gearshape.2"
+        case "tunnel": return "network"
+        case "infra": return "shippingbox"
+        case "ai": return "sparkles"
+        case "design": return "paintbrush"
+        case "scripts": return "wrench.and.screwdriver"
+        case "storybook": return "books.vertical"
+        case "api": return "arrow.left.arrow.right"
+        default: return "folder"
+        }
+    }
+
+    static func label(_ key: String) -> String {
+        switch key {
+        case "e2e": return "E2E and tests"
+        case "api": return "API"
+        case "ai": return "AI"
+        case "infra": return "Infrastructure"
+        case "docs": return "Docs"
+        default: return key.prefix(1).uppercased() + key.dropFirst()
+        }
+    }
+
+    static let keys: [String] = groupIconKeys()
+}
+
+/// Drag payloads for reordering. Commands use `CommandRef.dragString`.
+enum DragPayload {
+    static func group(_ project: String, _ id: String) -> String { "sbgroup:\(project)|\(id)" }
+    static func project(_ slug: String) -> String { "sbproj:\(slug)" }
+    static func parseGroup(_ s: String) -> (project: String, id: String)? {
+        guard s.hasPrefix("sbgroup:") else { return nil }
+        let parts = s.dropFirst(8).split(separator: "|", maxSplits: 1).map(String.init)
+        return parts.count == 2 ? (parts[0], parts[1]) : nil
+    }
+    static func parseProject(_ s: String) -> String? {
+        s.hasPrefix("sbproj:") ? String(s.dropFirst(7)) : nil
+    }
+}

@@ -49,6 +49,9 @@ pub struct GroupConfig {
     /// Per-command tweaks over the fragment's commands, by command id.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub overrides: BTreeMap<String, crate::fragment::CommandOverride>,
+    /// A named icon for the group (see `icons::GROUP_ICONS`); derived when unset.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub commands: Vec<CommandConfig>,
     #[serde(flatten)]
@@ -222,6 +225,11 @@ impl ProjectConfig {
             }
             if !seen_groups.insert(gid.to_string()) {
                 errors.push(format!("duplicate group id {gid:?}"));
+            }
+            if let Some(icon) = &group.icon {
+                if !crate::icons::GROUP_ICONS.contains(&icon.as_str()) {
+                    errors.push(format!("group {gid:?}: icon must be one of {} (found {icon:?})", crate::icons::GROUP_ICONS.join(", ")));
+                }
             }
             validate_commands(&group.commands, Some(gid), &mut errors);
         }

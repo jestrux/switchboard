@@ -106,8 +106,54 @@ final class EngineStore: ObservableObject {
         states[ref] ?? .idle
     }
 
+    /// The user's rail order (slugs). Projects not listed yet follow, alphabetically.
+    private var projectOrder: [String] = UserDefaults.standard.stringArray(forKey: "projectOrder") ?? []
+
+    private func ordered(_ list: [ProjectInfo]) -> [ProjectInfo] {
+        let rank = Dictionary(uniqueKeysWithValues: projectOrder.enumerated().map { ($1, $0) })
+        return list.enumerated().sorted { a, b in
+            let ra = rank[a.element.slug] ?? (Int.max / 2 + a.offset), rb = rank[b.element.slug] ?? (Int.max / 2 + b.offset)
+            return ra < rb
+        }.map(\.element)
+    }
+
+    /// Move a project to the slot `target` occupies in the rail.
+    func moveProject(_ slug: String, toSlotOf target: String) {
+        var order = projects.map(\.slug)
+        guard slug != target, let from = order.firstIndex(of: slug), let to = order.firstIndex(of: target) else { return }
+        order.remove(at: from)
+        order.insert(slug, at: min(to, order.count))
+        projectOrder = order
+        UserDefaults.standard.set(order, forKey: "projectOrder")
+        projects = ordered(projects)
+    }
+
+    /// Move a group to the slot another group of the same project occupies.
+    func moveGroup(project slug: String, _ id: String, toSlotOf target: String) {
+        guard id != target, let p = project(slug), let to = p.groups.firstIndex(where: { $0.id == target }) else { return }
+        try? engine.moveGroup(project: slug, group: id, toIndex: UInt32(to))
+        refreshProjects()
+    }
+
+    /// Move a command to the slot a sibling occupies (same group, or both ungrouped).
+    @discardableResult
+    func moveCommand(_ ref: CommandRef, toSlotOf target: CommandRef) -> Bool {
+        guard ref != target, ref.project == target.project, let p = project(ref.project),
+              let a = command(ref), let b = command(target), a.groupId == b.groupId, !a.isTerminal, !b.isTerminal else { return false }
+        let siblings = (a.groupId.flatMap { g in p.groups.first { $0.id == g }?.commands } ?? p.commands).filter { !$0.isTerminal }
+        guard let to = siblings.firstIndex(where: { $0.address == target.address }) else { return false }
+        try? engine.moveCommand(project: ref.project, address: ref.address, toIndex: UInt32(to))
+        refreshProjects()
+        return true
+    }
+
+    func setGroupIcon(project slug: String, group: String, icon: String?) {
+        try? engine.setGroupIcon(project: slug, group: group, icon: icon)
+        refreshProjects()
+    }
+
     func refreshProjects() {
-        projects = engine.projects()
+        projects = ordered(engine.projects())
         // Seed states from the snapshot so dots are right after a reload.
         var merged = states
         for p in projects {
@@ -245,6 +291,12 @@ final class EngineStore: ObservableObject {
             await importSeed(seeds, window: window)
             return
         }
+        // A Solo project: convert its solo.yml and continue from there.
+        if !FileManager.default.fileExists(atPath: url.appendingPathComponent("config.yaml").path),
+           let solo = engine.previewSolo(folder: source) {
+            await importSolo(solo, folder: source, window: window)
+            return
+        }
         let preview: InstallPreview
         do {
             preview = try engine.previewInstall(source: source)
@@ -345,6 +397,44 @@ final class EngineStore: ObservableObject {
                     buttons: [DialogButton(label: "OK", kbd: "↩", style: .primary, value: 0)], window: window))
             }
             return
+        }
+    }
+
+    /// Confirm and install a project converted from Solo.
+    private func importSolo(_ solo: SoloPreview, folder: String, window: UUID?) async {
+        let count = solo.groups.reduce(0) { $0 + $1.commands.count }
+        let facts = solo.groups.map { g in
+            DialogFact(icon: "folder", text: "\(g.name)  ·  \(Fmt.shortFolder(g.folder))", detail: g.commands.joined(separator: ", "))
+        }
+        var buttons = [DialogButton(label: "Cancel", kbd: "esc", value: 0)]
+        if solo.exists {
+            buttons.append(DialogButton(label: "Replace", style: .dangerOutline, value: 1))
+            buttons.append(DialogButton(label: "Keep Both", kbd: "↩", style: .primary, value: 2))
+        } else {
+            buttons.append(DialogButton(label: "Convert", kbd: "↩", style: .primary, value: 3))
+        }
+        let choice = await DialogCenter.shared.ask(DialogRequest(
+            kind: .nameConflict,
+            title: solo.exists ? "“\(solo.name)” is already here" : "Convert “\(solo.name)” from Solo?",
+            subtitle: "Found solo.yml. Its \(count) process\(count == 1 ? "" : "es") become commands, grouped by folder. The Solo file is left as it is.",
+            facts: facts,
+            note: solo.notes.isEmpty ? "You can rename and reorder groups, and add a theme, afterwards." : solo.notes.joined(separator: "\n"),
+            buttons: buttons, window: window))
+        let policy: ConflictPolicy
+        switch choice {
+        case 1: policy = .replace; try? engine.stopAll(project: solo.slug, group: nil)
+        case 2: policy = .keepBoth
+        case 3: policy = .fail
+        default: return
+        }
+        do {
+            let slug = try engine.installSolo(folder: folder, conflict: policy)
+            refreshProjects()
+            lastInstalled = slug
+        } catch {
+            _ = await DialogCenter.shared.ask(DialogRequest(
+                kind: .invalidFolder, title: "Could not convert the project", subtitle: error.readableMessage,
+                buttons: [DialogButton(label: "OK", kbd: "↩", style: .primary, value: 0)], window: window))
         }
     }
 

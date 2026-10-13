@@ -52,7 +52,9 @@ design, ask for a handoff module first.
 2. Command sheet (the most used), then group, then project.
 3. Icon import.
 4. Test run in a temporary pane.
-5. Drag between groups and reorder (PRD lists it under M5; it shares the engine calls).
+5. Drag a command into a different group. Reordering within a group, reordering groups and
+   reordering projects are done (`Engine::move_command`, `move_group`; rail order is app
+   state). `set_group_icon` shows the edit-and-rewrite pattern (`Engine::edit_config`).
 
 ## Open points
 

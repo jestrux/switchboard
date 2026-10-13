@@ -105,6 +105,10 @@ pub struct GroupInfo {
     pub from: Option<String>,
     /// Why the fragment could not be read (missing folder, bad YAML), if it couldn't.
     pub problem: Option<String>,
+    /// Icon key to draw: the explicit one, else derived from the group's name and commands.
+    pub icon: String,
+    /// True when `icon:` is set in the config rather than derived.
+    pub icon_is_explicit: bool,
     pub commands: Vec<CommandInfo>,
 }
 
@@ -178,6 +182,24 @@ pub struct SeedMember {
     pub exists: bool,
     /// Commands the folder's fragment declares (0 when missing).
     pub command_count: u32,
+}
+
+/// What converting a folder's `solo.yml` would produce.
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct SoloPreview {
+    pub name: String,
+    pub slug: String,
+    pub exists: bool,
+    pub groups: Vec<SoloGroup>,
+    pub notes: Vec<String>,
+    pub sources: Vec<String>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct SoloGroup {
+    pub name: String,
+    pub folder: String,
+    pub commands: Vec<String>,
 }
 
 #[derive(Debug, thiserror::Error, uniffi::Error)]
@@ -271,6 +293,14 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
                     cwd: g.cwd.clone(),
                     from: g.from.clone(),
                     problem: project.problems.iter().find(|p| p.group == g.id).map(|p| p.message.clone()),
+                    icon: sb_core::icons::group_icon(
+                        g.icon.as_deref(),
+                        &g.id,
+                        g.display_name(),
+                        &g.commands.iter().filter(|c| !c.terminal).map(|c| c.run.as_str()).collect::<Vec<_>>(),
+                    )
+                    .to_string(),
+                    icon_is_explicit: g.icon.is_some(),
                     commands: all
                         .iter()
                         .filter(|c| c.group.as_ref().map(|gr| gr.id.as_str()) == Some(g.id.as_str()))
@@ -508,6 +538,61 @@ impl Engine {
         Ok(self.inner.apply_repo_settings(&slug)?)
     }
 
+    // ----- Solo import -----
+
+    /// A preview of converting `folder`'s `solo.yml` (or its subfolders'), or None.
+    pub fn preview_solo(&self, folder: String) -> Option<SoloPreview> {
+        let files = sb_core::solo::find_solo_files(Path::new(&folder));
+        let import = sb_core::solo::convert(&files).ok()?;
+        let slug = project::slugify(&import.config.name);
+        Some(SoloPreview {
+            exists: self.inner.projects_dir().join(&slug).exists(),
+            slug,
+            name: import.config.name.clone(),
+            groups: import
+                .config
+                .groups
+                .iter()
+                .map(|g| SoloGroup {
+                    name: g.display_name().to_string(),
+                    folder: g.cwd.clone().unwrap_or_default(),
+                    commands: g.commands.iter().map(|c| c.display_name().to_string()).collect(),
+                })
+                .collect(),
+            notes: import.notes,
+            sources: import.sources.iter().map(|p| sb_core::config::collapse_tilde(p)).collect(),
+        })
+    }
+
+    /// Convert and install `folder`'s Solo project. Returns the slug.
+    pub fn install_solo(&self, folder: String, conflict: ConflictPolicy) -> Result<String, SbError> {
+        let conflict = match conflict {
+            ConflictPolicy::Fail => CoreConflict::Fail,
+            ConflictPolicy::Replace => CoreConflict::Replace,
+            ConflictPolicy::KeepBoth => CoreConflict::KeepBoth,
+        };
+        let files = sb_core::solo::find_solo_files(Path::new(&folder));
+        let import = sb_core::solo::convert(&files).map_err(|e| SbError::Message(e.to_string()))?;
+        let dest = sb_core::solo::install(&import, self.inner.projects_dir(), conflict)?;
+        self.inner.reload();
+        Ok(dest.file_name().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default())
+    }
+
+    // ----- order and icons -----
+
+    pub fn move_group(&self, project: String, group: String, to_index: u32) -> Result<(), SbError> {
+        Ok(self.inner.move_group(&project, &group, to_index as usize)?)
+    }
+
+    pub fn move_command(&self, project: String, address: String, to_index: u32) -> Result<(), SbError> {
+        Ok(self.inner.move_command(&project, &address, to_index as usize)?)
+    }
+
+    /// Set a group's icon, or pass None to derive it from context again.
+    pub fn set_group_icon(&self, project: String, group: String, icon: Option<String>) -> Result<(), SbError> {
+        Ok(self.inner.set_group_icon(&project, &group, icon.as_deref())?)
+    }
+
     // ----- ad-hoc terminals -----
 
     /// Open a terminal in a group's folder (or ungrouped). Returns its address.
@@ -550,6 +635,12 @@ pub fn validate_config(path: String) -> Vec<String> {
         Err(project::InstallError::Invalid(e)) => e.messages(),
         Err(e) => vec![e.to_string()],
     }
+}
+
+/// Icon keys a group may use, in picker order.
+#[uniffi::export]
+pub fn group_icon_keys() -> Vec<String> {
+    sb_core::icons::GROUP_ICONS.iter().map(|s| s.to_string()).collect()
 }
 
 /// The user's login shell, as the engine will use it.

@@ -3,7 +3,8 @@
 For an AI agent (or a person) starting a fresh session on this repo. It covers the loops
 that are quick, the tools that exist for driving the app, and the traps that have already
 cost time. Product behaviour is in [the README](../README.md), [projects](projects.md) and
-[theming](theming.md).
+[theming](theming.md). To set up a product as a project, follow
+[setting-up-a-project.md](setting-up-a-project.md).
 
 ## The 30-second map
 
@@ -21,7 +22,7 @@ expose it through `sb-ffi`.
 ## Loops, fastest first
 
 ```sh
-cargo test -p sb-core                       # ~10 s, 25 tests, spawns real processes
+cargo test -p sb-core                       # ~10 s, 28 tests, spawns real processes
 cargo test -p sb-core --test fragment_tests # one suite
 cargo build -p sb-cli && target/debug/sb validate samples/kinpay
 
@@ -211,6 +212,6 @@ SwiftTerm package's build tools and fails.
 ## Not built yet
 
 Editing sheets for projects and commands, icon import, find bar, quick-add from a folder's
-scripts, export, the menu bar extra, extraction and return animations, ⌘⌥-arrow pane focus,
+scripts, dragging a command into a different group, export, the menu bar extra, extraction and return animations, ⌘⌥-arrow pane focus,
 a divider drag readout, and splitting an existing project's inline commands into per-folder
 `commands.yaml` files.

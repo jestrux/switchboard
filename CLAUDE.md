@@ -18,6 +18,9 @@ The essentials:
   screenshot, not by assuming.
 - Never run `make migrate`, `make seed` or `make flush` in the sample projects unasked.
 
+**Asked to set up a product as a Switchboard project** ("help me set up X including its
+theme")? Follow [docs/setting-up-a-project.md](docs/setting-up-a-project.md).
+
 Other guides: [docs/projects.md](docs/projects.md), [docs/theming.md](docs/theming.md).
 
 What is left to build: [PLAN.md](PLAN.md), with context in [plans/](plans).

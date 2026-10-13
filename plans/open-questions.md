@@ -18,8 +18,9 @@ Product decisions not yet made. Ask the author rather than guessing.
 
 - **Two groups in one folder.** Kinpay's Frontend and Tunnels groups share a folder, but a
   folder has one `commands.yaml`. Blocks [splitting into fragments](02-split-into-fragments.md).
-- **YAML comments.** Rewriting a config from the app drops comments. Matters once
-  [editing sheets](01-editing-sheets.md) write configs routinely.
+- **YAML comments.** Rewriting a config from the app drops comments. This already happens
+  when the user drags to reorder or picks a group icon, so the theme-source comments in
+  the sample configs do not survive. Worth deciding before [editing sheets](01-editing-sheets.md).
 - **Is Export still wanted** now that repo files and `sb import` exist?
   See [M5](03-m5-remaining.md).
 - **Do the editing sheets need a design module** from Claude Design, or should they follow

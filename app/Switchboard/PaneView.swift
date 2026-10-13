@@ -265,6 +265,14 @@ struct PaneBar: View {
             } else {
                 EmptyGlyph()
             }
+            if tier != .min, let cmd, let ref, let proj = store.project(ref.project) {
+                // The group's icon (or a terminal glyph), so panes read at a glance.
+                let key = cmd.isTerminal ? "terminal" : (proj.groups.first { $0.id == cmd.groupId }?.icon)
+                if let key {
+                    Image(systemName: GroupIcon.symbol(key)).font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(focused || hovering ? p.text2 : p.text3)
+                }
+            }
             CommandPicker(leaf: leaf) {
                 HStack(spacing: 4) {
                     titleText(cmd: cmd, ref: ref, fg: fg, p: p)

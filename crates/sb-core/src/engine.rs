@@ -343,6 +343,77 @@ impl Engine {
         Ok(())
     }
 
+    // ----- editing: order and icons -----------------------------------------
+
+    fn edit_config(&self, slug: &str, f: impl FnOnce(&mut crate::config::ProjectConfig, &Project) -> Result<(), EngineError>) -> Result<(), EngineError> {
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let mut cfg = p.config.clone().map_err(|_| EngineError::ProjectInvalid(slug.to_string()))?;
+        f(&mut cfg, &p)?;
+        cfg.validate().map_err(|e| EngineError::Spawn(e.to_string()))?;
+        p.save_config(&cfg).map_err(|e| EngineError::Spawn(e.to_string()))?;
+        self.reload();
+        Ok(())
+    }
+
+    /// Move a group to `to_index` in the sidebar order.
+    pub fn move_group(&self, slug: &str, group_id: &str, to_index: usize) -> Result<(), EngineError> {
+        self.edit_config(slug, |cfg, _| {
+            let from = cfg.groups.iter().position(|g| g.id == group_id).ok_or_else(|| EngineError::UnknownGroup(group_id.to_string()))?;
+            let g = cfg.groups.remove(from);
+            cfg.groups.insert(to_index.min(cfg.groups.len()), g);
+            Ok(())
+        })
+    }
+
+    /// Set or clear (None = derive from context) a group's icon.
+    pub fn set_group_icon(&self, slug: &str, group_id: &str, icon: Option<&str>) -> Result<(), EngineError> {
+        self.edit_config(slug, |cfg, _| {
+            let g = cfg.groups.iter_mut().find(|g| g.id == group_id).ok_or_else(|| EngineError::UnknownGroup(group_id.to_string()))?;
+            g.icon = icon.map(str::to_string);
+            Ok(())
+        })
+    }
+
+    /// Move a command to `to_index` among its siblings (same group, or the ungrouped list).
+    /// Commands that come from a repo fragment are reordered in that fragment.
+    pub fn move_command(&self, slug: &str, address: &str, to_index: usize) -> Result<(), EngineError> {
+        fn shift(list: &mut Vec<crate::config::CommandConfig>, id: &str, to: usize) -> bool {
+            let Some(from) = list.iter().position(|c| c.id == id) else { return false };
+            let c = list.remove(from);
+            list.insert(to.min(list.len()), c);
+            true
+        }
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let cfg = p.config.clone().map_err(|_| EngineError::ProjectInvalid(slug.to_string()))?;
+        let (group_id, cmd_id) = match address.split_once('/') {
+            Some((g, c)) => (Some(g.to_string()), c.to_string()),
+            None => (None, address.to_string()),
+        };
+        // A fragment-backed command: reorder inside the fragment file.
+        if let Some(gid) = &group_id {
+            let group = cfg.group(gid).ok_or_else(|| EngineError::UnknownGroup(gid.clone()))?;
+            if let Some(from) = &group.from {
+                if !group.commands.iter().any(|c| c.id == cmd_id) {
+                    let folder = crate::fragment::resolve_folder(from, &crate::fragment::from_base(&cfg, &p.dir));
+                    let mut fragment = crate::fragment::Fragment::load(&folder).map_err(|e| EngineError::Spawn(e.to_string()))?;
+                    if !shift(&mut fragment.commands, &cmd_id, to_index) {
+                        return Err(EngineError::UnknownCommand(address.to_string()));
+                    }
+                    fragment.save(&folder).map_err(|e| EngineError::Spawn(e.to_string()))?;
+                    self.reload();
+                    return Ok(());
+                }
+            }
+        }
+        self.edit_config(slug, |cfg, _| {
+            let list = match &group_id {
+                Some(gid) => &mut cfg.groups.iter_mut().find(|g| &g.id == gid).ok_or_else(|| EngineError::UnknownGroup(gid.clone()))?.commands,
+                None => &mut cfg.commands,
+            };
+            if shift(list, &cmd_id, to_index) { Ok(()) } else { Err(EngineError::UnknownCommand(address.to_string())) }
+        })
+    }
+
     // ----- ad-hoc terminals ------------------------------------------------
 
     /// Open a new terminal entry in a group (or ungrouped) and start its shell.

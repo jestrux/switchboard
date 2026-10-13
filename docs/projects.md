@@ -44,6 +44,13 @@ groups:
   changed `run`, `cwd` or `env` shows "restart to apply".
 - Unknown keys are kept. An invalid file shows its errors in the sidebar with Edit Config.
 - `theme:` and `appearance:` are covered in [Theming](theming.md).
+- **Order** in the file is the order in the sidebar. Dragging a group or a command in the
+  app rewrites it. Project order in the rail is per Mac and is not stored in the config.
+  Rewriting from the app keeps unknown keys but **drops YAML comments**.
+- **Group icons**: a group gets an icon from its name and commands. Set `icon:` to choose
+  one (`frontend`, `backend`, `e2e`, `terminal`, `mobile`, `docs`, `database`, `worker`,
+  `tunnel`, `infra`, `ai`, `design`, `scripts`, `storybook`, `api`, `folder`), or use the
+  group's right-click › Icon menu. The icon also shows in the pane bar.
 
 ## Versioning a project with its repos (`.switchboard/`)
 
@@ -119,5 +126,6 @@ sb run path/to/folder           # a project folder that is not installed
 sb validate <folder|file>       # check a config.yaml or a repo's project.yaml
 sb install <folder>             # copy a config.yaml project into the Projects directory
 sb import <repo folder>         # set a project up from .switchboard/project.yaml
+sb import-solo <folder>…        # convert Solo's solo.yml (--dry-run to preview)
 sb cleanup                      # stop sessions left behind by a crash
 ```

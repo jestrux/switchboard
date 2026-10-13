@@ -133,6 +133,12 @@ struct SidebarView: View {
                     TreeProjectRow(project: project, collapsed: collapsed) {
                         if collapsed { collapsedProjects.remove(project.slug) } else { collapsedProjects.insert(project.slug) }
                     }
+                    .draggable(DragPayload.project(project.slug))
+                    .reorderTarget(edge: .top) { payload in
+                        guard let slug = DragPayload.parseProject(payload) else { return false }
+                        store.moveProject(slug, toSlotOf: project.slug)
+                        return true
+                    }
                     if !collapsed { projectContents(project, indent: 12) }
                 }
             }
@@ -182,6 +188,12 @@ struct RailView: View {
                 RailTile(project: project, selected: context.railProject == project.slug)
                     .onTapGesture { context.railProject = project.slug }
                     .contextMenu { ProjectMenu(project: project) }
+                    .draggable(DragPayload.project(project.slug))
+                    .reorderTarget(edge: .top) { payload in
+                        guard let slug = DragPayload.parseProject(payload) else { return false }
+                        withAnimation(SBMotion.railSettle) { store.moveProject(slug, toSlotOf: project.slug) }
+                        return true
+                    }
             }
             Rectangle().fill(p.line).frame(width: 28, height: 1)
             Button { store.addProjectViaPanel() } label: {
@@ -492,6 +504,8 @@ struct GroupRow: View {
         HStack(spacing: 6) {
             Image(systemName: collapsed ? "chevron.right" : "chevron.down")
                 .font(.system(size: 8, weight: .bold)).foregroundStyle(p.text4).frame(width: 10)
+            Image(systemName: GroupIcon.symbol(group.icon)).font(.system(size: 10.5, weight: .medium))
+                .foregroundStyle(p.text3).frame(width: 14)
             Text(label).font(SBType.groupLabel(look.s)).tracking(look.s.groupLabelTracking).foregroundStyle(p.text3)
             if let problem = group.problem {
                 TriangleGlyph().fill(p.error).frame(width: 10, height: 10).help(problem)
@@ -518,8 +532,29 @@ struct GroupRow: View {
         .contentShape(Rectangle())
         .onTapGesture { toggle() }
         .onHover { hovering = $0 }
+        .draggable(DragPayload.group(project, group.id))
+        .reorderTarget(edge: .top) { payload in
+            guard let g = DragPayload.parseGroup(payload), g.project == project else { return false }
+            store.moveGroup(project: project, g.id, toSlotOf: group.id)
+            return true
+        }
         .contextMenu {
             Button("New Terminal") { newTerminal() }
+            Menu("Icon") {
+                Button {
+                    store.setGroupIcon(project: project, group: group.id, icon: nil)
+                } label: {
+                    Label(group.iconIsExplicit ? "Automatic" : "Automatic  ✓", systemImage: "wand.and.stars")
+                }
+                Divider()
+                ForEach(GroupIcon.keys, id: \.self) { key in
+                    Button {
+                        store.setGroupIcon(project: project, group: group.id, icon: key)
+                    } label: {
+                        Label(GroupIcon.label(key) + (group.iconIsExplicit && group.icon == key ? "  ✓" : ""), systemImage: GroupIcon.symbol(key))
+                    }
+                }
+            }
             Divider()
             Button("Start All") { store.startAll(project: project, group: group.id) }
             Button("Stop All") { store.stopAll(project: project, group: group.id) }
@@ -618,6 +653,10 @@ struct CommandRow: View {
         .onTapGesture { context.selection = ref }
         .onHover { hovering = $0 }
         .draggable(ref.dragString)
+        .reorderTarget(edge: .top) { payload in
+            guard let dragged = CommandRef.fromDragString(payload) else { return false }
+            return store.moveCommand(dragged, toSlotOf: ref)
+        }
         .help(state.summary)
         .contextMenu {
             if live {
@@ -903,6 +942,34 @@ struct EmptySidebar: View {
 }
 
 // MARK: - Bits
+
+/// A row or tile that accepts a dragged sibling: shows an accent line where it will land
+/// and hands the payload to `onDrop`, which returns false for payloads it does not take.
+private struct ReorderTarget: ViewModifier {
+    let edge: VerticalEdge
+    let onDrop: (String) -> Bool
+    @State private var targeted = false
+    @Environment(\.sbPalette) private var p
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: edge == .top ? .top : .bottom) {
+                if targeted {
+                    Capsule().fill(p.accent).frame(height: 2).padding(.horizontal, 4).offset(y: edge == .top ? -1 : 1)
+                }
+            }
+            .dropDestination(for: String.self) { items, _ in
+                guard let first = items.first else { return false }
+                return onDrop(first)
+            } isTargeted: { targeted = $0 }
+    }
+}
+
+extension View {
+    func reorderTarget(edge: VerticalEdge, onDrop: @escaping (String) -> Bool) -> some View {
+        modifier(ReorderTarget(edge: edge, onDrop: onDrop))
+    }
+}
 
 struct RunControls: View {
     let anyRunning: Bool
