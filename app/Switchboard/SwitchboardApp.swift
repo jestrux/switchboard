@@ -142,6 +142,7 @@ struct SwitchboardApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         LinkHandling.install()
+        LoginItem.enableOnFirstLaunch()
     }
 
     /// Folders dropped on the Dock icon, or `open -a Switchboard <folder>`.

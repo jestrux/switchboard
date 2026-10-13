@@ -110,6 +110,7 @@ Settings live in `defaults` under `dev.waky.switchboard`. Set them before launch
 | `layout.<scope>`, `focus.<scope>` | pane tree and focused pane; delete to reset. Scope is `main` or `project.<slug>` |
 | `sidebarWidth.<scope>` | sidebar width set by dragging; a project window without one follows `sidebarWidth.main` |
 | `expandedGroups` | groups the user has opened, as `project/group`; groups start collapsed |
+| `loginItem.defaulted` | set once the installed app has registered itself to open at login; the on/off truth lives in the system login item service |
 | `projectOrder` | rail order (slugs) |
 | `reopenProjectWindows` | project windows to reopen at launch; delete for a clean board |
 | `homeOffer.dismissed.<slug>` | hides the "keep settings in the repo" offer |

@@ -1,3 +1,4 @@
+import ServiceManagement
 import SwiftUI
 
 /// Settings › Appearance: theme, appearance, project rail.
@@ -5,6 +6,8 @@ struct SettingsView: View {
     @AppStorage(ThemeSettings.themeKey) private var themeID: SBThemeID = .graphite
     @AppStorage(ThemeSettings.appearanceKey) private var appearance: SBAppearance = .system
     @AppStorage(ThemeSettings.railKey) private var rail = true
+    @State private var openAtLogin = LoginItem.isOn
+    @State private var loginProblem: String?
     @Environment(\.colorScheme) private var scheme
 
     private var look: Look { Look(theme: themeID.theme, scheme: scheme) }
@@ -56,6 +59,22 @@ struct SettingsView: View {
                 Spacer()
                 Toggle("", isOn: $rail).labelsHidden().toggleStyle(.switch).tint(p.accent)
             }
+
+            section("Startup", p)
+            HStack(alignment: .top, spacing: 16) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Open at login").font(SBType.body).foregroundStyle(p.text)
+                    Text(loginProblem ?? "Switchboard opens when you log in to this Mac. No commands start until you start them.")
+                        .font(SBType.secondary).foregroundStyle(loginProblem == nil ? p.text3 : p.error)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+                Toggle("", isOn: Binding(get: { openAtLogin }, set: { on in
+                    loginProblem = LoginItem.set(on)
+                    openAtLogin = LoginItem.isOn
+                })).labelsHidden().toggleStyle(.switch).tint(p.accent)
+            }
+            .onAppear { openAtLogin = LoginItem.isOn }
 
             section("Preview", p)
             let previewScheme: ColorScheme = appearance.colorScheme ?? scheme
@@ -131,5 +150,33 @@ private struct ThemeCard: View {
             }
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// Open at login, through the system's login item service. The system owns the truth
+/// (the user can also switch it off in System Settings › General › Login Items), so this
+/// reads the service rather than keeping a flag of its own.
+enum LoginItem {
+    static var isOn: Bool { SMAppService.mainApp.status == .enabled }
+
+    /// Returns a message when the change did not take.
+    @discardableResult
+    static func set(_ on: Bool) -> String? {
+        do {
+            if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
+            return nil
+        } catch {
+            return "Could not change this: \(error.localizedDescription)"
+        }
+    }
+
+    /// On by default: the first launch of the installed app registers it once. After that
+    /// the user's choice stands, including switching it off in System Settings.
+    static func enableOnFirstLaunch() {
+        let key = "loginItem.defaulted"
+        guard !UserDefaults.standard.bool(forKey: key),
+              Bundle.main.bundlePath.hasPrefix("/Applications/") else { return }
+        UserDefaults.standard.set(true, forKey: key)
+        if !isOn { set(true) }
     }
 }
