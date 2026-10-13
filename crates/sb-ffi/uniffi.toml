@@ -1,0 +1,5 @@
+[bindings.swift]
+module_name = "SwitchboardCore"
+ffi_module_name = "SwitchboardCoreFFI"
+generate_immutable_records = true
+omit_argument_labels = false

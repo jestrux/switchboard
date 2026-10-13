@@ -12,3 +12,4 @@ name = "sb_ffi"
 [dependencies]
 sb-core.workspace = true
 uniffi.workspace = true
+thiserror.workspace = true

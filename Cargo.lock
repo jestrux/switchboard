@@ -828,6 +828,7 @@ name = "sb-ffi"
 version = "0.1.0"
 dependencies = [
  "sb-core",
+ "thiserror 2.0.21",
  "uniffi",
 ]
 

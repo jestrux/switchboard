@@ -34,3 +34,14 @@ sb cleanup                               # kill sessions left behind by a crash
 
 Commands run through `$SHELL -lc "<run>"` in their own PTY and process group. Stop
 sends SIGINT to the group, SIGTERM after 3 s, SIGKILL after a further 3 s.
+
+## FFI bridge (M2)
+
+```sh
+scripts/build-core.sh          # release XCFramework + Swift bindings (add --debug for fast builds)
+scripts/swift-smoke.sh         # starts a command from Swift and checks output/status events
+```
+
+`crates/sb-ffi` exposes the engine through UniFFI proc-macros. The build script writes
+`app/Frameworks/SwitchboardCore.xcframework` and `app/Generated/SwitchboardCore.swift`,
+both of which the app target consumes (they are build outputs, not checked in).
