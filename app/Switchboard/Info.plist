@@ -39,11 +39,21 @@
 	<string>public.app-category.developer-tools</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>Switchboard runs your dev commands in the folders your projects use.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Switchboard runs your dev commands in the folders your projects use.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>Switchboard runs your dev commands in the folders your projects use.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
+	<key>NSNetworkVolumesUsageDescription</key>
+	<string>Switchboard runs your dev commands in the folders your projects use.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSRemovableVolumesUsageDescription</key>
+	<string>Switchboard runs your dev commands in the folders your projects use.</string>
 </dict>
 </plist>

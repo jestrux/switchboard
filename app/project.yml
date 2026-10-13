@@ -45,6 +45,11 @@ targets:
         NSHighResolutionCapable: true
         LSApplicationCategoryType: public.app-category.developer-tools
         NSHumanReadableCopyright: ""
+        NSDocumentsFolderUsageDescription: Switchboard runs your dev commands in the folders your projects use.
+        NSDesktopFolderUsageDescription: Switchboard runs your dev commands in the folders your projects use.
+        NSDownloadsFolderUsageDescription: Switchboard runs your dev commands in the folders your projects use.
+        NSRemovableVolumesUsageDescription: Switchboard runs your dev commands in the folders your projects use.
+        NSNetworkVolumesUsageDescription: Switchboard runs your dev commands in the folders your projects use.
         CFBundleDocumentTypes:
           - CFBundleTypeName: Project Folder
             CFBundleTypeRole: Viewer
