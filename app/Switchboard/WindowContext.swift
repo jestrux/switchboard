@@ -31,6 +31,37 @@ final class WindowContext: ObservableObject, Identifiable {
     @Published var railProject: String? {
         didSet { if let railProject { UserDefaults.standard.set(railProject, forKey: "rail.\(scope.persistenceKey)") } }
     }
+    /// Sidebar width the user dragged this window to. App state, not config: the board has
+    /// one, and each project window has its own. nil means "not set here".
+    @Published private(set) var sidebarWidth: CGFloat?
+    static let sidebarWidthRange: ClosedRange<CGFloat> = 200...640
+
+    private var sidebarWidthKey: String { "sidebarWidth.\(scope.persistenceKey)" }
+
+    /// Width to draw: this window's own, else (for a project window) the board's, else
+    /// the design default. A project window's own width is never overridden by the board's.
+    func effectiveSidebarWidth(default fallback: CGFloat) -> CGFloat {
+        if let w = sidebarWidth { return w }
+        if scope != .all {
+            let board = UserDefaults.standard.double(forKey: "sidebarWidth.main")
+            if board > 0 { return CGFloat(board) }
+        }
+        return fallback
+    }
+
+    /// Set (and remember) this window's sidebar width, or pass nil to go back to inheriting.
+    func setSidebarWidth(_ width: CGFloat?, maxAllowed: CGFloat = .infinity) {
+        guard let width else {
+            sidebarWidth = nil
+            UserDefaults.standard.removeObject(forKey: sidebarWidthKey)
+            return
+        }
+        let upper = max(Self.sidebarWidthRange.lowerBound, min(Self.sidebarWidthRange.upperBound, maxAllowed))
+        let clamped = min(max(width, Self.sidebarWidthRange.lowerBound), upper).rounded()
+        sidebarWidth = clamped
+        UserDefaults.standard.set(Double(clamped), forKey: sidebarWidthKey)
+    }
+
     /// Measured pane sizes, for split refusal below the minimum.
     var paneSizes: [UUID: CGSize] = [:]
     /// Short-lived message shown over the pane area (refused split etc.).
@@ -69,6 +100,8 @@ final class WindowContext: ObservableObject, Identifiable {
             selection = nil
         }
         railProject = UserDefaults.standard.string(forKey: "rail.\(scope.persistenceKey)")
+        let savedWidth = UserDefaults.standard.double(forKey: "sidebarWidth.\(scope.persistenceKey)")
+        sidebarWidth = savedWidth > 0 ? CGFloat(savedWidth) : nil
         if let data = UserDefaults.standard.data(forKey: "focus.\(scope.persistenceKey)"),
            let id = try? JSONDecoder().decode(UUID.self, from: data), layout.leaf(id) != nil {
             focusedPane = id

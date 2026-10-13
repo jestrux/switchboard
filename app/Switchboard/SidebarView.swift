@@ -16,6 +16,11 @@ struct SidebarView: View {
     private var look: Look { Look(theme: theme, scheme: scheme) }
     private var useRail: Bool { context.scope == .all && railOn }
 
+    /// Design default: 236 beside the rail, 272 for the tree, 268 in a project window.
+    static func defaultWidth(scope: WindowScope, rail: Bool) -> CGFloat {
+        scope == .all ? (rail ? SBMetrics.sidebarWidthRail : SBMetrics.sidebarWidthTree) : 268
+    }
+
     var body: some View {
         let p = look.p
         let projects = context.projects(in: store)
@@ -40,7 +45,7 @@ struct SidebarView: View {
                 }
                 SidebarFoot()
             }
-            .frame(width: useRail ? SBMetrics.sidebarWidthRail : (context.scope == .all ? SBMetrics.sidebarWidthTree : 268))
+            .frame(width: context.effectiveSidebarWidth(default: SidebarView.defaultWidth(scope: context.scope, rail: useRail)))
             .background(p.sidebar)
         }
         .overlay {
@@ -339,10 +344,11 @@ struct ProjectWindowHeader: View {
                 Spacer(minLength: 0)
             }
             HStack(spacing: 4) {
-                headerButton("play.fill", "Start all", bordered: hovering) { store.startAll(project: project.slug) }
-                headerButton("stop.fill", "Stop all", bordered: hovering) { store.stopAll(project: project.slug) }
-                    .disabled(running == 0)
-                headerButton("arrow.clockwise", "Restart all", bordered: hovering) { store.restartAll(project: project.slug) }
+                // Labelled buttons when they fit; icons only in a narrow sidebar.
+                ViewThatFits(in: .horizontal) {
+                    actionButtons(running: running, labels: true)
+                    actionButtons(running: running, labels: false)
+                }
                 Spacer(minLength: 0)
                 Menu {
                     ProjectMenu(project: project)
@@ -362,12 +368,21 @@ struct ProjectWindowHeader: View {
         .contextMenu { ProjectMenu(project: project) }
     }
 
-    private func headerButton(_ icon: String, _ label: String, bordered: Bool, action: @escaping () -> Void) -> some View {
+    private func actionButtons(running: Int, labels: Bool) -> some View {
+        HStack(spacing: 4) {
+            headerButton("play.fill", "Start all", bordered: hovering, showLabel: labels) { store.startAll(project: project.slug) }
+            headerButton("stop.fill", "Stop all", bordered: hovering, showLabel: labels) { store.stopAll(project: project.slug) }
+                .disabled(running == 0)
+            headerButton("arrow.clockwise", "Restart all", bordered: hovering, showLabel: labels) { store.restartAll(project: project.slug) }
+        }
+    }
+
+    private func headerButton(_ icon: String, _ label: String, bordered: Bool, showLabel: Bool = true, action: @escaping () -> Void) -> some View {
         let p = theme.palette(scheme)
         return Button(action: action) {
             HStack(spacing: 4) {
-                Image(systemName: icon).font(.system(size: 8, weight: .bold))
-                Text(label).font(.system(size: 11))
+                Image(systemName: icon).font(.system(size: showLabel ? 8 : 9, weight: .bold))
+                if showLabel { Text(label).font(.system(size: 11)) }
             }
             .fixedSize()
             .foregroundStyle(p.text2)

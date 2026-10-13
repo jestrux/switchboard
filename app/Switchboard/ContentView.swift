@@ -81,8 +81,12 @@ private struct ThemedShell: View {
     var body: some View {
         let p = look.theme.palette(scheme)
         let projects = context.projects(in: store)
+        GeometryReader { geo in
         HStack(spacing: 0) {
             SidebarView()
+                .overlay(alignment: .trailing) {
+                    SidebarResizeHandle(context: context, windowWidth: geo.size.width)
+                }
             Rectangle().fill(look.theme.style.paneInset > 0 ? .clear : p.line).frame(width: 1)
             ZStack {
                 p.window
@@ -109,6 +113,7 @@ private struct ThemedShell: View {
             }
             .animation(.easeInOut(duration: 0.15), value: context.toast)
         }
+        }
         .background(p.window)
         .frame(minWidth: SBMetrics.windowMinimum.width, minHeight: SBMetrics.windowMinimum.height)
         // The title bar is hidden; our chrome owns the full height and makes its own room
@@ -126,6 +131,46 @@ private struct ThemedShell: View {
         let project = store.project(ref.project)?.name ?? ref.project
         let name = store.command(ref)?.displayName ?? ref.address
         return "\(name) – \(project)"
+    }
+}
+
+/// A strip on the sidebar's trailing edge: drag to resize, double-click to reset. It sits
+/// inside the sidebar so the terminal next to it cannot swallow the drag.
+private struct SidebarResizeHandle: View {
+    @ObservedObject var context: WindowContext
+    let windowWidth: CGFloat
+    @AppStorage(ThemeSettings.railKey) private var railOn = true
+    @Environment(\.sbPalette) private var p
+    @State private var startWidth: CGFloat?
+    @State private var hovering = false
+
+    private var useRail: Bool { context.scope == .all && railOn }
+    private var fallback: CGFloat { SidebarView.defaultWidth(scope: context.scope, rail: useRail) }
+
+    var body: some View {
+        let active = hovering || startWidth != nil
+        Rectangle()
+            .fill(active ? p.accent : .clear)
+            .frame(width: 2)
+            .frame(width: 7, alignment: .trailing)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .onHover { inside in
+                hovering = inside
+                if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+            }
+            .gesture(
+                DragGesture(minimumDistance: 1, coordinateSpace: .global)
+                    .onChanged { value in
+                        if startWidth == nil { startWidth = context.effectiveSidebarWidth(default: fallback) }
+                        // Leave room for the rail and one minimum-width pane.
+                        let reserved = (useRail ? SBMetrics.railWidth + 1 : 0) + SBMetrics.paneMinimum.width + 1
+                        context.setSidebarWidth((startWidth ?? fallback) + value.translation.width, maxAllowed: windowWidth - reserved)
+                    }
+                    .onEnded { _ in startWidth = nil }
+            )
+            .onTapGesture(count: 2) { context.setSidebarWidth(nil) }
+            .help("Drag to resize the sidebar. Double-click to reset.")
     }
 }
 
