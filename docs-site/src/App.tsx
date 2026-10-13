@@ -41,6 +41,10 @@ const theme = {
   },
 };
 
+// Ask AI in the search palette (⌘K). The reader pastes their own Anthropic or OpenAI key,
+// which stays in their browser's localStorage, and the browser calls the provider directly.
+const ai = true;
+
 export default function App() {
   return (
     <HashRouter>
@@ -49,7 +53,7 @@ export default function App() {
         <Route
           path="/:categoryId/:sectionId/:subsectionId?"
           element={
-            <DocsProvider config={{ ...docsConfig, theme }}>
+            <DocsProvider config={{ ...docsConfig, theme, ai }}>
               <DocsViewer />
             </DocsProvider>
           }
