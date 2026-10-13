@@ -45,3 +45,36 @@ scripts/swift-smoke.sh         # starts a command from Swift and checks output/s
 `crates/sb-ffi` exposes the engine through UniFFI proc-macros. The build script writes
 `app/Frameworks/SwitchboardCore.xcframework` and `app/Generated/SwitchboardCore.swift`,
 both of which the app target consumes (they are build outputs, not checked in).
+
+## Mac app (M3, the MVP)
+
+Requires Xcode 15+ and [xcodegen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
+
+```sh
+scripts/build-app.sh             # builds everything and writes dist/Switchboard.app
+open dist/Switchboard.app
+```
+
+Or open `app/Switchboard.xcodeproj` in Xcode after `scripts/build-core.sh --debug` and
+`cd app && xcodegen generate`. The project file and the generated framework are build
+outputs and are not checked in.
+
+What the app does:
+
+- **Add a project**: drop a folder containing `config.yaml` onto the sidebar, or
+  File > Add Project… (⌘O). Invalid configs show their errors and nothing is copied;
+  name clashes ask Replace / Keep Both. Debug builds also have File > Install Sample
+  Project, which adds `samples/kinpay`.
+- **Run things**: hover a command, group or project for start / stop / restart; the
+  toolbar and the Command menu act on the selected command (⌘R restart, ⌘. stop,
+  ⌘K clear). Status dots: gray stopped, yellow starting, green running, red crashed,
+  check mark when a one-off exits 0.
+- **Edit by editing the file**: Project > Edit Config (⌘E) opens `config.yaml` in VS Code
+  (falls back to the default app for .yaml); Reveal in Finder sits next to it. Saving the
+  file updates the sidebar within about a second without touching running sessions; a
+  changed `run`/`cwd`/`env` shows a "restart to apply" hint.
+- **Terminals**: each command has its own SwiftTerm pane kept alive while hidden, so
+  switching back shows scrollback and the alternate screen intact. Interactive programs
+  (`claude`, `vim`, `htop`) work; Option is Meta.
+- **Quit** stops every session (SIGINT → SIGTERM → SIGKILL per process group) before
+  exiting. On the next launch, sessions left behind by a crash are offered for cleanup.

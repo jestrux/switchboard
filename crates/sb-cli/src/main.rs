@@ -524,7 +524,12 @@ impl Printer {
                 }
             }
             Status::Error => state.message.clone().unwrap_or_else(|| "error".into()).red().to_string(),
-            Status::Stopped => "stopped".dimmed().to_string(),
+            Status::Stopped => {
+                if state.pid.is_none() {
+                    return;
+                }
+                "stopped".dimmed().to_string()
+            }
         };
         self.line(address, &text);
     }

@@ -605,7 +605,14 @@ impl Engine {
 
         let delay_msg = restart_delay.map(|d| format!("crashed, restarting in {} s", d.as_secs()));
         self.set_state(key, |s| {
-            s.status = if crash { Status::Crashed } else { Status::Exited };
+            // A stop the user asked for is "stopped", however the process chose to die.
+            s.status = if stop_requested {
+                Status::Stopped
+            } else if crash {
+                Status::Crashed
+            } else {
+                Status::Exited
+            };
             s.exit_code = exit.code();
             s.signal = match &exit {
                 Exit::Signal(sig) => Some(sig.clone()),

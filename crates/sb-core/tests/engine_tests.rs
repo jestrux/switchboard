@@ -108,7 +108,7 @@ fn stop_kills_the_whole_process_tree() {
     let t = Instant::now();
     engine.stop_blocking(&key);
     let st = wait_for(&engine, &key, |s| !s.is_alive(), Duration::from_secs(10));
-    assert_eq!(st.status, Status::Crashed, "killed by signal reads as crashed");
+    assert_eq!(st.status, Status::Stopped, "a requested stop is never a crash");
     assert!(st.signal.is_some());
     // SIGINT ignored (3 s), SIGTERM ignored (3 s), SIGKILL ends it: under ~9 s.
     assert!(t.elapsed() < Duration::from_secs(9), "took {:?}", t.elapsed());
