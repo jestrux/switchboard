@@ -12,14 +12,18 @@ description: Drive the running app from a terminal or an agent, or run projects 
 
 - **What:** Links the `switchboard` command onto your PATH and the agent skill into
   `~/.claude/skills/switchboard`. Both are symlinks into the app bundle, so they update
-  with the app.
+  with the app. It also lists `/switchboard` in `~/.claude/CLAUDE.md`, so agents that read
+  your skills list there see it.
 - **Reach it:** Switchboard › Install switchboard Command…. A dialog shows where each
   went. It names the folder if that folder is not on your PATH yet.
 - **State:** The command goes in the first writable folder on your login shell's PATH out
   of `~/.local/bin`, `/opt/homebrew/bin`, `/usr/local/bin` and `~/bin`. If none of them
   is on your PATH, it goes in `~/.local/bin`. A file that is not already Switchboard's link
-  is never replaced.
-- **Limits:** No uninstall; delete the two links by hand.
+  is never replaced. In `CLAUDE.md`, the skill goes in as a row after the last row of a
+  skills table (lines like `` | `/name` | … | ``), or as a short "Switchboard" section at
+  the end when there is no table. A file that already names `` `/switchboard` `` is left
+  alone, and a missing file is not created.
+- **Limits:** No uninstall; delete the two links and the `CLAUDE.md` line by hand.
 
 ## Driving the app
 

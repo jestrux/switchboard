@@ -257,6 +257,11 @@ pub struct ToolsInstalled {
     pub on_path: bool,
     pub skill_path: Option<String>,
     pub skill_error: Option<String>,
+    /// `~/.claude/CLAUDE.md` when the skill was added to it or was already listed there.
+    pub claude_md_path: Option<String>,
+    /// True when this install added the skill to that file.
+    pub claude_md_added: bool,
+    pub claude_md_error: Option<String>,
 }
 
 #[derive(uniffi::Object)]
@@ -683,7 +688,17 @@ impl Engine {
 pub fn install_tools(cli_path: String, skill_dir: String) -> Result<ToolsInstalled, SbError> {
     let home = dirs::home_dir().ok_or_else(|| SbError::Message("no home folder".into()))?;
     let got = sb_core::tools::install(Path::new(&cli_path), Path::new(&skill_dir), &home, None).map_err(SbError::Message)?;
+    use sb_core::tools::ClaudeMd;
+    let (claude_md_path, claude_md_added, claude_md_error) = match &got.claude_md {
+        Ok(ClaudeMd::Added(p)) => (Some(p.display().to_string()), true, None),
+        Ok(ClaudeMd::AlreadyListed(p)) => (Some(p.display().to_string()), false, None),
+        Ok(ClaudeMd::NoFile) => (None, false, None),
+        Err(e) => (None, false, Some(e.clone())),
+    };
     Ok(ToolsInstalled {
+        claude_md_path,
+        claude_md_added,
+        claude_md_error,
         command_path: got.command.display().to_string(),
         on_path: got.on_path,
         skill_path: got.skill.as_ref().ok().map(|p| p.display().to_string()),

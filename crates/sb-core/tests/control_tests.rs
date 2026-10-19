@@ -184,9 +184,15 @@ fn tools_link_into_a_folder_on_the_path_and_replace_only_their_own_links() {
     let skill_link = got.skill.unwrap();
     assert_eq!(skill_link, home.join(".claude/skills/switchboard"));
     assert!(skill_link.join("SKILL.md").is_file());
+    assert_eq!(got.claude_md, Ok(tools::ClaudeMd::NoFile));
 
-    // Again: our own links are replaced without complaint.
-    assert!(tools::install(&cli, &skill, &home, Some(&path)).is_ok());
+    // Again: our own links are replaced without complaint, and an existing CLAUDE.md
+    // gets the skill listed.
+    let claude_md = home.join(".claude/CLAUDE.md");
+    std::fs::write(&claude_md, "# Notes\n").unwrap();
+    let got = tools::install(&cli, &skill, &home, Some(&path)).unwrap();
+    assert_eq!(got.claude_md, Ok(tools::ClaudeMd::Added(claude_md.clone())));
+    assert!(std::fs::read_to_string(&claude_md).unwrap().contains("`/switchboard`"));
 
     // Not on the PATH: still linked into ~/.local/bin, flagged.
     let got = tools::install(&cli, &skill, &home, Some("/usr/bin")).unwrap();
@@ -198,4 +204,44 @@ fn tools_link_into_a_folder_on_the_path_and_replace_only_their_own_links() {
     let e = tools::install(&cli, &skill, &home, Some(&path)).unwrap_err();
     assert!(e.contains("not a link Switchboard made"), "{e}");
     assert_eq!(std::fs::read(bin.join("switchboard")).unwrap(), b"theirs");
+}
+
+#[test]
+fn install_lists_the_skill_in_claude_md() {
+    use sb_core::tools::{self, ClaudeMd};
+    let tmp = tempfile::tempdir().unwrap();
+    let file = tmp.path().join("CLAUDE.md");
+
+    // No file: nothing is created.
+    assert_eq!(tools::list_skill(&file).unwrap(), ClaudeMd::NoFile);
+    assert!(!file.exists());
+
+    // A skills table: one row after its last row, the rest untouched.
+    let table = "# Skills\n\n| Skill | What it does |\n|---|---|\n| `/browse` | Browse |\n| `/qa` | QA |\n\nMore notes.\n";
+    std::fs::write(&file, table).unwrap();
+    assert_eq!(tools::list_skill(&file).unwrap(), ClaudeMd::Added(file.clone()));
+    let got = std::fs::read_to_string(&file).unwrap();
+    let lines: Vec<&str> = got.lines().collect();
+    assert_eq!(lines[5], "| `/qa` | QA |");
+    assert!(lines[6].starts_with("| `/switchboard` | Run, wait on"), "{got}");
+    assert!(got.ends_with("\nMore notes.\n"));
+
+    // Already listed: left exactly as it is.
+    assert_eq!(tools::list_skill(&file).unwrap(), ClaudeMd::AlreadyListed(file.clone()));
+    assert_eq!(std::fs::read_to_string(&file).unwrap(), got);
+
+    // No table: a short section at the end. A path that merely contains "/switchboard"
+    // does not count as listing it.
+    std::fs::write(&file, "Work in ~/code/switchboard carefully.\n").unwrap();
+    assert!(matches!(tools::list_skill(&file).unwrap(), ClaudeMd::Added(_)));
+    let got = std::fs::read_to_string(&file).unwrap();
+    assert!(got.starts_with("Work in ~/code/switchboard carefully.\n\n## Switchboard\n"), "{got}");
+    assert_eq!(got.matches("`/switchboard`").count(), 1);
+
+    // A wider table gets padded to its column count.
+    std::fs::write(&file, "| Skill | What | Where |\n|---|---|---|\n| `/a` | A | here |").unwrap();
+    tools::list_skill(&file).unwrap();
+    let got = std::fs::read_to_string(&file).unwrap();
+    let row = got.lines().last().unwrap();
+    assert_eq!(row.matches('|').count(), 4, "{got}");
 }

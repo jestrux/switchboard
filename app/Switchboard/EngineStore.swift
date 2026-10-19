@@ -75,6 +75,13 @@ final class EngineStore: ObservableObject {
                 } else if let e = got.skillError {
                     facts.append(DialogFact(icon: "exclamationmark.triangle.fill", text: e, tint: .error))
                 }
+                if let path = got.claudeMdPath {
+                    facts.append(DialogFact(icon: "text.badge.plus", text: path.abbreviatingHome,
+                                            detail: got.claudeMdAdded ? "Added /switchboard to your skills" : "Already lists /switchboard",
+                                            mono: true))
+                } else if let e = got.claudeMdError {
+                    facts.append(DialogFact(icon: "exclamationmark.triangle.fill", text: e, tint: .error))
+                }
                 let folder = (got.commandPath as NSString).deletingLastPathComponent.abbreviatingHome
                 _ = await DialogCenter.shared.ask(DialogRequest(
                     kind: .toolsInstalled,
