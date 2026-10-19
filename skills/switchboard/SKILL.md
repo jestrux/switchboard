@@ -11,9 +11,11 @@ one-off tasks) in its own terminals. The author can see every one of them there.
 app, not in your shell, so they keep running after you finish. The author can watch
 them, and you can read their output later.
 
-Check that it is installed: `command -v switchboard`. If it is missing, ask the author
-to choose **Switchboard › Install switchboard Command…** in the app. Do not build it
-yourself.
+Check that it is installed: `command -v switchboard`. If it is missing, run
+`/Applications/Switchboard.app/Contents/Helpers/switchboard setup`. It links the command
+onto the PATH and this skill into `~/.claude/skills`, the same as the app's
+**Switchboard › Install switchboard Command…**. If Switchboard.app is not in
+Applications, ask the author to install it. Do not build the command yourself.
 
 ## Addressing
 

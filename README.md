@@ -28,7 +28,9 @@ https://github.com/user-attachments/assets/f5857738-879c-42da-b913-c22b9c89c70e
   repos so a new machine is one drop away.
 - **Nothing left behind.** Stop and Quit take down whole process groups.
 - **Agents can drive it.** The `switchboard` command starts, waits on and reads your
-  commands in the app. A bundled skill teaches coding agents to use it.
+  commands in the app. A bundled skill teaches coding agents to use it. The first launch
+  offers to install both; an agent can run
+  `/Applications/Switchboard.app/Contents/Helpers/switchboard setup` instead.
 
 | | |
 |---|---|

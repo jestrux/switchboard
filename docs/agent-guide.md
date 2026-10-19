@@ -138,6 +138,7 @@ Settings live in `defaults` under `dev.waky.switchboard`. Set them before launch
 | `reopenProjectWindows` | project windows to reopen at launch; delete for a clean board |
 | `homeOffer.dismissed.<slug>` | hides the "keep settings in the repo" offer |
 | `runningAtQuit` | what was running, as `project<tab>address`; drives the "start again" prompt at launch. Delete it to launch without the prompt |
+| `offeredTools` | bool; the first-launch "Let coding agents use Switchboard?" offer was answered. It only shows while the command or skill is missing |
 | `traceLinks` | bool; logs link hover hits |
 
 Data on disk, all under `~/Library/Application Support/Switchboard/`:

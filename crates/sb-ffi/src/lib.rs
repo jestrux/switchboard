@@ -706,6 +706,12 @@ pub fn install_tools(cli_path: String, skill_dir: String) -> Result<ToolsInstall
     })
 }
 
+/// The command and the skill are both installed, so the launch offer is not needed.
+#[uniffi::export]
+pub fn tools_installed() -> bool {
+    dirs::home_dir().is_some_and(|h| sb_core::tools::is_installed(&h))
+}
+
 /// Validate a `config.yaml` (or its folder) without an engine. Returns error lines.
 #[uniffi::export]
 pub fn validate_config(path: String) -> Vec<String> {

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// A request for one of the app's dialogs, answered with the index of the chosen button.
 struct DialogRequest: Identifiable {
-    enum Kind { case invalidFolder, nameConflict, deleteProject, leftoverSessions, runAgain, toolsInstalled }
+    enum Kind { case invalidFolder, nameConflict, deleteProject, leftoverSessions, runAgain, toolsInstalled, offerTools }
     let id = UUID()
     let kind: Kind
     let title: String
@@ -172,7 +172,7 @@ struct DialogCardView: View {
                 .keyboardShortcut(.cancelAction).hidden()
             Button("") { finish(request.buttons.first { $0.style == .primary || $0.style == .defaultSecondary }?.value ?? -1) }
                 // The launch prompt can take focus mid-typing, so a bare Return must not answer it.
-                .keyboardShortcut(.return, modifiers: request.kind == .runAgain ? [.command] : []).hidden()
+                .keyboardShortcut(.return, modifiers: request.kind == .runAgain || request.kind == .offerTools ? [.command] : []).hidden()
         }
     }
 

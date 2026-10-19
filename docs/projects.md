@@ -126,7 +126,8 @@ has one, otherwise in `config.yaml`).
 ## The `switchboard` command
 
 The same engine as the app, for the terminal and for agents. Install it from the app menu
-with **Switchboard › Install switchboard Command…**. That links the command onto your PATH
+with **Switchboard › Install switchboard Command…** (the first launch offers it), or run
+`/Applications/Switchboard.app/Contents/Helpers/switchboard setup`. That links the command onto your PATH
 and the [agent skill](#the-agent-skill) into `~/.claude/skills`. Both are links into the
 app, so they update with it. It also lists the skill in `~/.claude/CLAUDE.md` when that
 file exists and does not mention it yet.

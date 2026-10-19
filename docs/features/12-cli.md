@@ -14,8 +14,10 @@ description: Drive the running app from a terminal or an agent, or run projects 
   `~/.claude/skills/switchboard`. Both are symlinks into the app bundle, so they update
   with the app. It also lists `/switchboard` in `~/.claude/CLAUDE.md`, so agents that read
   your skills list there see it.
-- **Reach it:** Switchboard › Install switchboard Command…. A dialog shows where each
-  went. It names the folder if that folder is not on your PATH yet.
+- **Reach it:** The first launch without them offers it ("Let coding agents use
+  Switchboard?"), once. Later: Switchboard › Install switchboard Command…, or from a
+  terminal or agent, `/Applications/Switchboard.app/Contents/Helpers/switchboard setup`.
+  A dialog (or the command's output) shows where each went. It names the folder if that folder is not on your PATH yet.
 - **State:** The command goes in the first writable folder on your login shell's PATH out
   of `~/.local/bin`, `/opt/homebrew/bin`, `/usr/local/bin` and `~/bin`. If none of them
   is on your PATH, it goes in `~/.local/bin`. A file that is not already Switchboard's link

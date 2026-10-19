@@ -155,6 +155,10 @@ enum Cmd {
     },
     /// Kill sessions left behind by a crashed app or CLI
     Cleanup,
+    /// Link this command onto your PATH and the agent skill into ~/.claude/skills, as the
+    /// app's Install switchboard Command does. Run the copy inside Switchboard.app:
+    /// /Applications/Switchboard.app/Contents/Helpers/switchboard setup
+    Setup,
 }
 
 fn main() {
@@ -178,6 +182,7 @@ fn main() {
         Cmd::Import { path, replace, keep_both } => import(&projects_dir, &path, replace, keep_both),
         Cmd::ImportSolo { paths, dry_run, replace, keep_both } => import_solo(&projects_dir, &paths, dry_run, replace, keep_both),
         Cmd::Cleanup => cleanup(&projects_dir),
+        Cmd::Setup => setup(),
     };
     match code {
         Ok(code) => std::process::exit(code),
@@ -186,6 +191,32 @@ fn main() {
             std::process::exit(2);
         }
     }
+}
+
+// ----- setup ------------------------------------------------------------------
+
+fn setup() -> Result<i32> {
+    use sb_core::tools::{self, ClaudeMd};
+    let exe = std::env::current_exe()?;
+    let (cli, skill) = tools::bundled_from(&exe).map_err(|e| anyhow!(e))?;
+    let home = std::env::var_os("HOME").map(PathBuf::from).ok_or_else(|| anyhow!("HOME is not set"))?;
+    let got = tools::install(&cli, &skill, &home, None).map_err(|e| anyhow!(e))?;
+    println!("{} {}", "command".green(), got.command.display());
+    match &got.skill {
+        Ok(p) => println!("{} {}", "skill".green(), p.display()),
+        Err(e) => println!("{} {e}", "skill".red()),
+    }
+    match &got.claude_md {
+        Ok(ClaudeMd::Added(p)) => println!("{} added /switchboard to {}", "CLAUDE.md".green(), p.display()),
+        Ok(ClaudeMd::AlreadyListed(p)) => println!("{} {} already lists /switchboard", "CLAUDE.md".dimmed(), p.display()),
+        Ok(ClaudeMd::NoFile) => {}
+        Err(e) => println!("{} {e}", "CLAUDE.md".red()),
+    }
+    if !got.on_path {
+        let dir = got.command.parent().unwrap_or(Path::new(""));
+        println!("{} is not on your PATH yet. Add it in your shell profile, then open a new terminal.", dir.display());
+    }
+    Ok(if got.skill.is_ok() { 0 } else { 1 })
 }
 
 // ----- list -------------------------------------------------------------------

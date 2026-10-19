@@ -245,3 +245,36 @@ fn install_lists_the_skill_in_claude_md() {
     let row = got.lines().last().unwrap();
     assert_eq!(row.matches('|').count(), 4, "{got}");
 }
+
+#[test]
+fn setup_finds_the_bundle_from_its_own_command_and_knows_when_it_is_installed() {
+    use sb_core::tools;
+    let tmp = tempfile::tempdir().unwrap();
+    let contents = tmp.path().join("Switchboard.app/Contents");
+    std::fs::create_dir_all(contents.join("Helpers")).unwrap();
+    std::fs::create_dir_all(contents.join("Resources/skills/switchboard")).unwrap();
+    let cli = contents.join("Helpers/switchboard");
+    std::fs::write(&cli, b"#!/bin/sh\n").unwrap();
+    std::fs::write(contents.join("Resources/skills/switchboard/SKILL.md"), b"---\n---\n").unwrap();
+
+    // Called through a link on the PATH: resolves to the bundle.
+    let home = tmp.path().join("home");
+    let bin = home.join(".local/bin");
+    std::fs::create_dir_all(&bin).unwrap();
+    assert!(!tools::is_installed(&home));
+    let (got_cli, got_skill) = tools::bundled_from(&cli).unwrap();
+    let canon = contents.canonicalize().unwrap();
+    assert_eq!(got_cli, canon.join("Helpers/switchboard"));
+    assert_eq!(got_skill, canon.join("Resources/skills/switchboard"));
+
+    let path = bin.display().to_string();
+    tools::install(&got_cli, &got_skill, &home, Some(&path)).unwrap();
+    assert!(tools::is_installed(&home));
+    assert_eq!(tools::bundled_from(&bin.join("switchboard")).unwrap().0, got_cli);
+
+    // A loose binary (a cargo build) is refused with the path to use instead.
+    let loose = tmp.path().join("switchboard");
+    std::fs::write(&loose, b"").unwrap();
+    let e = tools::bundled_from(&loose).unwrap_err();
+    assert!(e.contains("Contents/Helpers/switchboard setup"), "{e}");
+}

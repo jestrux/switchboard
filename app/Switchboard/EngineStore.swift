@@ -632,7 +632,10 @@ final class EngineStore: ObservableObject {
         offeredLeftovers = true
         let leftovers = engine.leftoverSessions()
         guard !leftovers.isEmpty else {
-            Task { @MainActor in await offerToRunAgain() }
+            Task { @MainActor in
+                await offerToRunAgain()
+                await offerToInstallTools()
+            }
             return
         }
         Task { @MainActor in
@@ -653,6 +656,7 @@ final class EngineStore: ObservableObject {
                           DialogButton(label: n == 1 ? "Stop It" : "Stop Them", kbd: "↩", style: .primary, value: 1)]))
             if choice == 1 { _ = engine.killLeftovers() }
             await offerToRunAgain()
+            await offerToInstallTools()
         }
     }
 
@@ -680,6 +684,31 @@ final class EngineStore: ObservableObject {
             buttons: [DialogButton(label: "Not Now", value: 0),
                       DialogButton(label: n == 1 ? "Start It" : "Start Them", kbd: "⌘↩", style: .primary, value: 1)]))
         if choice == 1 { refs.forEach(start) }
+    }
+
+    // MARK: - Offering the switchboard command
+
+    private static let offeredToolsKey = "offeredTools"
+
+    /// Once, on a launch where the command or skill is missing, offer to install them.
+    /// Either answer is remembered; the menu item stays for later.
+    private func offerToInstallTools() async {
+        guard !UserDefaults.standard.bool(forKey: Self.offeredToolsKey) else { return }
+        let installed = await Task.detached { toolsInstalled() }.value
+        guard !installed else { return }
+        let choice = await DialogCenter.shared.ask(DialogRequest(
+            kind: .offerTools,
+            title: "Let coding agents use Switchboard?",
+            subtitle: "This installs the switchboard command and a Claude Code skill, so agents can start your projects’ commands here, wait for them and read their output.",
+            facts: [DialogFact(icon: "terminal", text: "switchboard", detail: "linked onto your PATH", mono: true),
+                    DialogFact(icon: "sparkles", text: "~/.claude/skills/switchboard", detail: "and listed in ~/.claude/CLAUDE.md if you have one", mono: true)],
+            note: "You can do this later from Switchboard › Install switchboard Command….",
+            buttons: [DialogButton(label: "Not Now", value: 0),
+                      DialogButton(label: "Install", kbd: "⌘↩", style: .primary, value: 1)]))
+        // -1: another dialog replaced this one before it was answered; ask next launch.
+        guard choice >= 0 else { return }
+        UserDefaults.standard.set(true, forKey: Self.offeredToolsKey)
+        if choice == 1 { installTools() }
     }
 
     // MARK: - Engine events (arrive on engine threads)

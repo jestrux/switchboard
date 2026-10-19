@@ -110,15 +110,39 @@ fn with_skill(text: &str) -> String {
     out
 }
 
-/// The first user-writable bin folder on the PATH, preferring the usual ones; otherwise
-/// `~/.local/bin`, which then still has to be added to the PATH.
-fn pick_bin_dir(home: &Path, path: &[PathBuf]) -> (PathBuf, bool) {
-    let preferred = [
+/// The command and the skill are both in place: the skill folder exists and one of the
+/// usual bin folders has a `switchboard`. Used to decide whether to offer the install.
+pub fn is_installed(home: &Path) -> bool {
+    let skill = home.join(".claude/skills").join(SKILL_NAME).join("SKILL.md").is_file();
+    skill && bin_dirs(home).iter().any(|d| d.join(COMMAND_NAME).exists())
+}
+
+/// The bundled command and skill, from the command's own path inside Switchboard.app
+/// (`Contents/Helpers/switchboard` → `Contents/Resources/skills/switchboard`).
+pub fn bundled_from(exe: &Path) -> Result<(PathBuf, PathBuf), String> {
+    let exe = exe.canonicalize().map_err(|e| format!("could not resolve {}: {e}", exe.display()))?;
+    let contents = exe.parent().filter(|d| d.ends_with("Contents/Helpers")).and_then(Path::parent).ok_or_else(|| {
+        format!(
+            "{} is not inside Switchboard.app; run /Applications/Switchboard.app/Contents/Helpers/{COMMAND_NAME} setup",
+            exe.display()
+        )
+    })?;
+    Ok((exe.clone(), contents.join("Resources/skills").join(SKILL_NAME)))
+}
+
+fn bin_dirs(home: &Path) -> [PathBuf; 4] {
+    [
         home.join(".local/bin"),
         PathBuf::from("/opt/homebrew/bin"),
         PathBuf::from("/usr/local/bin"),
         home.join("bin"),
-    ];
+    ]
+}
+
+/// The first user-writable bin folder on the PATH, preferring the usual ones; otherwise
+/// `~/.local/bin`, which then still has to be added to the PATH.
+fn pick_bin_dir(home: &Path, path: &[PathBuf]) -> (PathBuf, bool) {
+    let preferred = bin_dirs(home);
     for dir in &preferred {
         if path.iter().any(|p| same_dir(p, dir)) && writable(dir) {
             return (dir.clone(), true);
