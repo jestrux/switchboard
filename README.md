@@ -101,3 +101,7 @@ scripts/            Build, package, walkthrough and screenshot scripts
 docs/               Feature list, guides and media (Markdown is the source)
 docs-site/          Browser viewer for docs/
 ```
+
+## License
+
+[MIT](LICENSE)
