@@ -26,7 +26,7 @@ bridges plain Markdown links, images and `###` headings to the viewer's dialect.
 | Layer | Where | Language | Owns |
 |---|---|---|---|
 | Engine | `crates/sb-core` | Rust | config, fragments, sessions (PTY + process group), supervisor, watcher, terminals |
-| CLI | `crates/sb-cli` | Rust | `sb` |
+| CLI | `crates/sb-cli` | Rust | `switchboard` |
 | Bridge | `crates/sb-ffi` | Rust (UniFFI proc-macros) | records and the `Engine` object exposed to Swift |
 | App | `app/Switchboard` | SwiftUI + AppKit | rendering, windows, panes, SwiftTerm views |
 
@@ -39,7 +39,8 @@ expose it through `sb-ffi`.
 ```sh
 cargo test -p sb-core                       # ~10 s, 28 tests, spawns real processes
 cargo test -p sb-core --test fragment_tests # one suite
-cargo build -p sb-cli && target/debug/sb validate samples/kinpay
+cargo build -p sb-cli && target/debug/switchboard validate samples/kinpay
+cargo test -p sb-cli                        # the switchboard binary against a served engine
 
 scripts/build-core.sh --debug               # Rust → XCFramework + Swift bindings (after any sb-ffi change)
 scripts/package.sh                          # full build, sign, install to /Applications, relaunch
@@ -55,7 +56,7 @@ cd app && xcodebuild -project Switchboard.xcodeproj -scheme Switchboard -configu
   | grep -E "^/Users.*error:|BUILD \w+" | grep -v buildCommands | sort -u
 ```
 
-Prefer proving behaviour in a Rust test or with `sb` before touching the app. The engine is
+Prefer proving behaviour in a Rust test or with `switchboard` before touching the app. The engine is
 fully testable without a UI, and the CLI exercises the same code the app does.
 
 ### Things that will bite
@@ -142,7 +143,10 @@ Settings live in `defaults` under `dev.waky.switchboard`. Set them before launch
 Data on disk, all under `~/Library/Application Support/Switchboard/`:
 
 - `Projects/<slug>/config.yaml`, `icon.png`, `terminals.yaml`
-- `sessions.json`: live sessions, for crash cleanup and `sb list`
+- `sessions.json`: live sessions, for crash cleanup and `switchboard list`
+- `control.sock`: the socket the running app serves for `switchboard start`, `logs`, `wait`
+  and the rest (`crates/sb-core/src/control.rs`). Tests serve their own under
+  `SWITCHBOARD_HOME`, so they never touch the real app.
 
 Logs: `~/Library/Logs/Switchboard/links.log` records every URL the app opens, which makes
 link behaviour assertable.

@@ -30,7 +30,7 @@ source, so reading them directly works just as well.
 | [Config and repo files](09-config-and-repo-files.md) | YAML on disk, live reload, `.switchboard/` in your repos |
 | [Importing](10-importing.md) | Dropping a folder, converting Solo's `solo.yml` |
 | [Settings and startup](11-settings-and-startup.md) | The Settings window, open at login, what is remembered per Mac |
-| [The sb CLI](12-cli.md) | The same engine from a terminal |
+| [The switchboard command](12-cli.md) | Drive the app from a terminal or an agent, the agent skill, and running without the app |
 
 ## Not built yet
 

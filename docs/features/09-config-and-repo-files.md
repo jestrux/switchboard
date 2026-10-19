@@ -49,6 +49,6 @@ description: Projects as YAML on disk, live reload, and keeping settings in your
 
 - **What:** Dropping any member folder finds the `project.yaml`, in that folder or in a
   sibling repo that lists it, shows which folders resolved, and installs the project.
-- **Reach it:** Drop the folder on the sidebar or the Dock icon, or run `sb import <folder>`.
+- **Reach it:** Drop the folder on the sidebar or the Dock icon, or run `switchboard import <folder>`.
 - **State:** Installed into the Projects directory.
 - **Limits:** When several copies exist the newest is proposed and the others can be chosen.

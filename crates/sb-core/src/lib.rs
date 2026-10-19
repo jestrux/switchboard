@@ -3,6 +3,7 @@
 //! The `sb` CLI and the Mac app (through `sb-ffi`) are two front ends on this library.
 
 pub mod config;
+pub mod control;
 pub mod engine;
 pub mod fragment;
 pub mod icons;
@@ -12,6 +13,7 @@ pub mod project;
 pub mod session;
 pub mod solo;
 pub mod terminals;
+pub mod tools;
 pub mod watcher;
 
 pub use config::{CommandConfig, ConfigError, GroupConfig, ProjectConfig, ResolvedCommand};

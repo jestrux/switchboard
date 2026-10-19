@@ -384,6 +384,34 @@ impl Session {
         self.inner.lock().unwrap().parser.screen().contents()
     }
 
+    /// The last `lines` lines of output as plain text: the recorded output replayed through
+    /// a fresh terminal, so colours, cursor moves and progress bars come out as they looked.
+    pub fn log_text(&self, lines: usize) -> String {
+        let (raw, (cols, rows)) = {
+            let inner = self.inner.lock().unwrap();
+            (inner.raw_tail.clone(), inner.size)
+        };
+        let mut parser = vt100::Parser::new(rows, cols, SCROLLBACK_LINES);
+        parser.process(&raw);
+        let screen = parser.screen_mut();
+        screen.set_scrollback(usize::MAX);
+        let back = screen.scrollback();
+        let mut out: Vec<String> = Vec::new();
+        // At scrollback offset k the top visible row is the k-th line from the end of the
+        // scrollback, so stepping k down to 1 reads the scrollback in order.
+        for k in (1..=back).rev() {
+            screen.set_scrollback(k);
+            out.extend(screen.rows(0, cols).next());
+        }
+        screen.set_scrollback(0);
+        out.extend(screen.rows(0, cols));
+        while out.last().is_some_and(|l| l.trim().is_empty()) {
+            out.pop();
+        }
+        let start = out.len().saturating_sub(lines);
+        out[start..].iter().map(|l| l.trim_end()).collect::<Vec<_>>().join("\n")
+    }
+
     /// Send a signal to the whole process group.
     pub fn signal(&self, sig: Signal) -> nix::Result<()> {
         killpg(Pid::from_raw(self.pid as i32), sig)

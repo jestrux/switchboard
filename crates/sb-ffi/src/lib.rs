@@ -233,10 +233,37 @@ pub trait EngineListener: Send + Sync {
     fn on_output(&self, project: String, address: String, bytes: Vec<u8>);
 }
 
+/// Implemented in Swift: what the `switchboard` command asks of the app's windows.
+/// Called from a socket thread.
+#[uniffi::export(with_foreign)]
+pub trait ControlHandler: Send + Sync {
+    /// Bring the app forward, showing `project` when one is named.
+    fn open_project(&self, project: Option<String>);
+}
+
+struct ControlBridge(Arc<dyn ControlHandler>);
+
+impl sb_core::control::ControlHandler for ControlBridge {
+    fn open_project(&self, project: Option<String>) {
+        self.0.open_project(project);
+    }
+}
+
+/// What "Install switchboard Command" did.
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct ToolsInstalled {
+    pub command_path: String,
+    /// The folder is on the login shell's PATH.
+    pub on_path: bool,
+    pub skill_path: Option<String>,
+    pub skill_error: Option<String>,
+}
+
 #[derive(uniffi::Object)]
 pub struct Engine {
     inner: Arc<sb_core::Engine>,
     subscriptions: Mutex<Vec<u64>>,
+    control: Mutex<Option<sb_core::control::ControlServer>>,
 }
 
 fn key(project: &str, address: &str) -> CommandKey {
@@ -340,14 +367,14 @@ impl Engine {
     /// Engine over the default Projects directory (`~/Library/Application Support/Switchboard/Projects`).
     #[uniffi::constructor]
     pub fn open_default() -> Arc<Self> {
-        Arc::new(Engine { inner: sb_core::Engine::open_default(), subscriptions: Mutex::new(vec![]) })
+        Arc::new(Engine { inner: sb_core::Engine::open_default(), subscriptions: Mutex::new(vec![]), control: Mutex::new(None) })
     }
 
     /// Engine over an explicit Projects directory (tests).
     #[uniffi::constructor]
     pub fn open(projects_dir: String) -> Arc<Self> {
         let _ = std::fs::create_dir_all(&projects_dir);
-        Arc::new(Engine { inner: sb_core::Engine::new(PathBuf::from(projects_dir)), subscriptions: Mutex::new(vec![]) })
+        Arc::new(Engine { inner: sb_core::Engine::new(PathBuf::from(projects_dir)), subscriptions: Mutex::new(vec![]), control: Mutex::new(None) })
     }
 
     pub fn projects_dir(&self) -> String {
@@ -630,6 +657,38 @@ impl Engine {
     pub fn kill_leftovers(&self) -> u32 {
         self.inner.kill_leftovers() as u32
     }
+
+    /// Serve the control socket the `switchboard` command talks to. Fails when another
+    /// Switchboard already serves it.
+    pub fn serve_control(&self, handler: Arc<dyn ControlHandler>) -> Result<(), SbError> {
+        let server = sb_core::control::serve(
+            &self.inner,
+            &sb_core::control::socket_path(),
+            Some(Arc::new(ControlBridge(handler))),
+        )
+        .map_err(SbError::Message)?;
+        *self.control.lock().unwrap() = Some(server);
+        Ok(())
+    }
+
+    /// Stop serving and remove the socket (on quit).
+    pub fn stop_control(&self) {
+        self.control.lock().unwrap().take();
+    }
+}
+
+/// Link the bundled `switchboard` command onto the PATH and the bundled agent skill into
+/// `~/.claude/skills`. Both are symlinks into the app, so app updates refresh them.
+#[uniffi::export]
+pub fn install_tools(cli_path: String, skill_dir: String) -> Result<ToolsInstalled, SbError> {
+    let home = dirs::home_dir().ok_or_else(|| SbError::Message("no home folder".into()))?;
+    let got = sb_core::tools::install(Path::new(&cli_path), Path::new(&skill_dir), &home, None).map_err(SbError::Message)?;
+    Ok(ToolsInstalled {
+        command_path: got.command.display().to_string(),
+        on_path: got.on_path,
+        skill_path: got.skill.as_ref().ok().map(|p| p.display().to_string()),
+        skill_error: got.skill.err(),
+    })
 }
 
 /// Validate a `config.yaml` (or its folder) without an engine. Returns error lines.

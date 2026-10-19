@@ -35,6 +35,7 @@ final class EngineStore: ObservableObject {
 
     private var listener: Listener?
     private var subscription: UInt64 = 0
+    private var control: ControlBridge?
 
     private init() {
         engine = Engine.openDefault()
@@ -43,6 +44,53 @@ final class EngineStore: ObservableObject {
         subscription = engine.subscribe(listener: listener)
         refreshProjects()
         do { try engine.watch() } catch { NSLog("watch failed: \(error)") }
+        let control = ControlBridge(store: self)
+        self.control = control
+        do { try engine.serveControl(handler: control) } catch { NSLog("control socket: \(error)") }
+    }
+
+    // MARK: - The switchboard command
+
+    /// A `switchboard open` request; the main window acts on it.
+    struct OpenRequest: Equatable {
+        let id = UUID()
+        let project: String?
+    }
+    @Published var openRequest: OpenRequest?
+
+    /// Link the bundled `switchboard` command onto the PATH and its skill into
+    /// `~/.claude/skills`, then say what happened.
+    func installTools() {
+        let contents = Bundle.main.bundleURL.appendingPathComponent("Contents")
+        let cli = contents.appendingPathComponent("Helpers/switchboard").path
+        let skill = contents.appendingPathComponent("Resources/skills/switchboard").path
+        Task { @MainActor in
+            let result = await Task.detached { Result { try SwitchboardApp_installTools(cli: cli, skill: skill) } }.value
+            let ok = DialogButton(label: "OK", kbd: "↩", style: .primary, value: 0)
+            switch result {
+            case .success(let got):
+                var facts = [DialogFact(icon: "terminal", text: got.commandPath.abbreviatingHome, mono: true)]
+                if let path = got.skillPath {
+                    facts.append(DialogFact(icon: "sparkles", text: path.abbreviatingHome, mono: true))
+                } else if let e = got.skillError {
+                    facts.append(DialogFact(icon: "exclamationmark.triangle.fill", text: e, tint: .error))
+                }
+                let folder = (got.commandPath as NSString).deletingLastPathComponent.abbreviatingHome
+                _ = await DialogCenter.shared.ask(DialogRequest(
+                    kind: .toolsInstalled,
+                    title: "The switchboard command is installed",
+                    subtitle: "Agents and terminals can now start, stop and read your projects’ commands in this app. Try “switchboard status” in a new terminal.",
+                    facts: facts,
+                    note: got.onPath
+                        ? "Both are links into the app, so they update when Switchboard does."
+                        : "\(folder) is not on your PATH yet. Add it in your shell profile, then open a new terminal.",
+                    buttons: [ok]))
+            case .failure(let error):
+                _ = await DialogCenter.shared.ask(DialogRequest(
+                    kind: .invalidFolder, title: "Could not install the switchboard command",
+                    subtitle: error.readableMessage, buttons: [ok]))
+            }
+        }
     }
 
     // MARK: - Pane ownership (one terminal view per command, one window at a time)
@@ -637,6 +685,24 @@ final class EngineStore: ObservableObject {
         Task { @MainActor in
             self.states[ref] = state
             self.persistRunning()
+        }
+    }
+}
+
+/// Calls the free FFI function from a context where `installTools` is the store's method.
+private func SwitchboardApp_installTools(cli: String, skill: String) throws -> ToolsInstalled {
+    try installTools(cliPath: cli, skillDir: skill)
+}
+
+/// Requests from the `switchboard` command that need the windows.
+private final class ControlBridge: ControlHandler, @unchecked Sendable {
+    weak var store: EngineStore?
+    init(store: EngineStore) { self.store = store }
+
+    func openProject(project: String?) {
+        DispatchQueue.main.async { [weak self] in
+            NSApp.activate(ignoringOtherApps: true)
+            self?.store?.openRequest = EngineStore.OpenRequest(project: project)
         }
     }
 }

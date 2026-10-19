@@ -29,6 +29,17 @@ targets:
     sources:
       - path: Switchboard
       - path: Generated
+      # The agent skill, linked into ~/.claude/skills by Install switchboard Command.
+      - path: ../skills
+        type: folder
+        buildPhase: resources
+      # The switchboard command (built by scripts/build-core.sh), linked onto the PATH.
+      - path: Frameworks/bin/switchboard
+        buildPhase:
+          copyFiles:
+            destination: wrapper
+            subpath: Contents/Helpers
+        attributes: [CodeSignOnCopy]
     dependencies:
       - package: SwiftTerm
       - framework: Frameworks/SwitchboardCore.xcframework

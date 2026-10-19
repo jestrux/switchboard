@@ -2,7 +2,7 @@ import SwiftUI
 
 /// A request for one of the app's dialogs, answered with the index of the chosen button.
 struct DialogRequest: Identifiable {
-    enum Kind { case invalidFolder, nameConflict, deleteProject, leftoverSessions, runAgain }
+    enum Kind { case invalidFolder, nameConflict, deleteProject, leftoverSessions, runAgain, toolsInstalled }
     let id = UUID()
     let kind: Kind
     let title: String

@@ -59,6 +59,19 @@ struct ContentView: View {
             context.railProject = slug
             context.selection = CommandRef(project: slug, address: c.address)
         }
+        .onChange(of: store.openRequest) { _, request in
+            guard context.scope == .all, let request else { return }
+            guard let slug = request.project else { openWindow(id: "main"); return }
+            if store.openProjectWindows.contains(slug) {
+                openWindow(id: "project", value: slug)
+            } else {
+                openWindow(id: "main")
+                context.railProject = slug
+                if let c = store.project(slug)?.allCommands.first {
+                    context.selection = CommandRef(project: slug, address: c.address)
+                }
+            }
+        }
         .onDisappear { store.releaseAll(from: context) }
     }
 

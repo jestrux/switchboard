@@ -5,7 +5,18 @@ use sb_core::session::CommandKey;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+/// Keep the engine's sessions.json out of the real app support folder.
+fn isolate() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        let dir = std::env::temp_dir().join(format!("sb-tests-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::env::set_var("SWITCHBOARD_HOME", dir);
+    });
+}
+
 fn write_project(projects: &std::path::Path, slug: &str, yaml: &str) {
+    isolate();
     let dir = projects.join(slug);
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("config.yaml"), yaml).unwrap();

@@ -6,7 +6,7 @@ license.workspace = true
 description = "Switchboard command-line front end"
 
 [[bin]]
-name = "sb"
+name = "switchboard"
 path = "src/main.rs"
 
 [dependencies]
@@ -15,3 +15,7 @@ clap.workspace = true
 owo-colors.workspace = true
 crossterm.workspace = true
 anyhow.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

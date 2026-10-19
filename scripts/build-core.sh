@@ -7,6 +7,7 @@
 # Outputs:
 #   app/Frameworks/SwitchboardCore.xcframework
 #   app/Generated/SwitchboardCore.swift
+#   app/Frameworks/bin/switchboard   (the CLI, bundled into the app's Contents/Helpers)
 set -eu
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -26,10 +27,12 @@ if [ "$PROFILE" = "release" ]; then
 fi
 
 LIBS=""
+BINS=""
 for t in $TARGETS; do
   echo "==> cargo build ($PROFILE, $t)"
-  cargo build -p sb-ffi $CARGO_FLAGS --target "$t" --quiet
+  cargo build -p sb-ffi -p sb-cli $CARGO_FLAGS --target "$t" --quiet
   LIBS="$LIBS target/$t/$PROFILE/libsb_ffi.a"
+  BINS="$BINS target/$t/$PROFILE/switchboard"
 done
 HOST_DYLIB="target/$HOST_TARGET/$PROFILE/libsb_ffi.dylib"
 
@@ -55,4 +58,10 @@ fi
 xcodebuild -create-xcframework \
   -library "$BUILD/libsb_ffi.a" -headers "$BUILD/include" \
   -output "$OUT/SwitchboardCore.xcframework" > /dev/null
+mkdir -p "$OUT/bin"
+if [ "$(echo $BINS | wc -w)" -gt 1 ]; then
+  lipo -create $BINS -output "$OUT/bin/switchboard"
+else
+  cp $BINS "$OUT/bin/switchboard"
+fi
 echo "==> done: $OUT/SwitchboardCore.xcframework, $GEN/SwitchboardCore.swift"

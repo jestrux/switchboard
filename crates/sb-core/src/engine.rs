@@ -842,6 +842,11 @@ impl Engine {
         self.session(key).map(|s| s.screen_text()).unwrap_or_default()
     }
 
+    /// The last `lines` lines of a command's output as plain text, scrollback included.
+    pub fn log_text(&self, key: &CommandKey, lines: usize) -> String {
+        self.session(key).map(|s| s.log_text(lines)).unwrap_or_default()
+    }
+
     // ----- session callbacks ----------------------------------------------
 
     fn on_running(&self, key: &CommandKey) {

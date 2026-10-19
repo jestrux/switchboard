@@ -27,6 +27,7 @@ cp -R "app/build/DerivedData/Build/Products/$CONFIG/Switchboard.app" dist/
 if [ -n "$IDENTITY" ]; then
   # Re-sign the finished bundle (nested code first) with the stable identity.
   find dist/Switchboard.app -name "*.dylib" -exec codesign --force --sign "$IDENTITY" --timestamp=none {} \;
+  codesign --force --sign "$IDENTITY" --timestamp=none dist/Switchboard.app/Contents/Helpers/switchboard
   codesign --force --sign "$IDENTITY" --timestamp=none dist/Switchboard.app
 fi
 echo "==> dist/Switchboard.app ($CONFIG)"

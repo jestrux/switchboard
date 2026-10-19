@@ -38,6 +38,9 @@ struct SwitchboardApp: App {
 
     @CommandsBuilder
     private var appCommands: some Commands {
+        CommandGroup(after: .appSettings) {
+            Button("Install switchboard Command…") { store.installTools() }
+        }
         CommandGroup(replacing: .newItem) {
             Button("Add Project…") { store.addProjectViaPanel() }
                 .keyboardShortcut("o", modifiers: [.command])
@@ -157,6 +160,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         EngineStore.shared.prepareForTermination()
         let engine = EngineStore.shared.engine
+        engine.stopControl()
         guard engine.anyAlive() else { return .terminateNow }
         DispatchQueue.global(qos: .userInitiated).async {
             engine.stopEverything()

@@ -64,7 +64,7 @@ description: Starting and stopping commands, what each status means, and what ha
 
 - **What:** Quitting stops every session and waits for whole process groups to exit. If the
   app crashed and left sessions behind, the next launch offers to stop them.
-- **Reach it:** Quit as usual. `sb cleanup` does the same clean-up from a terminal.
+- **Reach it:** Quit as usual. `switchboard cleanup` does the same clean-up from a terminal.
 - **State:** `sessions.json` is how leftovers are found.
 - **Limits:** Closing the last window does not quit the app, so commands keep running.
 

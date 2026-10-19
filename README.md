@@ -27,6 +27,8 @@ https://github.com/user-attachments/assets/f5857738-879c-42da-b913-c22b9c89c70e
 - **Config you can version.** YAML on disk, live-reloaded, and optionally kept in your
   repos so a new machine is one drop away.
 - **Nothing left behind.** Stop and Quit take down whole process groups.
+- **Agents can drive it.** The `switchboard` command starts, waits on and reads your
+  commands in the app. A bundled skill teaches coding agents to use it.
 
 | | |
 |---|---|
@@ -73,7 +75,7 @@ groups:
   to reach each feature and its limits.
 
 - **[Projects, config and repo files](docs/projects.md)**: the config format, keeping
-  settings in your repos with `.switchboard/`, terminals, and the `sb` CLI.
+  settings in your repos with `.switchboard/`, terminals, the `switchboard` command and the agent skill.
 - **[Setting up a project](docs/setting-up-a-project.md)**: a checklist for taking a
   product folder to a themed, verified project, including converting from Solo.
 - **[Theming](docs/theming.md)**: built-in themes, per-project themes and custom palettes,
@@ -89,7 +91,7 @@ groups:
 
 ```
 crates/sb-core      Rust engine: config, supervisor, PTY sessions, file watcher
-crates/sb-cli       `sb` command-line front end
+crates/sb-cli       `switchboard` command-line front end
 crates/sb-ffi       UniFFI bridge used by the Mac app
 app/                SwiftUI app
 samples/            Reference projects (Kinpay, CityBuild)

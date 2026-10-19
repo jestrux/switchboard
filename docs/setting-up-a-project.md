@@ -33,8 +33,8 @@ with a `config.yaml`, an `icon.png`, and a custom theme that follows the system.
 Check the folder and its immediate sub-folders:
 
 ```sh
-sb import-solo <folder> --dry-run     # show the conversion
-sb import-solo <folder>               # install it
+switchboard import-solo <folder> --dry-run     # show the conversion
+switchboard import-solo <folder>               # install it
 ```
 
 Each Solo process becomes a command, grouped by working folder. `auto_start` and
@@ -124,16 +124,23 @@ when the automatic one is wrong. Keys: `frontend` `backend` `e2e` `terminal` `mo
 ## 7. Validate, install, verify
 
 ```sh
-sb validate <folder with config.yaml>
-sb install <folder with config.yaml>      # skip if you edited the installed config in place
-sb run <slug>                             # boots the autostart commands; Ctrl+C after ~20 s
+switchboard validate <folder with config.yaml>
+switchboard install <folder with config.yaml>   # skip if you edited the installed config in place
+switchboard start <slug>                        # the autostart commands, in the app
+switchboard wait <slug>/<group>/<command>       # for each server: until it prints its URL
+switchboard status <slug>                       # every command's status, port and URL
+switchboard logs <slug>/<group>/<command>       # read this before guessing why one failed
+switchboard stop <slug>
 ```
+
+Without the app, `switchboard run <slug>` boots the same commands in your terminal; press
+Ctrl+C after about 20 seconds.
 
 - Confirm each autostart command reaches a running state and prints what you expect.
 - Confirm nothing is left on its ports afterwards.
-- Open the project in its own window in the app (right-click › Open in New Window) and
-  look at it in **both** dark and light. Temporarily set `appearance: dark` then `light` in
-  the config to check each; put it back to `system`.
+- Open the project in its own window in the app (`switchboard open <slug>`, then
+  right-click › Open in New Window) and look at it in **both** dark and light. Temporarily
+  set `appearance: dark` then `light` in the config to check each; put it back to `system`.
 
 ## 8. Report
 

@@ -1,8 +1,12 @@
-//! `sb`: the Switchboard command-line front end.
+//! `switchboard`: the Switchboard command-line front end.
+
+mod app;
+mod paint;
 
 use anyhow::{anyhow, bail, Result};
 use clap::{Parser, Subcommand};
-use owo_colors::{OwoColorize, Style};
+use owo_colors::Style;
+use paint::Paint;
 use sb_core::engine::{Engine, Event, Status};
 use sb_core::project::{self, Conflict};
 use sb_core::session::CommandKey;
@@ -15,7 +19,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 #[derive(Parser)]
-#[command(name = "sb", version, about = "Start, watch and stop a project's dev commands")]
+#[command(name = "switchboard", version, about = "Start, watch and stop a project's dev commands")]
 struct Cli {
     /// Projects directory (default: ~/Library/Application Support/Switchboard/Projects)
     #[arg(long, global = true, env = "SB_PROJECTS_DIR")]
@@ -26,11 +30,59 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Cmd {
-    /// Show projects, their commands and status
+    /// What runs in the app: every project's commands with status, port and URL
+    Status {
+        /// Only this project
+        project: Option<String>,
+        /// Machine-readable output
+        #[arg(long)]
+        json: bool,
+    },
+    /// Start commands in the app (launching it if needed): autostart ones, a group's, or one
+    Start {
+        /// `project`, `project/group` or `project/group/command`
+        project: String,
+        target: Option<String>,
+    },
+    /// Stop commands in the app and wait until they have exited
+    Stop {
+        /// `project`, `project/group` or `project/group/command`
+        project: String,
+        target: Option<String>,
+    },
+    /// Stop, then start again
+    Restart {
+        /// `project`, `project/group` or `project/group/command`
+        project: String,
+        target: Option<String>,
+    },
+    /// Print a command's recent output from the app, as plain text
+    Logs {
+        /// `project/group/command`
+        command: String,
+        target: Option<String>,
+        /// How many lines
+        #[arg(long, short = 'n', default_value_t = 100)]
+        tail: usize,
+    },
+    /// Block until a command is ready, running or finished; on failure print its output
+    Wait {
+        /// `project/group/command`
+        command: String,
+        target: Option<String>,
+        #[arg(long = "for", value_enum, default_value = "ready")]
+        until: app::WaitFor,
+        /// Seconds before giving up (exit code 124)
+        #[arg(long, default_value_t = 120)]
+        timeout: u64,
+    },
+    /// Bring the app forward, showing a project
+    Open { project: Option<String> },
+    /// Show projects on disk and what is running, without the app
     List,
     /// Check a project folder (or config.yaml) and report errors
     Validate { path: PathBuf },
-    /// Run a project's autostart commands, one group, or one command in the foreground
+    /// Run commands here in the terminal instead of in the app (Ctrl+C stops them)
     Run {
         /// Project slug, or a path to a folder holding config.yaml
         project: String,
@@ -77,6 +129,13 @@ fn main() {
     let cli = Cli::parse();
     let projects_dir = cli.projects_dir.unwrap_or_else(project::default_projects_dir);
     let code = match cli.cmd {
+        Cmd::Status { project, json } => app::status(project, json, &projects_dir),
+        Cmd::Start { project, target } => app::start(&project, target),
+        Cmd::Stop { project, target } => app::stop(&project, target),
+        Cmd::Restart { project, target } => app::restart(&project, target),
+        Cmd::Logs { command, target, tail } => app::logs(&command, target, tail),
+        Cmd::Wait { command, target, until, timeout } => app::wait(&command, target, until, timeout),
+        Cmd::Open { project } => app::open(project),
         Cmd::List => list(&projects_dir),
         Cmd::Validate { path } => validate(&path),
         Cmd::Run { project, target } => run(&projects_dir, &project, target.as_deref()),
@@ -96,7 +155,7 @@ fn main() {
 
 // ----- list -------------------------------------------------------------------
 
-fn list(projects_dir: &Path) -> Result<i32> {
+pub(crate) fn list(projects_dir: &Path) -> Result<i32> {
     let projects = project::load_projects(projects_dir);
     if projects.is_empty() {
         println!("No projects in {}", projects_dir.display());
@@ -381,7 +440,7 @@ const PALETTE: [fn(Style) -> Style; 6] = [
 ];
 
 fn run(projects_dir: &Path, project: &str, target: Option<&str>) -> Result<i32> {
-    // `sb run path/to/folder` runs a project folder directly.
+    // `switchboard run path/to/folder` runs a project folder directly.
     let as_path = Path::new(project);
     let (engine, slug) = if as_path.join(project::CONFIG_FILE).is_file() {
         let dir = as_path.canonicalize()?;
@@ -555,7 +614,7 @@ impl Printer {
         }
         let name = self.names.get(address).cloned().unwrap_or_default();
         let style = self.styles.get(address).copied().unwrap_or_default();
-        format!("{} {} ", format!("{name:>w$}", w = self.width).style(style), "│".dimmed())
+        format!("{} {} ", format!("{name:>w$}", w = self.width).styled(style), "│".dimmed())
     }
 
     fn output(&mut self, address: &str, bytes: &[u8]) {
@@ -675,7 +734,7 @@ impl Printer {
             s.push_str("\r\n");
         }
         if self.single {
-            s.push_str(&format!("{} {}\r\n", "sb:".dimmed(), text));
+            s.push_str(&format!("{} {}\r\n", "switchboard:".dimmed(), text));
         } else {
             s.push_str(&format!("{}{}\n", self.prefix(address), text));
         }
@@ -686,7 +745,7 @@ impl Printer {
 
     fn note(&self, text: &str) {
         let mut out = std::io::stdout().lock();
-        let _ = out.write_all(format!("\r\n{} {}\r\n", "sb:".dimmed(), text).as_bytes());
+        let _ = out.write_all(format!("\r\n{} {}\r\n", "switchboard:".dimmed(), text).as_bytes());
         let _ = out.flush();
     }
 }

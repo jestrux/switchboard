@@ -92,7 +92,7 @@ appearance: system
 ```
 
 Values must be `"#RRGGBB"`. Unknown tokens, bad colours and an `ansi` list that isn't 16
-entries are reported as config errors, in the sidebar and by `sb validate`.
+entries are reported as config errors, in the sidebar and by `switchboard validate`.
 
 The two sample projects carry full palettes taken from their products' own CSS variables.
 

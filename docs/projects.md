@@ -4,7 +4,7 @@ number: 1
 title: Projects, config and repo files
 category: guides
 categoryTitle: Guides
-description: The config format, repo files, terminals and the sb CLI.
+description: The config format, repo files, terminals, the switchboard command and the agent skill.
 ---
 
 # Projects, config and repo files
@@ -12,7 +12,8 @@ description: The config format, repo files, terminals and the sb CLI.
 - [The config file](#the-config-file)
 - [Versioning a project with its repos](#versioning-a-project-with-its-repos-switchboard)
 - [Terminals](#terminals)
-- [The `sb` CLI](#the-sb-cli)
+- [The `switchboard` command](#the-switchboard-command)
+- [The agent skill](#the-agent-skill)
 
 ## The config file
 
@@ -101,7 +102,7 @@ groups:
   touching the other repo. Inline `commands:` still work and are appended. A missing folder
   or fragment marks that one group unavailable; the rest of the project loads.
 - **New device**: drop any member folder on the sidebar or the Dock icon (or
-  `sb import <folder>`). Switchboard finds the `project.yaml`, in that folder or in a sibling
+  `switchboard import <folder>`). Switchboard finds the `project.yaml`, in that folder or in a sibling
   repo that lists it, shows which folders resolved, and installs the project. If several
   copies exist, the newest is proposed and the others can be chosen.
 - **Write-back**: the live config stays in Application Support. Once a project has a home
@@ -111,7 +112,7 @@ groups:
 - **Existing projects** get a one-time offer to keep their settings in a repo folder
   (Project › Keep Settings in Repo… does it later).
 - Fragments are watched: editing a repo's `commands.yaml` updates the sidebar live.
-- `sb validate <repo folder>` checks a `project.yaml` and names every fragment it reads.
+- `switchboard validate <repo folder>` checks a `project.yaml` and names every fragment it reads.
 
 ## Terminals
 
@@ -122,19 +123,59 @@ shell, and go away with the project. Right-click one to rename it, close it, or 
 Command…**, which adds a real command to its group (in the group's `commands.yaml` when it
 has one, otherwise in `config.yaml`).
 
-## The `sb` CLI
+## The `switchboard` command
 
-The same engine as the app, for the terminal.
+The same engine as the app, for the terminal and for agents. Install it from the app menu
+with **Switchboard › Install switchboard Command…**. That links the command onto your PATH
+and the [agent skill](#the-agent-skill) into `~/.claude/skills`. Both are links into the
+app, so they update with it.
+
+**Drive the app.** These run commands in the app's own terminals, where you can watch
+them. `start`, `restart` and `open` launch the app when it is not running.
 
 ```sh
-sb list                         # projects, commands, live status
-sb run kinpay                   # autostart commands, prefixed output; Ctrl+C stops all
-sb run kinpay backend           # one group
-sb run kinpay backend/migrate   # one command, interactive
-sb run path/to/folder           # a project folder that is not installed
-sb validate <folder|file>       # check a config.yaml or a repo's project.yaml
-sb install <folder>             # copy a config.yaml project into the Projects directory
-sb import <repo folder>         # set a project up from .switchboard/project.yaml
-sb import-solo <folder>…        # convert Solo's solo.yml (--dry-run to preview)
-sb cleanup                      # stop sessions left behind by a crash
+switchboard status [kinpay] [--json]       # what runs: status, port, URL per command
+switchboard start kinpay                   # the autostart commands
+switchboard start kinpay/backend           # a group's autostart commands
+switchboard start kinpay/backend/migrate   # one command, autostart or not
+switchboard stop kinpay[/group[/command]]  # waits until they have exited
+switchboard restart kinpay/backend/api
+switchboard logs kinpay/backend/api -n 50  # recent output as plain text, scrollback included
+switchboard wait kinpay/backend/api        # until it prints its URL (--for running | exit)
+switchboard open kinpay                    # bring the app forward on that project
 ```
+
+`wait` exits 0 when the condition is met. It exits 1 when the command crashes, errors or
+exits first, printing its last 40 lines, and 124 on `--timeout` (120 s by default).
+`--for exit` exits with the command's own exit code, which suits one-off tasks such as
+migrations or tests.
+
+**Without the app.** These work on the Projects folder directly.
+
+```sh
+switchboard list                         # projects, commands, live status
+switchboard run kinpay                   # here in the terminal, prefixed output; Ctrl+C stops all
+switchboard run kinpay backend           # one group
+switchboard run kinpay backend/migrate   # one command, interactive
+switchboard run path/to/folder           # a project folder that is not installed
+switchboard validate <folder|file>       # check a config.yaml or a repo's project.yaml
+switchboard install <folder>             # copy a config.yaml project into the Projects directory
+switchboard import <repo folder>         # set a project up from .switchboard/project.yaml
+switchboard import-solo <folder>…        # convert Solo's solo.yml (--dry-run to preview)
+switchboard cleanup                      # stop sessions left behind by a crash
+```
+
+The app listens on `control.sock` in its support folder, a Unix socket only you can open.
+The protocol is one JSON request per line; see `crates/sb-core/src/control.rs`.
+
+## The agent skill
+
+`skills/switchboard/` in this repo is a skill that teaches an agent (Claude Code and
+others that read `SKILL.md`) to use the `switchboard` command. It covers starting a
+project, waiting for it, reading its logs before asking what broke, and setting a product
+up as a project. It ships inside the app and is linked into `~/.claude/skills/switchboard`
+by Install switchboard Command.
+
+Its `reference/` pages are copies of [projects.md](projects.md),
+[setting-up-a-project.md](setting-up-a-project.md) and [theming.md](theming.md). After
+editing those, run `scripts/sync-skill.sh`. A test fails while the copies differ.

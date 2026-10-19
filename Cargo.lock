@@ -804,6 +804,8 @@ dependencies = [
  "crossterm",
  "owo-colors",
  "sb-core",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -827,6 +829,7 @@ dependencies = [
 name = "sb-ffi"
 version = "0.1.0"
 dependencies = [
+ "dirs",
  "sb-core",
  "serde_json",
  "thiserror 2.0.21",
