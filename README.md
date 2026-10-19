@@ -43,6 +43,10 @@ Download `Switchboard-<version>.zip` from the
 [latest release](https://github.com/jestrux/switchboard/releases/latest), unzip it and drag
 Switchboard to Applications. It is signed and notarized, and needs macOS 14 or later.
 
+On first launch it offers to install the `switchboard` command and the coding-agent
+skill. Choose Install to let agents start, wait on and read your projects' commands, or do
+it later from **Switchboard › Install switchboard Command…**.
+
 ## Build from source
 
 Requires macOS 14+, Xcode 15+, a Rust toolchain and [xcodegen](https://github.com/yonaskolb/XcodeGen).
