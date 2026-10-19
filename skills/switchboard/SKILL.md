@@ -75,6 +75,28 @@ switchboard stop <slug>[/<group>[/<cmd>]] # returns once they have exited
 - A command marked `needs_restart` is running an older `run`, `cwd` or `env` than its
   config now has. Restart it to apply the change.
 
+## Adding a command to a project
+
+For "add this app as a command on <project>", use `add-command` rather than editing YAML:
+
+```sh
+switchboard status <slug>                      # see the groups; pick one or name a new one
+switchboard add-command <slug>/<group> --id dev --run "npm run dev" \
+  [--cwd ~/path/to/app] [--name "dev"] [--no-autostart] [--restart-on-crash] [--env PORT=3000]
+# a group that does not exist yet also needs: --group-name "Admin" --group-cwd ~/path/to/app
+switchboard start <slug>/<group>/dev && switchboard wait <slug>/<group>/dev
+```
+
+- Check the run line works from a login shell in that folder first:
+  `cd <folder> && zsh -lc '<run>'`. A pinned Node version needs
+  `source ~/.nvm/nvm.sh && nvm use && …`, and Python tools often need their venv
+  activated. [reference/setting-up-a-project.md](reference/setting-up-a-project.md)
+  section 3 has the details.
+- Servers get the default autostart. One-off tasks (tests, migrations) get
+  `--no-autostart`.
+- When the group comes from a repo, the command is written to that repo's
+  `.switchboard/commands.yaml`. Mention it, because that is a change in their repo.
+
 ## Setting a product up as a project
 
 When asked to add a product to Switchboard ("set up X in Switchboard", "add its dev

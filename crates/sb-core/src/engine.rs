@@ -526,6 +526,61 @@ impl Engine {
         Ok(new_address)
     }
 
+    /// Add a configured command to a project. With `group`, it joins that group (written to
+    /// the group's fragment when the group comes from one); a group that does not exist is
+    /// created with `new_group` (name, cwd). Without `group` it is ungrouped. Returns the
+    /// command's address. Validates before writing; running sessions are untouched.
+    pub fn add_command(&self, slug: &str, group: Option<&str>, new_group: Option<(Option<String>, Option<String>)>, cmd: crate::config::CommandConfig) -> Result<String, EngineError> {
+        use crate::config::GroupConfig;
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let mut cfg = p.config.clone().map_err(|_| EngineError::ProjectInvalid(slug.to_string()))?;
+        let id = cmd.id.clone();
+        let exists = |list: &[crate::config::CommandConfig]| list.iter().any(|c| c.id == id);
+        let Some(g) = group else {
+            if exists(&cfg.commands) {
+                return Err(EngineError::Spawn(format!("{slug} already has a command {id:?}")));
+            }
+            cfg.commands.push(cmd);
+            cfg.validate().map_err(|e| EngineError::Spawn(e.to_string()))?;
+            p.save_config(&cfg).map_err(|e| EngineError::Spawn(e.to_string()))?;
+            self.reload();
+            return Ok(id);
+        };
+        let address = format!("{g}/{id}");
+        let base = crate::fragment::from_base(&cfg, &p.dir);
+        match cfg.groups.iter_mut().find(|x| x.id == g) {
+            Some(group) => {
+                if let Some(from) = group.from.clone() {
+                    let folder = crate::fragment::resolve_folder(&from, &base);
+                    let mut fragment = crate::fragment::Fragment::load(&folder).unwrap_or_default();
+                    if exists(&fragment.commands) || exists(&group.commands) {
+                        return Err(EngineError::Spawn(format!("group {g:?} already has a command {id:?}")));
+                    }
+                    fragment.commands.push(cmd);
+                    fragment.save(&folder).map_err(|e| EngineError::Spawn(e.to_string()))?;
+                    self.reload();
+                    return Ok(address);
+                }
+                if exists(&group.commands) {
+                    return Err(EngineError::Spawn(format!("group {g:?} already has a command {id:?}")));
+                }
+                group.commands.push(cmd);
+            }
+            None => {
+                let (name, cwd) = new_group.ok_or_else(|| EngineError::UnknownGroup(g.to_string()))?;
+                let mut group: GroupConfig = serde_yaml::from_str(&format!("id: {g:?}")).map_err(|e| EngineError::Spawn(e.to_string()))?;
+                group.name = name;
+                group.cwd = cwd;
+                group.commands.push(cmd);
+                cfg.groups.push(group);
+            }
+        }
+        cfg.validate().map_err(|e| EngineError::Spawn(e.to_string()))?;
+        p.save_config(&cfg).map_err(|e| EngineError::Spawn(e.to_string()))?;
+        self.reload();
+        Ok(address)
+    }
+
     pub fn projects(&self) -> Vec<Project> {
         self.state.lock().unwrap().projects.clone()
     }

@@ -82,3 +82,50 @@ fn an_agent_starts_waits_reads_and_stops() {
     assert_eq!(code, 2);
     assert!(err.contains("no command or group named \"web/nope\""), "{err}");
 }
+
+#[test]
+fn add_command_writes_config_or_the_groups_fragment() {
+    let tmp = tempfile::tempdir().unwrap();
+    let home = tmp.path();
+    let projects = home.join("Projects");
+    let repo = home.join("api");
+    std::fs::create_dir_all(repo.join(".switchboard")).unwrap();
+    std::fs::write(repo.join(".switchboard/commands.yaml"), "commands:\n  - { id: dev, run: make dev }\n").unwrap();
+    std::fs::create_dir_all(projects.join("hero")).unwrap();
+    std::fs::write(
+        projects.join("hero/config.yaml"),
+        format!("version: 1\nname: Hero\ngroups:\n  - id: web\n    cwd: /tmp\n    commands:\n      - id: dev\n        run: npm run dev\n  - id: api\n    from: {}\n", repo.display()),
+    )
+    .unwrap();
+    let pd = projects.to_str().unwrap();
+
+    // Into an existing inline group.
+    let (code, out, err) = sb(home, &["--projects-dir", pd, "add-command", "hero/web", "--id", "storybook", "--run", "npm run storybook", "--no-autostart", "--env", "PORT=6006"]);
+    assert_eq!(code, 0, "{err}");
+    assert!(out.contains("added hero/web/storybook"), "{out}");
+    let cfg = std::fs::read_to_string(projects.join("hero/config.yaml")).unwrap();
+    assert!(cfg.contains("id: storybook") && cfg.contains("autostart: false") && cfg.contains("PORT:") && cfg.contains("6006"), "{cfg}");
+
+    // A group from a repo: the command lands in that repo's commands.yaml.
+    let (code, _, err) = sb(home, &["--projects-dir", pd, "add-command", "hero/api", "--id", "worker", "--run", "make worker"]);
+    assert_eq!(code, 0, "{err}");
+    let frag = std::fs::read_to_string(repo.join(".switchboard/commands.yaml")).unwrap();
+    assert!(frag.contains("id: worker"), "{frag}");
+
+    // A new group needs its details; with them it is created.
+    let (code, _, err) = sb(home, &["--projects-dir", pd, "add-command", "hero/admin", "--id", "dev", "--run", "yarn dev"]);
+    assert_eq!(code, 2);
+    assert!(err.contains("--group-name"), "{err}");
+    let (code, _, err) = sb(home, &["--projects-dir", pd, "add-command", "hero/admin", "--id", "dev", "--run", "yarn dev", "--group-name", "Admin", "--group-cwd", "/tmp"]);
+    assert_eq!(code, 0, "{err}");
+
+    // Duplicates are refused.
+    let (code, _, err) = sb(home, &["--projects-dir", pd, "add-command", "hero/web", "--id", "dev", "--run", "x"]);
+    assert_eq!(code, 2);
+    assert!(err.contains("already has a command \"dev\""), "{err}");
+
+    let (_, out, _) = sb(home, &["--projects-dir", pd, "list"]);
+    for addr in ["web/storybook", "api/worker", "admin/dev"] {
+        assert!(out.contains(addr), "{addr} missing from:\n{out}");
+    }
+}

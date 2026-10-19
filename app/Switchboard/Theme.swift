@@ -365,7 +365,8 @@ enum SBMetrics {
     static let projectRow: CGFloat = 34
     static let groupRow: CGFloat = 28
     static let commandRow: CGFloat = 30
-    static let commandIndent: CGFloat = 22
+    /// Puts a command's status dot directly under its group's icon.
+    static let commandIndent: CGFloat = 12
     static let statusGlyph: CGFloat = 12       // drawn in an 18 pt box
 
     static let paneBar: CGFloat = 36

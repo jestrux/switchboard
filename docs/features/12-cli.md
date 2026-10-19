@@ -56,6 +56,19 @@ description: Drive the running app from a terminal or an agent, or run projects 
 - **Limits:** Ctrl+C stops everything that run started. The app does not show these
   sessions.
 
+## Adding a command
+
+- **What:** `switchboard add-command` adds one command to a project without editing YAML by
+  hand. It goes into the group in `config.yaml`, or into the repo's
+  `.switchboard/commands.yaml` when the group comes from one. A group that does not exist
+  yet is created when `--group-name` and `--group-cwd` are given.
+- **Reach it:** `switchboard add-command set-hero/web --id storybook --run "npm run storybook" --no-autostart`.
+  Also `--name`, `--cwd`, `--env KEY=VALUE` (repeatable) and `--restart-on-crash`.
+- **State:** The config is validated before it is written. The app picks the change up
+  within a second, and running commands are untouched.
+- **Limits:** Adds only; edit or remove a command in the YAML. A duplicate id in the group
+  is refused.
+
 ## Validate and clean up
 
 - **What:** `switchboard validate` checks a `config.yaml` or a repo's `project.yaml` and

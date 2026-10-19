@@ -162,6 +162,9 @@ switchboard validate <folder|file>       # check a config.yaml or a repo's proje
 switchboard install <folder>             # copy a config.yaml project into the Projects directory
 switchboard import <repo folder>         # set a project up from .switchboard/project.yaml
 switchboard import-solo <folder>…        # convert Solo's solo.yml (--dry-run to preview)
+switchboard add-command set-hero/web --id dev --run "npm run dev" [--cwd …] [--no-autostart]
+                                         # into the group's config, or its repo commands.yaml
+                                         # a new group also takes --group-name and --group-cwd
 switchboard cleanup                      # stop sessions left behind by a crash
 ```
 

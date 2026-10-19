@@ -78,6 +78,38 @@ enum Cmd {
     },
     /// Bring the app forward, showing a project
     Open { project: Option<String> },
+    /// Add a command to a project's config (or its group's repo commands.yaml)
+    AddCommand {
+        /// `project` or `project/group`
+        project: String,
+        /// Command id, unique in its group (becomes the address `group/id`)
+        #[arg(long)]
+        id: String,
+        /// What to run, through your login shell
+        #[arg(long)]
+        run: String,
+        /// Display name (default: the id)
+        #[arg(long)]
+        name: Option<String>,
+        /// Folder to run in (default: the group's)
+        #[arg(long)]
+        cwd: Option<String>,
+        /// Do not start it with the project
+        #[arg(long)]
+        no_autostart: bool,
+        /// Restart it with backoff when it crashes
+        #[arg(long)]
+        restart_on_crash: bool,
+        /// Environment, KEY=VALUE (repeatable)
+        #[arg(long = "env", value_name = "KEY=VALUE")]
+        env: Vec<String>,
+        /// Creating a new group: its display name
+        #[arg(long)]
+        group_name: Option<String>,
+        /// Creating a new group: the folder its commands run in
+        #[arg(long)]
+        group_cwd: Option<String>,
+    },
     /// Show projects on disk and what is running, without the app
     List,
     /// Check a project folder (or config.yaml) and report errors
@@ -136,6 +168,9 @@ fn main() {
         Cmd::Logs { command, target, tail } => app::logs(&command, target, tail),
         Cmd::Wait { command, target, until, timeout } => app::wait(&command, target, until, timeout),
         Cmd::Open { project } => app::open(project),
+        Cmd::AddCommand { project, id, run, name, cwd, no_autostart, restart_on_crash, env, group_name, group_cwd } => {
+            add_command(&projects_dir, &project, AddArgs { id, run, name, cwd, no_autostart, restart_on_crash, env, group_name, group_cwd })
+        }
         Cmd::List => list(&projects_dir),
         Cmd::Validate { path } => validate(&path),
         Cmd::Run { project, target } => run(&projects_dir, &project, target.as_deref()),
@@ -204,6 +239,75 @@ pub(crate) fn list(projects_dir: &Path) -> Result<i32> {
         println!();
     }
     Ok(0)
+}
+
+// ----- add-command --------------------------------------------------------------
+
+struct AddArgs {
+    id: String,
+    run: String,
+    name: Option<String>,
+    cwd: Option<String>,
+    no_autostart: bool,
+    restart_on_crash: bool,
+    env: Vec<String>,
+    group_name: Option<String>,
+    group_cwd: Option<String>,
+}
+
+fn add_command(projects_dir: &Path, target: &str, a: AddArgs) -> Result<i32> {
+    let (slug, group) = app::split_target(target, None);
+    if group.as_deref().is_some_and(|g| g.contains('/')) {
+        bail!("name a project or project/group, not a command");
+    }
+    let id = project::slugify(&a.id);
+    let mut env = std::collections::BTreeMap::new();
+    for kv in &a.env {
+        let (k, v) = kv.split_once('=').ok_or_else(|| anyhow!("--env takes KEY=VALUE, got {kv:?}"))?;
+        env.insert(k.to_string(), v.to_string());
+    }
+    for folder in [&a.cwd, &a.group_cwd].into_iter().flatten() {
+        if !sb_core::config::expand_tilde(folder).is_dir() {
+            eprintln!("{} {folder} does not exist yet", "warning:".yellow());
+        }
+    }
+    let cmd: sb_core::CommandConfig = bare_command(&id, &a.run)?;
+    let cmd = sb_core::CommandConfig {
+        name: a.name,
+        cwd: a.cwd,
+        env,
+        autostart: a.no_autostart.then_some(false),
+        restart_on_crash: a.restart_on_crash.then_some(true),
+        ..cmd
+    };
+    let new_group = (a.group_name.is_some() || a.group_cwd.is_some()).then(|| (a.group_name.clone(), a.group_cwd.clone()));
+    let engine = Engine::new(projects_dir);
+    match engine.add_command(&slug, group.as_deref(), new_group, cmd) {
+        Ok(address) => {
+            println!("{} added {slug}/{address}", "ok".green().bold());
+            println!("  start it: switchboard start {slug}/{address}");
+            Ok(0)
+        }
+        Err(sb_core::EngineError::UnknownGroup(g)) => {
+            bail!("{slug} has no group {g:?}; pass --group-name and --group-cwd to create it")
+        }
+        Err(e) => bail!("{e}"),
+    }
+}
+
+/// A command with just an id and run line; the rest is filled in by the caller.
+fn bare_command(id: &str, run: &str) -> Result<sb_core::CommandConfig> {
+    Ok(sb_core::CommandConfig {
+        id: id.to_string(),
+        name: None,
+        run: run.to_string(),
+        cwd: None,
+        env: Default::default(),
+        autostart: None,
+        restart_on_crash: None,
+        terminal: false,
+        extra: Default::default(),
+    })
 }
 
 // ----- validate ---------------------------------------------------------------

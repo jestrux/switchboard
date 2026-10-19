@@ -61,6 +61,11 @@ final class DialogCenter: ObservableObject {
 
     func ask(_ request: DialogRequest) async -> Int {
         if let c = continuation { c.resume(returning: -1); continuation = nil }
+        // Swapping one open sheet for another loses the new one; let the old one go first.
+        if current != nil {
+            current = nil
+            try? await Task.sleep(for: .milliseconds(400))
+        }
         current = request
         return await withCheckedContinuation { continuation = $0 }
     }
