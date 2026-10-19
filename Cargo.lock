@@ -797,7 +797,7 @@ dependencies = [
 
 [[package]]
 name = "sb-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -810,7 +810,7 @@ dependencies = [
 
 [[package]]
 name = "sb-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dirs",
  "libc",
@@ -827,7 +827,7 @@ dependencies = [
 
 [[package]]
 name = "sb-ffi"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dirs",
  "sb-core",
@@ -1185,7 +1185,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "uniffi",
 ]
