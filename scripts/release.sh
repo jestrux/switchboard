@@ -126,7 +126,7 @@ echo "==> $ZIP ($(du -h "$ZIP" | cut -f1 | tr -d ' ')), notarized and stapled"
 
 if [ "$PUBLISH" = 1 ]; then
   if [ -n "$(git status --porcelain)" ]; then
-    git add app/project.yml Cargo.toml Cargo.lock
+    git add app/project.yml app/Switchboard/Info.plist Cargo.toml Cargo.lock
     # SB_RELEASE_TRAILERS: extra lines for the commit message, such as co-author trailers.
     git commit -q -m "Release $VERSION${SB_RELEASE_TRAILERS:+
 
