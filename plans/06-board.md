@@ -275,11 +275,13 @@ set-hero project, whose home is `~/Documents/web/set-hero`, so its board would l
 - [ ] Decided cards into a searchable Record
 - [ ] The overview as part of The plan in the sidebar (decided, `v-sidebar`): since you last
   looked, health, what's owed
-- [ ] A Claude Design handoff for the overview and the Record, before they're built
 
 **Verifiables**
 
 - Screenshots of each, light and dark
+
+**Design.** Built in the page's own design language (Flex's prototype, the Screening-room
+design), like everything else on the board; screenshots for the author before the gate.
 
 **Gate.** The board can be read at a glance: what needs you, what happened, what's owed.
 
