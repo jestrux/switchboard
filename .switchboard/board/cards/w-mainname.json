@@ -1,6 +1,6 @@
 {
   "id": "w-mainname",
-  "stage": "windows",
+  "stage": "b2",
   "order": 5,
   "updated": 1792482255711,
   "version": 1,
@@ -8,7 +8,8 @@
   "title": "What should Switchboard's main window be called now?",
   "tags": [
     "Windows",
-    "Naming"
+    "Naming",
+    "Switchboard's windows"
   ],
   "summary": "You kept \"board\" for this feature, so the main window needs another name. Today it says <b>Move to Board</b> (the Window menu and a project's context menu) and <b>The board is clear</b> (when every project has its own window). Its window title is already \"Switchboard\".",
   "decision": {

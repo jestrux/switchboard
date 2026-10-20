@@ -1,10 +1,11 @@
 {
   "id": "b-sim",
-  "stage": "build",
+  "stage": "b1",
   "title": "An agent simulator, from day one",
   "tags": [
     "Build",
-    "Demo"
+    "Demo",
+    "Look and build"
   ],
   "updated": 1792468800000,
   "version": 1,

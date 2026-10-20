@@ -1,9 +1,10 @@
 {
   "id": "m-widget",
-  "stage": "mac",
+  "stage": "b5",
   "title": "A widget on the desktop",
   "tags": [
-    "Widgets"
+    "Widgets",
+    "The joys of a Mac app"
   ],
   "updated": 1792468800000,
   "version": 1,

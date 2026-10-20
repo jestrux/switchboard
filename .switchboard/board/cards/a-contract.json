@@ -1,10 +1,11 @@
 {
   "id": "a-contract",
-  "stage": "loop",
+  "stage": "b1",
   "title": "Review's contract: Flex's as it is, or trimmed for software?",
   "tags": [
     "Loop",
-    "Data"
+    "Data",
+    "Back to the agent"
   ],
   "summary": "Flex's contract carries film-only fields (song, film, scenes, playheads). Review needs phases, commits, URLs and the owed list instead.",
   "decision": {

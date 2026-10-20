@@ -1,9 +1,10 @@
 {
   "id": "v-sidebar",
-  "stage": "views",
+  "stage": "a5",
   "title": "The sidebar: keep it as it is, and fold the overview into the plan",
   "tags": [
-    "Views"
+    "Views",
+    "Two ways in"
   ],
   "summary": "You suggested no title at all: Needs you, Everything and Agent activity stay at the top as they are, and <b>The plan</b> heading groups everything below it as the high-level view. That's simpler, and it's the sidebar we have.",
   "body": {

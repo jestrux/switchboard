@@ -1,10 +1,11 @@
 {
   "id": "w-boards",
-  "stage": "windows",
+  "stage": "b5",
   "title": "One Review window for every project",
   "tags": [
     "Windows",
-    "Switchboard"
+    "Switchboard",
+    "Switchboard's windows"
   ],
   "updated": 1792468800000,
   "version": 1,

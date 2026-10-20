@@ -259,6 +259,60 @@ fn print_tail(client: &mut Client, project: &str, address: &str) {
     }
 }
 
+/// `switchboard keep <project> [folder]`: a project's home, suggested or adopted.
+pub fn keep(projects_dir: &std::path::Path, project: &str, folder: Option<String>, json: bool) -> Result<i32> {
+    let adopting = folder.is_some();
+    let v = if adopting {
+        // Adopting a home changes the app's live config, so it goes through the running app.
+        let mut client = need(connect(true, false)?)?;
+        let folder = folder.map(|f| std::fs::canonicalize(&f).map(|p| p.display().to_string()).unwrap_or(f));
+        call(&mut client, Request::Keep { project: project.to_string(), folder })?
+    } else {
+        // A suggestion only reads the project's config: no app needed.
+        let dir = projects_dir.join(project);
+        if !dir.join(sb_core::project::CONFIG_FILE).is_file() {
+            anyhow::bail!("no project {project} in {}", projects_dir.display());
+        }
+        let p = sb_core::project::Project::load(&dir);
+        serde_json::json!({ "home": p.home(), "suggestion": sb_core::home::suggest(&p) })
+    };
+    if json {
+        println!("{}", serde_json::to_string_pretty(&v)?);
+        return Ok(0);
+    }
+    let home = v["home"].as_str();
+    if adopting {
+        match (home, v["kept"].as_bool()) {
+            (Some(h), Some(true)) => println!("kept {project}'s settings in {h}/.switchboard/project.yaml"),
+            (Some(h), _) => println!("{project} already keeps its settings in {h}"),
+            _ => {}
+        }
+        return Ok(0);
+    }
+    match home {
+        Some(h) => println!("{project} keeps its settings in {}", h.bold()),
+        None => println!("{project} has no home yet: its settings live only in Switchboard's app folder"),
+    }
+    let s = &v["suggestion"];
+    match s["suggested"].as_str() {
+        Some(p) => println!("suggested: {}  {}", p.bold(), format!("({})", s["reason"].as_str().unwrap_or("")).dimmed()),
+        None => println!("{}", "no suggestion: pick one of these".dimmed()),
+    }
+    let others: Vec<&str> = s["candidates"].as_array().into_iter().flatten().filter_map(|c| c.as_str())
+        .filter(|c| Some(*c) != s["suggested"].as_str()).collect();
+    if !others.is_empty() {
+        println!("other folders:");
+        for c in others {
+            println!("  {c}");
+        }
+    }
+    if home.is_none() {
+        let to = s["suggested"].as_str().unwrap_or("<folder>");
+        println!("{}", format!("to keep it there: switchboard keep {project} {to}").dimmed());
+    }
+    Ok(0)
+}
+
 pub fn open(project: Option<String>) -> Result<i32> {
     let project = project.map(|p| split_target(&p, None).0);
     let mut client = need(connect(true, true)?)?;

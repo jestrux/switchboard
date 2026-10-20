@@ -78,6 +78,16 @@ enum Cmd {
     },
     /// Bring the app forward, showing a project
     Open { project: Option<String> },
+    /// A project's home folder: with no folder, show it or suggest one; with a folder, keep
+    /// the project's settings (and its board) in that repo. Only on the author's say-so.
+    Keep {
+        project: String,
+        /// The repo folder to keep the settings in
+        folder: Option<String>,
+        /// Print JSON
+        #[arg(long)]
+        json: bool,
+    },
     /// Add a command to a project's config (or its group's repo commands.yaml)
     AddCommand {
         /// `project` or `project/group`
@@ -172,6 +182,7 @@ fn main() {
         Cmd::Logs { command, target, tail } => app::logs(&command, target, tail),
         Cmd::Wait { command, target, until, timeout } => app::wait(&command, target, until, timeout),
         Cmd::Open { project } => app::open(project),
+        Cmd::Keep { project, folder, json } => app::keep(&projects_dir, &project, folder, json),
         Cmd::AddCommand { project, id, run, name, cwd, no_autostart, restart_on_crash, env, group_name, group_cwd } => {
             add_command(&projects_dir, &project, AddArgs { id, run, name, cwd, no_autostart, restart_on_crash, env, group_name, group_cwd })
         }

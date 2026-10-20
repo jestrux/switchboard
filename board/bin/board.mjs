@@ -10,6 +10,9 @@
 //   board settle <id> <text>      a call going ahead unless the author objects; --stage, --remove
 //   board working <text>          what the agent is doing now; --stage, --item, --progress, --clear
 //   board log <text>              add to the activity log; --item
+//   board step <id> [done|now|next]  a step of the plan, shown in the sidebar with its state;
+//                                 --title, --label ("A1"), --blurb, --doc <plan.md#A1>, --after <id>,
+//                                 --remove (only when empty)
 //   board list                    the cards, with whether each is still open
 //   board answers                 sends not read yet (then marks them read); --wait, --timeout, --json, --all
 //
@@ -19,6 +22,7 @@
 //   3. else the Switchboard project whose commands run in this folder: its board lives in the
 //      app folder (Projects/<slug>/board/), not in git, and its first card offers Keep
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 
@@ -131,13 +135,22 @@ function plain(h) { return String(h || "").replace(/<[^>]+>/g, ""); }
 // own Keep, asked where the author will see it.
 function startAppBoard() {
   if (!APP_SLUG || fs.existsSync(P.board)) return;
+  // Switchboard suggests the folder (`switchboard keep <slug> --json`, plans/06-board.md B0).
+  let sug = { suggested: null, reason: null, candidates: [] };
+  try { sug = JSON.parse(execFileSync("switchboard", ["keep", APP_SLUG, "--json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })).suggestion || sug; } catch {}
+  const short = (p) => String(p).replace(os.homedir(), "~");
+  const others = (sug.candidates || []).filter((c) => c !== sug.suggested).slice(0, 3);
   write(P.board, { project: { name: APP_SLUG, meta: "Switchboard · not in a repo yet", dir: APP_SLUG }, stages: [{ id: "now", title: "Now", blurb: "What needs you" }] });
   write(cardPath("keep-board"), { id: "keep-board", stage: "now", order: 0, updated: now(), version: 1, tags: ["Setup"],
     title: "Keep this project's board in the repo?",
     summary: "This board lives in Switchboard's app folder, so it isn't in git or on your other Macs. Keeping the project's settings in a repo gives it a home, and the board moves into <code>.switchboard/board/</code> there.",
     decision: { q: "Keep it in the repo?", basis: "taste", why: ["A board in the repo travels with the code and its history; the app folder keeps it on this Mac only."],
-      options: [{ o: "keep", label: "Yes: Keep Settings in Repo", rec: true, then: "Ask you to choose Project › Keep Settings in Repo in Switchboard, then move the board into the home." },
-                { o: "here", label: "No, leave it on this Mac" }] } });
+      options: sug.suggested
+        ? [{ o: "keep", label: `Keep it in ${short(sug.suggested)}`, sub: sug.reason || "", rec: true, then: `Run switchboard keep ${APP_SLUG} ${sug.suggested}, then move the board into the home.` },
+           ...others.map((c, i) => ({ o: "other" + i, label: `Keep it in ${short(c)}`, then: `Run switchboard keep ${APP_SLUG} ${c}, then move the board into the home.` })),
+           { o: "here", label: "No, leave it on this Mac" }]
+        : [{ o: "keep", label: "Yes: Keep Settings in Repo", rec: true, sub: "pick the folder in Switchboard", then: "Ask you to choose Project › Keep Settings in Repo in Switchboard, then move the board into the home." },
+           { o: "here", label: "No, leave it on this Mac" }] } });
 }
 
 switch (verb) {
@@ -163,8 +176,10 @@ switch (verb) {
     if (!c) fail(`no card ${id}`);
     const patch = input(args[1]);
     delete patch.id;
+    if (patch.stage && !stageIds().includes(patch.stage)) fail(`no step "${patch.stage}"; steps: ${stageIds().join(", ")}`);
     Object.assign(c, patch);
-    c.updated = now();
+    // Moving a card (its step, tags, order or blocking) isn't news; changing what it says is.
+    if (Object.keys(patch).some((k) => !["stage", "tags", "order", "blocking"].includes(k))) c.updated = now();
     if (typeof flags.changed === "string") { c.version = (c.version || 1) + 1; c.changed = flags.changed; log("Changed: " + plain(c.title) + " (v" + c.version + ")", id); }
     write(f, c);
     console.log(`updated ${id}${c.changed && flags.changed ? " to v" + c.version : ""}`);
@@ -211,6 +226,30 @@ switch (verb) {
   case "log": {
     const text = args.join(" "); if (!text) fail("give the text");
     log(text, flags.item); console.log("logged");
+    break;
+  }
+  case "step": {
+    const b = read(P.board, {}); const st = (b.stages ??= []);
+    const id = args[0]; if (!id) fail("give the step's id");
+    const i = st.findIndex((x) => x.id === id);
+    if (flags.remove) {
+      if (i < 0) fail(`no step ${id}`);
+      if (cards().some((c) => c.stage === id)) fail(`step ${id} still has cards; move them first`);
+      st.splice(i, 1); write(P.board, b); console.log(`removed step ${id}`); break;
+    }
+    const state = args[1];
+    if (state && !["done", "now", "next"].includes(state)) fail("a step is done, now or next");
+    const e = i >= 0 ? st[i] : { id, title: id };
+    for (const k of ["title", "label", "blurb", "doc"]) if (typeof flags[k] === "string") e[k] = flags[k];
+    if (state) e.state = state;
+    if (i < 0) {
+      const at = typeof flags.after === "string" ? st.findIndex((x) => x.id === flags.after) : -1;
+      st.splice(at >= 0 ? at + 1 : st.length, 0, e);
+    }
+    write(P.board, b);
+    if (state === "now") log(`Now: ${e.label ? e.label + " · " : ""}${plain(e.title)}`, null);
+    if (state === "done") log(`Done: ${e.label ? e.label + " · " : ""}${plain(e.title)}`, null);
+    console.log(`${e.id}${e.state ? " · " + e.state : ""}`);
     break;
   }
   case "list": {

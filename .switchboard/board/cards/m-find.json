@@ -1,9 +1,10 @@
 {
   "id": "m-find",
-  "stage": "mac",
+  "stage": "b5",
   "title": "Spotlight, Shortcuts and ⌘K find any decision",
   "tags": [
-    "Search"
+    "Search",
+    "The joys of a Mac app"
   ],
   "updated": 1792468800000,
   "version": 1,

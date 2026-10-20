@@ -1,10 +1,11 @@
 {
   "id": "c-others",
-  "stage": "cards",
+  "stage": "a5",
   "title": "Questions for other people",
   "tags": [
     "Cards",
-    "People"
+    "People",
+    "What a card can be"
   ],
   "updated": 1792468800000,
   "version": 1,

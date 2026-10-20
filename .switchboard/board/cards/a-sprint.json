@@ -1,10 +1,11 @@
 {
   "id": "a-sprint",
-  "stage": "loop",
+  "stage": "b1",
   "title": "The sprint review drafts itself",
   "tags": [
     "Loop",
-    "Overview"
+    "Overview",
+    "Back to the agent"
   ],
   "updated": 1792468800000,
   "version": 1,

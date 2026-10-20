@@ -6,6 +6,7 @@ pub mod config;
 pub mod control;
 pub mod engine;
 pub mod fragment;
+pub mod home;
 pub mod icons;
 pub mod pidfile;
 pub mod ports;

@@ -1,10 +1,11 @@
 {
   "id": "ph-ai",
-  "stage": "phone",
+  "stage": "p",
   "title": "Leave the worker's AI out of Review",
   "tags": [
     "Phone",
-    "AI"
+    "AI",
+    "Away from the Mac"
   ],
   "updated": 1792468800000,
   "version": 1,

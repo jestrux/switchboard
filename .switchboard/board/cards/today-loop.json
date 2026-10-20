@@ -1,9 +1,10 @@
 {
   "id": "today-loop",
-  "stage": "today",
+  "stage": "a1",
   "title": "How a project hands itself to you today",
   "tags": [
-    "The loop"
+    "The loop",
+    "The loop today"
   ],
   "updated": 1792480644495,
   "version": 2,

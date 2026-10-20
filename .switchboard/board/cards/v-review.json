@@ -1,10 +1,11 @@
 {
   "id": "v-review",
-  "stage": "views",
+  "stage": "b2",
   "title": "Review mode: one card at a time, from the keyboard",
   "tags": [
     "Views",
-    "Zone"
+    "Zone",
+    "Two ways in"
   ],
   "updated": 1792468800000,
   "version": 1,

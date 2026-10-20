@@ -1,9 +1,10 @@
 {
   "id": "w-tear",
-  "stage": "windows",
+  "stage": "b5",
   "title": "Tear Review off into its own window",
   "tags": [
-    "Windows"
+    "Windows",
+    "Switchboard's windows"
   ],
   "updated": 1792468800000,
   "version": 1,

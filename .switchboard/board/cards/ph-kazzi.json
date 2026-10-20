@@ -1,10 +1,11 @@
 {
   "id": "ph-kazzi",
-  "stage": "phone",
+  "stage": "p",
   "title": "What Kazzi's thinking adds to our workflow",
   "tags": [
     "Phone",
-    "Kazzi"
+    "Kazzi",
+    "Away from the Mac"
   ],
   "updated": 1792468800000,
   "version": 1,

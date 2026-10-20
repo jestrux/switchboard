@@ -1,9 +1,10 @@
 {
   "id": "b-design",
-  "stage": "build",
+  "stage": "a1",
   "title": "Start from Flex's prototype, not only its design",
   "tags": [
-    "Design"
+    "Design",
+    "Look and build"
   ],
   "updated": 1792468800000,
   "version": 1,

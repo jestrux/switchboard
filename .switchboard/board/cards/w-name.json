@@ -1,10 +1,11 @@
 {
   "id": "w-name",
-  "stage": "windows",
+  "stage": "b2",
   "title": "Switchboard already calls its main window \"the board\"",
   "tags": [
     "Windows",
-    "Naming"
+    "Naming",
+    "Switchboard's windows"
   ],
   "updated": 1792468800000,
   "version": 1,

@@ -1,9 +1,10 @@
 {
   "id": "m-delights",
-  "stage": "mac",
+  "stage": "b2",
   "title": "Small Mac touches",
   "tags": [
-    "Delight"
+    "Delight",
+    "The joys of a Mac app"
   ],
   "updated": 1792468800000,
   "version": 1,

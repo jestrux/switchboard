@@ -1,9 +1,10 @@
 {
   "id": "m-notify",
-  "stage": "mac",
+  "stage": "b4",
   "title": "Answer from the notification",
   "tags": [
-    "Notifications"
+    "Notifications",
+    "The joys of a Mac app"
   ],
   "updated": 1792468800000,
   "version": 1,

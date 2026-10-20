@@ -537,6 +537,11 @@ final class EngineStore: ObservableObject {
             panel.canChooseDirectories = true
             panel.canChooseFiles = false
             panel.prompt = "Keep Here"
+            // Open on the folder the rule suggests (sb_core::home): the e2e folder or the main repo.
+            if let suggested = engine.suggestHome(slug: slug) {
+                panel.directoryURL = URL(fileURLWithPath: suggested)
+                panel.message += " Suggested: \((suggested as NSString).abbreviatingWithTildeInPath)."
+            }
             guard panel.runModal() == .OK, let url = panel.url else { return }
             target = url.path
         }

@@ -1,10 +1,11 @@
 {
   "id": "a-send",
-  "stage": "loop",
+  "stage": "b1",
   "title": "Answers go straight to the agent",
   "tags": [
     "Loop",
-    "Switchboard"
+    "Switchboard",
+    "Back to the agent"
   ],
   "updated": 1792468800000,
   "version": 1,

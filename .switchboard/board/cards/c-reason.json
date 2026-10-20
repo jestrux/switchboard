@@ -1,9 +1,10 @@
 {
   "id": "c-reason",
-  "stage": "cards",
+  "stage": "a5",
   "title": "Every card says why it's there",
   "tags": [
-    "Cards"
+    "Cards",
+    "What a card can be"
   ],
   "updated": 1792468800000,
   "version": 1,

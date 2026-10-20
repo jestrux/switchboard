@@ -173,5 +173,50 @@
     "t": 1792495490771,
     "text": "Decided: the sidebar stays as it is; the overview folds under The plan (A5)",
     "item": "v-sidebar"
+  },
+  {
+    "t": 1792496369046,
+    "text": "Done: A1 · Serve the board",
+    "item": null
+  },
+  {
+    "t": 1792496369083,
+    "text": "Done: A2 · The board CLI",
+    "item": null
+  },
+  {
+    "t": 1792496369119,
+    "text": "Done: A3 · Answers come straight back",
+    "item": null
+  },
+  {
+    "t": 1792496369154,
+    "text": "Done: A4 · Live arrival",
+    "item": null
+  },
+  {
+    "t": 1792496369188,
+    "text": "Done: P · The phone",
+    "item": null
+  },
+  {
+    "t": 1792496369221,
+    "text": "Now: B0 · Homes from the CLI",
+    "item": null
+  },
+  {
+    "t": 1792496411038,
+    "text": "The board is on the plan: its steps are the sidebar, done, now and next",
+    "item": null
+  },
+  {
+    "t": 1792496726787,
+    "text": "Each step's panel shows its section of the plan: brief, parts, verifiables, gate",
+    "item": "b0"
+  },
+  {
+    "t": 1792497013328,
+    "text": "B0: the rule matches all seven projects; switchboard keep; the Keep panel and the skill",
+    "item": "b0"
   }
 ]

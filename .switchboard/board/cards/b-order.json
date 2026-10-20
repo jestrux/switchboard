@@ -1,9 +1,10 @@
 {
   "id": "b-order",
-  "stage": "build",
+  "stage": "a1",
   "title": "Build order",
   "tags": [
-    "Plan"
+    "Plan",
+    "Look and build"
   ],
   "updated": 1792468800000,
   "version": 1,

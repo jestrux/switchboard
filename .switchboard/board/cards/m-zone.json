@@ -1,9 +1,10 @@
 {
   "id": "m-zone",
-  "stage": "mac",
+  "stage": "b5",
   "title": "The zone: full screen, and a Review Focus",
   "tags": [
-    "Zone"
+    "Zone",
+    "The joys of a Mac app"
   ],
   "updated": 1792468800000,
   "version": 1,

@@ -1,10 +1,11 @@
 {
   "id": "ph-surfaces",
-  "stage": "phone",
+  "stage": "p",
   "title": "What the phone does, from the Mac's workflow",
   "tags": [
     "Phone",
-    "Notifications"
+    "Notifications",
+    "Away from the Mac"
   ],
   "updated": 1792468800000,
   "version": 1,

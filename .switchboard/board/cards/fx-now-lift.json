@@ -1,10 +1,11 @@
 {
   "id": "fx-now-lift",
-  "stage": "flex",
+  "stage": "a1",
   "title": "What the second look adds for us",
   "tags": [
     "Flex",
-    "Prototype"
+    "Prototype",
+    "What Flex built"
   ],
   "updated": 1792468800000,
   "version": 1,

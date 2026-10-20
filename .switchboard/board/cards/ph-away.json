@@ -1,11 +1,12 @@
 {
   "id": "ph-away",
-  "stage": "phone",
+  "stage": "p",
   "title": "Away from home: what carries a card to your phone?",
   "tags": [
     "Phone",
     "Look closer",
-    "Security"
+    "Security",
+    "Away from the Mac"
   ],
   "updated": 1792468800000,
   "version": 1,

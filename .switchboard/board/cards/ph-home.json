@@ -1,11 +1,12 @@
 {
   "id": "ph-home",
-  "stage": "phone",
+  "stage": "b6",
   "title": "A Switchboard app on the phone: the same workflow, phone-shaped",
   "tags": [
     "Phone",
     "Switchboard",
-    "Fuchi"
+    "Fuchi",
+    "Away from the Mac"
   ],
   "updated": 1792468800000,
   "version": 1,

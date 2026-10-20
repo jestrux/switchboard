@@ -166,6 +166,9 @@ svg{flex:0 0 auto}
 .sub{font-size:13px;color:var(--ink-3)}
 .summary{font-size:14px;line-height:21px;color:var(--ink-2);margin:0}
 .prose{font-size:15px;line-height:25px;max-width:62ch;margin:0;color:var(--ink)}
+.step-doc p{margin:0 0 12px}.step-doc ul{margin:4px 0 16px;padding-left:20px}.step-doc li{margin:3px 0}
+.step-doc li:has(> input[type=checkbox]){list-style:none;margin-left:-20px}.step-doc input[type=checkbox]{margin:0 8px 0 0;accent-color:var(--accent);vertical-align:-2px}
+.step-doc code{font:12.5px var(--mono);background:var(--hover);padding:1px 5px;border-radius:4px}.step-doc a{color:inherit}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tag{font-size:11px;line-height:18px;padding:0 7px;border-radius:9px;color:var(--ink-3);border:1px solid var(--line)}
 .meta{display:flex;align-items:center;gap:8px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);flex-wrap:wrap}
@@ -697,7 +700,8 @@ function normItem(it, i) {
 function norm(raw) {
   raw = raw || {};
   var p = raw.project || {};
-  var stages = toArr(raw.stages).map(function (s, i) { return { id: String(s.id), title: s.title || s.id, blurb: s.blurb || '', n: i + 1 }; });
+  // A stage can be a plan step: `state` done | now | next, and a `label` ("A1") shown in place of its number.
+  var stages = toArr(raw.stages).map(function (s, i) { return { id: String(s.id), title: s.title || s.id, blurb: s.blurb || '', n: s.label || i + 1, state: s.state || '', docHtml: s.docHtml || '', docError: s.docError || '', parts: s.parts || null }; });
   var items = toArr(raw.items).map(normItem);
   items.forEach(function (it) {
     if (!stages.some(function (s) { return s.id === it.stage; })) stages.push({ id: String(it.stage || 'other'), title: it.stage || 'Other', blurb: '', n: stages.length + 1 });
@@ -1964,17 +1968,21 @@ function rail() {
     h('button', { type: 'button', class: 'nav-a row' + (UI.view === 'all' ? ' on' : ''), onclick: function () { setView('all'); } }, I.all(), h('span', { class: 'grow' }, 'Everything'), h('span', { class: 'mono muted', style: 'font-size:11px' }, String(t.total))),
     h('button', { type: 'button', class: 'nav-a row' + (UI.view === 'activity' ? ' on' : ''), onclick: function () { setView('activity'); } }, I.activity(), h('span', { class: 'grow' }, 'Agent activity'), last ? h('span', { class: 'mono muted', style: 'font-size:11px' }, agoShort(last.t)) : null));
   nav.appendChild(navs);
-  nav.appendChild(h('div', { class: 'rail-sec' }, h('b', null, D.project.stagesLabel), h('span', null, t.handled + ' of ' + t.total + ' handled')));
+  var steps = D.stages.filter(function (s) { return s.state; }), stepsDone = steps.filter(function (s) { return s.state === 'done'; }).length;
+  nav.appendChild(h('div', { class: 'rail-sec' }, h('b', null, D.project.stagesLabel), h('span', null, steps.length ? stepsDone + ' of ' + steps.length + ' done' : t.handled + ' of ' + t.total + ' handled')));
   var ol = h('ol', { class: 'journey' });
   D.stages.forEach(function (s) {
-    var c = stageCounts(s), working = (D.project.working && D.project.working.stage === s.id) || c.agent > 0, done = c.total > 0 && c.open === 0 && !working;
+    // A plan step says its own state; otherwise it's worked out from its cards.
+    var c = stageCounts(s), working = s.state ? s.state === 'now' : (D.project.working && D.project.working.stage === s.id) || c.agent > 0,
+      done = s.state ? s.state === 'done' : c.total > 0 && c.open === 0 && !working;
     var anyNew = (D.byStage[s.id] || []).some(function (it) { return isNew(it) && isOpen(it); });
     ol.appendChild(h('li', null, h('button', { type: 'button', class: 'jrow row' + (done ? ' done' : '') + (UI.view === 'stage' && UI.stage === s.id ? ' on' : ''), onclick: function () { setView('stage', s.id); } },
       h('span', { class: 'jmark' }, working ? h('span', { class: 'spin', style: 'width:12px;height:12px' }) : done ? I.check(14) : c.total ? h('span', { class: 'ring' }) : h('span', { class: 'ring see', style: 'border-color:var(--line-2)' })),
-      h('span', { class: 'mono', style: 'width:12px;font-size:11px;color:var(--ink-3)' }, String(s.n)),
-      h('span', { style: 'flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis' }, s.title),
+      h('span', { class: 'mono', style: 'min-width:12px;font-size:11px;color:var(--ink-3)' }, String(s.n)),
+      h('span', { style: 'flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis' + (s.state === 'next' ? ';color:var(--ink-2)' : '') }, s.title),
       anyNew ? h('span', { class: 'pill new' }, 'New') : null,
-      working ? h('span', { class: 'mono', style: 'font-size:11px;color:var(--ink-3)' }, '…') : h('span', { class: 'mono', style: 'font-size:11px;color:' + (done ? 'var(--ink-3)' : 'var(--accent-line)') }, done ? c.handled + '/' + c.total : c.total ? String(c.open) : ''))));
+      s.state ? h('span', { class: 'mono', style: 'font-size:11px;color:var(--accent-line)' }, c.open ? String(c.open) : '')
+        : working ? h('span', { class: 'mono', style: 'font-size:11px;color:var(--ink-3)' }, '…') : h('span', { class: 'mono', style: 'font-size:11px;color:' + (done ? 'var(--ink-3)' : 'var(--accent-line)') }, done ? c.handled + '/' + c.total : c.total ? String(c.open) : ''))));
   });
   nav.appendChild(ol);
   var w = D.project.working, ws = w && stageOf(w.stage);
@@ -2033,7 +2041,7 @@ function inboxList() {
     var si = stg ? D.stages.indexOf(stg) : -1, pv = D.stages[si - 1], nx = D.stages[si + 1], c0 = stg ? stageCounts(stg) : null;
     sec.appendChild(h('div', { class: 'list-head' },
       h('div', { class: 'list-title' }, h('div', { style: 'display:flex;flex-direction:column;min-width:0' },
-        stg ? h('span', { class: 'mono muted', style: 'font-size:11px' }, 'Stage ' + stg.n + ' of ' + D.stages.length) : null,
+        stg ? h('span', { class: 'mono muted', style: 'font-size:11px' }, (stg.state ? 'Step ' : 'Stage ') + stg.n + ' of ' + D.stages.length) : null,
         h('h1', { class: 'h-list' }, stg ? stg.title : 'Everything'),
         h('span', { class: 'muted' }, stg ? (stg.blurb ? stg.blurb + ' · ' : '') + plural(c0.total, 'card') + (c0.open ? ' · ' + c0.open + ' open' : c0.total ? ' · all handled' : '') : plural(t.total, 'card') + ' · ' + t.handled + ' handled')),
         stg ? h('div', { style: 'display:flex;gap:4px;flex:0 0 auto' },
@@ -2043,6 +2051,14 @@ function inboxList() {
       h('label', { class: 'search' }, I.search(), search, h('span', { class: 'kbd' }, '/')),
       h('div', { style: 'display:flex;align-items:center;gap:8px;position:relative' }, h('button', { type: 'button', class: 'btn sm', disabled: !t.open, style: t.open ? '' : 'opacity:.5', onclick: startReview }, I.play(12), 'Review open', h('span', { class: 'kbd' }, 'R')), h('span', { style: 'margin-left:auto' }), tagsBtn, menu)));
     var pb = h('div', { class: 'list-body', 'data-scroll': 'list-' + page + '-' + (UI.stage || '') }), w2 = D.project.working;
+    if (stg && (stg.docHtml || stg.docError)) {
+      // The step itself: its brief, parts, verifiables and gate, from the plan.
+      var pr = stg.parts;
+      pb.appendChild(h('button', { type: 'button', class: 'irow row' + (UI.sel === '__step' ? ' on' : ''), style: 'margin-bottom:10px', onclick: function () { select('__step'); } },
+        h('span', { style: 'margin-top:3px;display:flex;color:var(--ink-3)' }, svg('<path d="M4 3.5h8M4 8h8M4 12.5h5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>', 12)),
+        h('span', { style: 'flex:1;min-width:0;display:flex;flex-direction:column;gap:2px' }, h('span', { class: 'irow-t' }, 'The step'), h('span', { class: 'irow-s' }, h('span', null, 'Brief, parts, verifiables, gate'))),
+        pr && pr.total ? h('span', { class: 'mono', style: 'font-size:11px;color:var(--ink-3);margin-top:3px' }, pr.done + '/' + pr.total + ' parts') : null));
+    }
     (stg ? [stg] : D.stages).forEach(function (s2) {
       var its = L.rows.filter(function (it) { return it.stage === s2.id; }), wk = w2 && w2.stage === s2.id && !w2.item;
       if (!its.length && !wk) return;
@@ -2148,6 +2164,24 @@ function activityPane() {
   main.appendChild(sc);
   return main;
 }
+// A plan step's panel: its section of the plan (brief, parts, verifiables, gate), rendered by the
+// server from the plan file, so the plan is written once.
+function stepPane() {
+  var stg = stageOf(UI.stage), main = h('main', { class: 'main' });
+  if (!stg) return main;
+  var stateName = { done: 'Done', now: 'Now', next: 'Next' }[stg.state] || '';
+  main.appendChild(h('div', { class: 'topbar' }, h('span', { class: 'crumb-t' }, String(stg.n) + ' · ' + stg.title), h('div', { class: 'right' }, sendBtn())));
+  statusBars().forEach(function (b) { main.appendChild(b); });
+  var pr = stg.parts;
+  var col = h('div', { class: 'read-col', style: 'max-width:720px' },
+    h('div', { class: 'head-col' },
+      h('span', { class: 'mono muted', style: 'font-size:11px' }, String(stg.n) + (stateName ? ' · ' + stateName : '') + (pr && pr.total ? ' · ' + pr.done + ' of ' + pr.total + ' parts done' : '')),
+      h('h2', { class: 'h-read' }, stg.title),
+      stg.blurb ? h('p', { class: 'summary' }, stg.blurb) : null),
+    stg.docError ? h('p', { class: 'muted' }, stg.docError) : h('div', { class: 'prose step-doc', html: stg.docHtml }));
+  main.appendChild(h('div', { class: 'scroll', 'data-scroll': 'step-' + stg.id }, h('div', { class: 'read nomedia' }, col)));
+  return main;
+}
 function settledPane() {
   var stg = UI.view === 'stage' ? stageOf(UI.stage) : null, main = h('main', { class: 'main' });
   var groups = (stg ? [stg] : D.stages.concat([null])).map(function (s) { return { s: s, list: D.settled.filter(function (x) { return s ? x.stage === s.id : !x.stage || !stageOf(x.stage); }) }; }).filter(function (g) { return g.list.length; });
@@ -2161,6 +2195,7 @@ function settledPane() {
 }
 function readingPane() {
   if (UI.sel === '__settled') return settledPane();
+  if (UI.sel === '__step') return stepPane();
   var it = D.byId[UI.sel], st = it && stageOf(it.stage);
   var main = h('main', { class: 'main' });
   var bar = h('div', { class: 'topbar' });
@@ -2522,7 +2557,9 @@ function render() {
   // keep the selection valid
   if (UI.view === 'all' || UI.view === 'stage') {
     var R = listRows().rows;
-    if (UI.sel !== '__settled' && (!UI.sel || R.indexOf(D.byId[UI.sel]) < 0)) { var fo = R.filter(isOpen)[0] || R[0]; UI.sel = fo ? fo.id : null; }
+    var hasStep = UI.view === 'stage' && stageOf(UI.stage) && (stageOf(UI.stage).docHtml || stageOf(UI.stage).docError);
+    if (UI.sel === '__step' && !hasStep) UI.sel = null;
+    if (UI.sel !== '__settled' && UI.sel !== '__step' && (!UI.sel || R.indexOf(D.byId[UI.sel]) < 0)) { var fo = R.filter(isOpen)[0] || R[0]; UI.sel = hasStep ? '__step' : fo ? fo.id : null; }
   }
   if (UI.view === 'inbox') {
     var L = listRows(), rows = L.rows;

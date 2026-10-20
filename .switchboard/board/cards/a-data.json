@@ -1,10 +1,11 @@
 {
   "id": "a-data",
-  "stage": "loop",
+  "stage": "b0",
   "title": "The agent writes data, never the page",
   "tags": [
     "Loop",
-    "Data"
+    "Data",
+    "Back to the agent"
   ],
   "updated": 1792468800000,
   "version": 1,

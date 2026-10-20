@@ -565,6 +565,12 @@ impl Engine {
         Ok(dest.file_name().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default())
     }
 
+    /// The folder to propose as this project's home (`sb_core::home`), if the rule finds one.
+    pub fn suggest_home(&self, slug: String) -> Option<String> {
+        let p = self.inner.project(&slug)?;
+        sb_core::home::suggest(&p).suggested.map(|d| d.to_string_lossy().into_owned())
+    }
+
     /// Keep this project's settings in `folder/.switchboard/project.yaml` from now on.
     pub fn adopt_home(&self, slug: String, folder: String) -> Result<(), SbError> {
         Ok(self.inner.adopt_home(&slug, Path::new(&folder))?)

@@ -1,10 +1,11 @@
 {
   "id": "w-pane",
-  "stage": "windows",
+  "stage": "b2",
   "title": "Review as a pane beside the agent's terminal",
   "tags": [
     "Windows",
-    "Zone"
+    "Zone",
+    "Switchboard's windows"
   ],
   "updated": 1792468800000,
   "version": 1,

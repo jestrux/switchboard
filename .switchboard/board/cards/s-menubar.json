@@ -1,10 +1,11 @@
 {
   "id": "s-menubar",
-  "stage": "mac",
+  "stage": "b3",
   "title": "Answer from the menu bar",
   "tags": [
     "Switchboard",
-    "Notifications"
+    "Notifications",
+    "The joys of a Mac app"
   ],
   "updated": 1792468800000,
   "version": 1,

@@ -25,8 +25,14 @@ function boardApi(): Plugin {
         clearTimeout(pending);
         pending = setTimeout(() => pages.forEach((p) => p.write("data: change\n\n")), 80);
       });
-      // Vite restarts the server when this file changes; don't leave the old watcher behind.
-      server.httpServer?.on("close", () => watcher.close());
+      // The plan files that steps show (a step's `doc`) are watched too, so an edited plan
+      // reaches an open step panel.
+      const plans = path.resolve(BOARD_DIR, "..", "..", "plans");
+      const planWatcher = fs.existsSync(plans)
+        ? fs.watch(plans, () => { clearTimeout(pending); pending = setTimeout(() => pages.forEach((p) => p.write("data: change\n\n")), 80); })
+        : null;
+      // Vite restarts the server when this file changes; don't leave the old watchers behind.
+      server.httpServer?.on("close", () => { watcher.close(); planWatcher?.close(); });
       server.middlewares.use((req, res, next) => {
         const url = (req.url ?? "").split("?")[0];
         if (req.method === "GET" && url === "/events") {

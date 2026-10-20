@@ -1,6 +1,6 @@
 {
   "id": "s-state",
-  "stage": "switchboard",
+  "stage": "b1",
   "title": "Each project shows what its agent is doing",
   "tags": [
     "Switchboard",

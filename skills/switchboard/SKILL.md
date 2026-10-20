@@ -99,6 +99,27 @@ switchboard start <slug>/<group>/dev && switchboard wait <slug>/<group>/dev
 - When the group comes from a repo, the command is written to that repo's
   `.switchboard/commands.yaml`. Mention it, because that is a change in their repo.
 
+## A project's home (keeping its settings in a repo)
+
+A project's **home** is the repo folder that holds its `.switchboard/project.yaml` (and its
+board, in `.switchboard/board/`). Projects have none until the author keeps their settings in
+a repo. To see a project's home, or a suggestion for one:
+
+```sh
+switchboard keep <slug>            # its home, or a suggested folder and the alternatives
+switchboard keep <slug> --json     # the same, for a script
+```
+
+The suggestion is the repo holding most of the project's folders, or, when each folder is its
+own repo, the `e2e` folder, since it exercises the whole product.
+
+- **Never keep a project in a repo on your own.** Propose the suggested folder (and name the
+  alternatives) and ask the author: on the project's board if it has one, otherwise in the
+  conversation. Only on their yes:
+  `switchboard keep <slug> <folder>`, which writes `<folder>/.switchboard/project.yaml`.
+- It refuses to move a home that already exists; the author does that in the app
+  (Project › Keep Settings in Repo…).
+
 ## Setting a product up as a project
 
 When asked to add a product to Switchboard ("set up X in Switchboard", "add its dev

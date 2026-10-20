@@ -1,9 +1,10 @@
 {
   "id": "c-changed",
-  "stage": "cards",
+  "stage": "a5",
   "title": "\"Changed since you decided\" flags itself",
   "tags": [
-    "Cards"
+    "Cards",
+    "What a card can be"
   ],
   "updated": 1792468800000,
   "version": 1,

@@ -40,6 +40,10 @@ pub enum Request {
     Logs { project: String, address: String, lines: usize },
     /// Bring the app forward, showing a project if one is named.
     Open { project: Option<String> },
+    /// A project's home. No folder: its current home and a suggestion, changing nothing.
+    /// A folder: keep the project's settings in that repo (`.switchboard/project.yaml`), as
+    /// the app's Keep Settings in Repo does. Only on the author's say-so.
+    Keep { project: String, folder: Option<String> },
 }
 
 /// What the app does with requests the engine cannot answer alone.
@@ -113,6 +117,29 @@ fn connection(conn: UnixStream, engine: Weak<Engine>, handler: Option<Arc<dyn Co
     }
 }
 
+fn keep(engine: &Arc<Engine>, slug: &str, folder: Option<&str>) -> Result<Value, String> {
+    let p = engine.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()).to_string())?;
+    let home = p.home();
+    let suggestion = crate::home::suggest(&p);
+    let Some(folder) = folder else {
+        return Ok(json!({ "home": home, "suggestion": suggestion }));
+    };
+    let folder = crate::config::expand_tilde(folder);
+    if !folder.is_dir() {
+        return Err(format!("{} is not a folder", folder.display()));
+    }
+    let folder = std::fs::canonicalize(&folder).unwrap_or(folder);
+    if let Some(h) = &home {
+        let h = std::fs::canonicalize(h).unwrap_or_else(|_| h.clone());
+        if h == folder {
+            return Ok(json!({ "home": h, "kept": false }));
+        }
+        return Err(format!("{slug} already keeps its settings in {}; change it from the app (Keep Settings in Repo)", h.display()));
+    }
+    engine.adopt_home(slug, &folder).map_err(|e| e.to_string())?;
+    Ok(json!({ "home": folder, "kept": true }))
+}
+
 fn fail(msg: &str) -> Value {
     json!({ "ok": false, "error": msg })
 }
@@ -144,6 +171,7 @@ fn handle(engine: &Arc<Engine>, handler: Option<&dyn ControlHandler>, req: Reque
                 None => Err("this Switchboard has no window to open".to_string()),
             }
         }
+        Request::Keep { project, folder } => keep(engine, &project, folder.as_deref()),
     };
     match result {
         Ok(Value::Object(mut map)) => {

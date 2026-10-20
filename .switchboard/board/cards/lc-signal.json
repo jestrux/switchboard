@@ -1,6 +1,6 @@
 {
   "id": "lc-signal",
-  "stage": "closer",
+  "stage": "b1",
   "title": "Can Switchboard tell when the agent is waiting on you?",
   "tags": [
     "Look closer",

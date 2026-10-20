@@ -57,8 +57,8 @@ sentence case, and the selected row is a white card.
 ## Per-project themes
 
 A project can pin its own look in `config.yaml`. It applies when the project is open in
-**its own window** (right-click the project › Open in New Window). The main board keeps
-the app-wide setting, so one project can be dark Patch Bay while the board follows the
+**its own window** (right-click the project › Open in New Window). The main window, All Projects, keeps
+the app-wide setting, so one project can be dark Patch Bay while All Projects follows the
 system in Graphite.
 
 ```yaml

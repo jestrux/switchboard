@@ -1,10 +1,11 @@
 {
   "id": "fx-tour",
-  "stage": "flex",
+  "stage": "a1",
   "title": "First look: I walked through Flex's prototype",
   "tags": [
     "Flex",
-    "Prototype"
+    "Prototype",
+    "What Flex built"
   ],
   "updated": 1792468800000,
   "version": 1,

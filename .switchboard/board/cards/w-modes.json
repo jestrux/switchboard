@@ -1,10 +1,11 @@
 {
   "id": "w-modes",
-  "stage": "windows",
+  "stage": "b2",
   "title": "One Review, three shapes, depending on the window",
   "tags": [
     "Windows",
-    "Views"
+    "Views",
+    "Switchboard's windows"
   ],
   "updated": 1792468800000,
   "version": 1,
