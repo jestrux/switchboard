@@ -902,7 +902,20 @@ struct HomeFolderMenuItems: View {
     let project: ProjectInfo
 
     var body: some View {
-        ForEach(project.workingFolders) { folder in
+        // The suggested folder first (sb_core::home: the main repo, or the e2e folder), marked;
+        // it's added when it's a repo root that no command runs in directly.
+        let suggested = store.engine.suggestHome(slug: project.slug)
+        let rest = project.workingFolders.filter { $0.path != suggested }
+        if let suggested {
+            let label = project.workingFolders.first { $0.path == suggested }?.label ?? "Repo"
+            Button {
+                store.keepSettingsInRepo(project.slug, folder: suggested)
+            } label: {
+                Text("\(label)  —  \(suggested.abbreviatingHome)  (suggested)")
+            }
+            if !rest.isEmpty { Divider() }
+        }
+        ForEach(rest) { folder in
             Button {
                 store.keepSettingsInRepo(project.slug, folder: folder.path)
             } label: {

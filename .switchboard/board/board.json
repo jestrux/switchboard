@@ -48,10 +48,10 @@
       }
     ],
     "working": {
-      "since": 1792496372083,
-      "text": "B0: homes from the CLI",
-      "stage": "b0",
-      "item": "lc-commit"
+      "since": 1792497188087,
+      "text": "A5: the audit's gaps",
+      "stage": "a5",
+      "item": "c-reason"
     }
   },
   "stages": [
@@ -100,7 +100,7 @@
       "title": "Homes from the CLI",
       "label": "B0",
       "blurb": "Suggest a project's home folder; switchboard keep",
-      "state": "now",
+      "state": "done",
       "doc": "plans/06-board.md#B0"
     },
     {
@@ -108,7 +108,7 @@
       "title": "The audit's gaps",
       "label": "A5",
       "blurb": "Reason labels, the Needs you count, the Record, the overview under The plan",
-      "state": "next",
+      "state": "now",
       "doc": "plans/06-board.md#A5"
     },
     {

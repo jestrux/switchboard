@@ -1,9 +1,10 @@
 # 6. The board: where an agent hands a project to its author
 
-**Status: In progress.** A1–A4 and P are done: `switchboard start switchboard/board/board`
+**Status: In progress.** A1–A4, P and B0 are done: `switchboard start switchboard/board/board`
 serves this repo's board on http://localhost:5198, the agent writes it with `scripts/board`,
-answers come straight back, from the Mac or the phone. Now: B0, homes from the CLI. Next: A5.
-Each step's brief, parts, verifiables and gate are under **The steps**.
+answers come straight back from the Mac or the phone, and `switchboard keep` suggests and adopts
+a project's home (this repo is the Switchboard project's home since 2026-10-20). Now: A5, the
+audit's gaps. Each step's brief, parts, verifiables and gate are under **The steps**.
 
 ## What it is
 
@@ -239,7 +240,8 @@ writes into a repo unasked: the answer is the ask.
   and changes nothing (it reads the config, so the app needn't run); a folder adopts it through
   the running app, refusing to move an existing home
 - [x] The app's Keep Settings in Repo… panel opens on the suggested folder, and names it
-  (`suggest_home` in `sb-ffi`)
+  (`suggest_home` in `sb-ffi`); the Keep menu lists it first, marked "(suggested)"; the
+  sidebar's one-click Keep offer uses it too (it used the first group's folder)
 - [x] The skill: "A project's home": propose the suggested folder, and run `switchboard keep`
   only on the author's yes
 - [x] The stand-in's first card ("Keep this project's board in the repo?") names the folder,
@@ -251,10 +253,12 @@ writes into a repo unasked: the answer is the ask.
 - `switchboard keep <project>` on the author's real projects suggests what they chose by hand:
   checked 2026-10-20 on all seven (career-path, citybuild and otesha → `e2e`; kinpay,
   set-hero → the repo root; thrive → `e2e` and switchboard → its root, both with no home yet)
-- The Keep panel opens on the suggestion
+- The Keep panel opens on the suggestion: checked 2026-10-20 on Thrive by driving the app
+  (menu by name, `uidrive shotapp`, Escape to cancel)
 
 **Gate.** A project with no home gets a card that names the right folder, and one yes makes
-its home.
+its home. Done 2026-10-20: this repo became the Switchboard project's home with
+`switchboard keep switchboard ~/Documents/web/switchboard`.
 
 **A consequence.** The board lives where the project's home is: prod-app belongs to the
 set-hero project, whose home is `~/Documents/web/set-hero`, so its board would live there.

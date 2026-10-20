@@ -134,7 +134,7 @@ pub struct ProjectInfo {
     pub appearance: Option<String>,
     /// Repo folder whose `.switchboard/project.yaml` mirrors this project, if adopted.
     pub home: Option<String>,
-    /// Folder to offer as the home when none is set: the first group's folder.
+    /// Folder to offer as the home when none is set (sb_core::home's suggestion).
     pub suggested_home: Option<String>,
     /// The repo's project.yaml changed under us and is waiting to be applied.
     pub repo_settings_changed: bool,
@@ -354,11 +354,13 @@ fn describe(project: &project::Project, engine: &sb_core::Engine) -> ProjectInfo
                 },
                 appearance: cfg.appearance.clone(),
                 home: cfg.home.clone(),
-                suggested_home: cfg
-                    .groups
-                    .iter()
-                    .find_map(|g| g.cwd.clone())
-                    .filter(|c| sb_core::config::expand_tilde(c).is_dir()),
+                // sb_core::home's rule (the main repo, or the e2e folder), else the first
+                // group's folder as before.
+                suggested_home: sb_core::home::suggest(project)
+                    .suggested
+                    .map(|d| d.to_string_lossy().into_owned())
+                    .or_else(|| cfg.groups.iter().find_map(|g| g.cwd.clone())
+                        .filter(|c| sb_core::config::expand_tilde(c).is_dir())),
                 commands,
                 groups,
                 ..base

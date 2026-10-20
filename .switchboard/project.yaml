@@ -1,0 +1,20 @@
+updated: 2026-10-20T11:52:55Z
+version: 1
+name: Switchboard
+groups:
+- id: board
+  name: Board
+  cwd: ../switchboard/board
+  commands:
+  - id: board
+    name: board (stand-in)
+    run: npm run dev
+    autostart: true
+- id: docs
+  name: Docs
+  cwd: ../switchboard/docs-site
+  commands:
+  - id: site
+    name: docs site
+    run: npm run dev
+    autostart: false
