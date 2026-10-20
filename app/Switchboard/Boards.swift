@@ -15,6 +15,7 @@ struct BoardsView: View {
 
     var body: some View {
         BoardsContent(selected: $selected)
+            .background(WindowMaximizer())
             .environment(\.sbTheme, themeID.theme)
             .preferredColorScheme(appearance.colorScheme)
             .onAppear {
@@ -130,6 +131,7 @@ struct BoardWindow: View {
     var body: some View {
         BoardPageView(project: slug, json: boards.data(slug)?.json ?? "", engine: store.engine)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(WindowMaximizer())
             .environment(\.sbTheme, themeID.theme)
             .preferredColorScheme(appearance.colorScheme)
             .navigationTitle("Board · " + (store.project(slug)?.name ?? slug))

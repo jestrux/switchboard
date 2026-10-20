@@ -436,6 +436,25 @@ struct FlowOptions: View {
 
 /// The board page needs room: when it opens in a narrower window, the window grows to fit, up to
 /// the screen's visible size. A window already that big is left alone.
+/// Every window opens maximized: filling the screen's visible frame (not full-screen mode), once,
+/// when it first appears; the author can resize it after.
+struct WindowMaximizer: NSViewRepresentable {
+    final class Probe: NSView {
+        private var done = false
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            guard !done, let w = window else { return }
+            done = true
+            DispatchQueue.main.async {
+                guard let screen = (w.screen ?? NSScreen.main)?.visibleFrame, w.frame != screen else { return }
+                w.setFrame(screen, display: true)
+            }
+        }
+    }
+    func makeNSView(context: Context) -> NSView { Probe() }
+    func updateNSView(_ v: NSView, context: Context) {}
+}
+
 struct WindowGrower: NSViewRepresentable {
     let minWidth: CGFloat, minHeight: CGFloat
     func makeNSView(context: Context) -> NSView {

@@ -37,6 +37,7 @@ struct ContentView: View {
         .focusedSceneValue(\.windowFocus, WindowFocus(context: context, selection: context.selection,
                                                      canSplit: context.canSplit, canClosePane: context.canClosePane))
         .environmentObject(context)
+        .background(WindowMaximizer())
         .sheet(item: Binding(get: { dialogs.current.flatMap { ($0.window ?? mainWindowID) == context.id || ($0.window == nil && context.scope == .all) ? $0 : nil } },
                              set: { _ in })) { request in
             DialogCardView(request: request) { dialogs.answer($0) }
@@ -46,16 +47,6 @@ struct ContentView: View {
         .onAppear {
             store.registerWindow(context)
             if context.scope == .all { mainWindowID = context.id }
-            // All Projects opens filling the screen (the visible frame, not full-screen mode): with
-            // the board in it, the small remembered size was too cramped.
-            if context.scope == .all {
-                DispatchQueue.main.async {
-                    if let w = NSApp.windows.first(where: { $0.identifier?.rawValue == "main" || $0.title == "Switchboard" }),
-                       let screen = (w.screen ?? NSScreen.main)?.visibleFrame, w.frame != screen {
-                        w.setFrame(screen, display: true)
-                    }
-                }
-            }
             // The menu bar's count across projects (B3) needs every board watched from launch.
             if context.scope == .all { BoardCache.shared.watchAll({ store.projects.map(\.slug) }, engine: store.engine) }
             context.reconcile(with: store)
