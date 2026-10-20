@@ -10,7 +10,7 @@
 //   board settle <id> <text>      a call going ahead unless the author objects; --stage, --remove
 //   board working <text>          what the agent is doing now; --stage, --item, --progress, --clear
 //   board log <text>              add to the activity log; --item
-//   board step <id> [done|now|next]  a step of the plan, shown in the sidebar with its state;
+//   board step <id> [done|now|next|later]  a step of the plan, shown in the sidebar with its state;
 //                                 --title, --label ("A1"), --blurb, --doc <plan.md#A1>, --after <id>,
 //                                 --remove (only when empty)
 //   board list                    the cards, with whether each is still open
@@ -238,7 +238,7 @@ switch (verb) {
       st.splice(i, 1); write(P.board, b); console.log(`removed step ${id}`); break;
     }
     const state = args[1];
-    if (state && !["done", "now", "next"].includes(state)) fail("a step is done, now or next");
+    if (state && !["done", "now", "next", "later"].includes(state)) fail("a step is done, now, next or later");
     const e = i >= 0 ? st[i] : { id, title: id };
     for (const k of ["title", "label", "blurb", "doc"]) if (typeof flags[k] === "string") e[k] = flags[k];
     if (state) e.state = state;

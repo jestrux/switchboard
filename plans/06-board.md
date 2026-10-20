@@ -80,9 +80,9 @@ board retires or becomes the card-body web view:
 | The page in a browser tab | The board in SwiftUI, card bodies in `WKWebView` |
 | In-page notifications | System notifications, menu-bar count and popover |
 
-The live board has no simulator: real cards arriving produce the in-page notifications, and
-the page stops reading the real board while a simulation plays. The scripted events are kept
-in `board/fixtures/demo-events.json` for tests and demo films.
+There's no agent simulator (Flex's prototype had one, from before the board was real):
+everything is tested with real cards through the CLI, on a throwaway board or as test cards
+taken off afterwards.
 
 **The plan is the sidebar (2026-10-20).** The board's stages are this plan's steps, each with a
 `state` (done, now, next) and a `label` (A1, P, B0…), set with `board step <id> <state>`; the
@@ -270,8 +270,7 @@ set-hero project, whose home is `~/Documents/web/set-hero`, so its board would l
 **Parts**
 
 - [ ] Reason labels on cards, each a filter (decided: decision, look closer, your question
-  answered, changed, from the wishlist, for someone else); "from the wishlist" only in a project that keeps one
-  (a wishlist is prod-app's practice, not every project's)
+  answered, changed, for someone else; "from the wishlist" waits for the wishlist, deferred)
 - [ ] "For you to see" cards out of the Needs you count
 - [ ] Decided cards into a searchable Record
 - [ ] The overview as part of The plan in the sidebar (decided, `v-sidebar`): since you last
@@ -392,3 +391,15 @@ Answer these on the board before the step they affect:
 - **Where cards live** (`a-data`) is now covered by `lc-commit` below; close it on the board.
 - **Native SwiftUI, a web page, or both** (`lc-home`). Shapes B2.
 - **The three window shapes** (`w-modes`). Shapes B2 and B5.
+
+## Deferred
+
+Good to have, shaped later, **when the Horizon project (prod-app) comes onto the board**: both
+are its practices today, so they're designed against it then. On the board they sit under the
+step **Later** (`board step later later`).
+
+- **The wishlist as a screener** (`c-wish`): ideas, paper cuts and design suggestions that
+  aren't in a phase yet, read at each phase's start and gate, promoted or dropped. Brings the
+  "from the wishlist" reason label with it.
+- **The sprint review drafts itself** (`a-sprint`): a review drafted from the Record and the
+  since-you-last-looked digest at a sprint's end, curated by the agent.

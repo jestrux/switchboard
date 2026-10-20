@@ -158,6 +158,14 @@
       "blurb": "A Switchboard app on the phone, on the same contract",
       "state": "next",
       "doc": "plans/06-board.md#B6"
+    },
+    {
+      "id": "later",
+      "title": "Later",
+      "label": "—",
+      "blurb": "Deferred until Horizon comes onto the board",
+      "doc": "plans/06-board.md#Deferred",
+      "state": "later"
     }
   ]
 }

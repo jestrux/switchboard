@@ -1968,7 +1968,7 @@ function rail() {
     h('button', { type: 'button', class: 'nav-a row' + (UI.view === 'all' ? ' on' : ''), onclick: function () { setView('all'); } }, I.all(), h('span', { class: 'grow' }, 'Everything'), h('span', { class: 'mono muted', style: 'font-size:11px' }, String(t.total))),
     h('button', { type: 'button', class: 'nav-a row' + (UI.view === 'activity' ? ' on' : ''), onclick: function () { setView('activity'); } }, I.activity(), h('span', { class: 'grow' }, 'Agent activity'), last ? h('span', { class: 'mono muted', style: 'font-size:11px' }, agoShort(last.t)) : null));
   nav.appendChild(navs);
-  var steps = D.stages.filter(function (s) { return s.state; }), stepsDone = steps.filter(function (s) { return s.state === 'done'; }).length;
+  var steps = D.stages.filter(function (s) { return s.state && s.state !== 'later'; }), stepsDone = steps.filter(function (s) { return s.state === 'done'; }).length;
   nav.appendChild(h('div', { class: 'rail-sec' }, h('b', null, D.project.stagesLabel), h('span', null, steps.length ? stepsDone + ' of ' + steps.length + ' done' : t.handled + ' of ' + t.total + ' handled')));
   var ol = h('ol', { class: 'journey' });
   D.stages.forEach(function (s) {
@@ -1979,7 +1979,7 @@ function rail() {
     ol.appendChild(h('li', null, h('button', { type: 'button', class: 'jrow row' + (done ? ' done' : '') + (UI.view === 'stage' && UI.stage === s.id ? ' on' : ''), onclick: function () { setView('stage', s.id); } },
       h('span', { class: 'jmark' }, working ? h('span', { class: 'spin', style: 'width:12px;height:12px' }) : done ? I.check(14) : c.total ? h('span', { class: 'ring' }) : h('span', { class: 'ring see', style: 'border-color:var(--line-2)' })),
       h('span', { class: 'mono', style: 'min-width:12px;font-size:11px;color:var(--ink-3)' }, String(s.n)),
-      h('span', { style: 'flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis' + (s.state === 'next' ? ';color:var(--ink-2)' : '') }, s.title),
+      h('span', { style: 'flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis' + (s.state === 'next' ? ';color:var(--ink-2)' : s.state === 'later' ? ';color:var(--ink-3)' : '') }, s.title),
       anyNew ? h('span', { class: 'pill new' }, 'New') : null,
       s.state ? h('span', { class: 'mono', style: 'font-size:11px;color:var(--accent-line)' }, c.open ? String(c.open) : '')
         : working ? h('span', { class: 'mono', style: 'font-size:11px;color:var(--ink-3)' }, '…') : h('span', { class: 'mono', style: 'font-size:11px;color:' + (done ? 'var(--ink-3)' : 'var(--accent-line)') }, done ? c.handled + '/' + c.total : c.total ? String(c.open) : ''))));
@@ -2169,7 +2169,7 @@ function activityPane() {
 function stepPane() {
   var stg = stageOf(UI.stage), main = h('main', { class: 'main' });
   if (!stg) return main;
-  var stateName = { done: 'Done', now: 'Now', next: 'Next' }[stg.state] || '';
+  var stateName = { done: 'Done', now: 'Now', next: 'Next', later: 'Deferred' }[stg.state] || '';
   main.appendChild(h('div', { class: 'topbar' }, h('span', { class: 'crumb-t' }, String(stg.n) + ' · ' + stg.title), h('div', { class: 'right' }, sendBtn())));
   statusBars().forEach(function (b) { main.appendChild(b); });
   var pr = stg.parts;
