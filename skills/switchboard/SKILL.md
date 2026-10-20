@@ -159,6 +159,9 @@ switchboard board answers --wait                       # keep this running in th
 - **A card needs** `id`, `stage` (a step's id) and `title`; a decision has `q`, `options` (one
   with `rec: true` and a `then`), `why`, and `basis` (`evidence` or `taste`). When you're unsure,
   say so with `unsure: { why, where }` instead of recommending.
+- **Images and videos: point at the file where it is** (`"image": "~/Downloads/shot.png"`). Don't
+  copy it into the board or run a server for it; Switchboard shows any image a card names, and
+  the phone does too while it's on the Mac's network.
 - **Obvious calls don't get a card:** `switchboard board settle <id> "the call"` lists it as
   going ahead unless the author objects.
 - **`--blocking` only when you truly can't go on** without the answer.

@@ -26,7 +26,6 @@ repo, else `Projects/<slug>/board/` in Switchboard's app folder.
 | `record.json` | every decision the author sent | yes |
 | `kept.json` | decisions whose work is done: `{ <id>: { at, commit } }` | yes |
 | `state/answers.json`, `state/read.json` | the author's sends; the agent's read marker | no |
-| `private/media/` | images that must never enter a repo | no |
 
 Times are milliseconds since 1970. HTML is allowed in titles, summaries and bodies.
 
@@ -83,6 +82,13 @@ Times are milliseconds since 1970. HTML is allowed in titles, summaries and bodi
 - **Bodies** are any of: `html`, `checks`, `beats` (`{ at, title, text }`), `gallery`
   (`{ src, at, caption }`), `image`, `video`, `compare` (`{ label, image, caption }`), `fields`
   (`{ label, text }`, each copyable).
+- **Images and videos stay where they are.** A card names the file in place, `~/Downloads/shot.png`
+  or an absolute path, in any of the fields above or an `<img src>` in its HTML; nothing is copied
+  into the board, so there's nothing to clean up when a card goes. The page shows a file only
+  when a card on its board names it, it's an image, video, audio or PDF, and it's inside the home
+  folder. A web URL works as usual. The phone's card page (a push) loads from the Mac's board
+  server, so it shows them too while it's on the same network; away from it, nothing on the card
+  loads (B6).
 
 ## A send, and the Record
 

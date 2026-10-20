@@ -19,6 +19,5 @@ docs-site/*.tsbuildinfo
 board/node_modules
 board/*.tsbuildinfo
 # The board (plans/06-board.md) lives in this project's home, .switchboard/board/. Its cards are
-# committed; images that must never enter the repo, and the author's sends, are not (lc-commit).
-.switchboard/board/private/
+# committed; the author's sends are not (lc-commit). Images stay where they are; cards point at them.
 .switchboard/board/state/

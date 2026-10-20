@@ -7,7 +7,6 @@
 //!   record.json        every decision the author sent (written by the board server)
 //!   kept.json          decisions whose work is done
 //!   state/             the author's sends and the agent's read marker (not committed)
-//!   private/           media that must never enter a repo (not committed)
 //!
 //! It follows the project: `<home>/.switchboard/board/` when the project keeps its settings in a
 //! repo, else `Projects/<slug>/board/` in the app folder, whose first card offers Keep. The agent

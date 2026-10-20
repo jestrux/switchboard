@@ -5,7 +5,7 @@
 //   .switchboard/board/board.json        project, stages, going-ahead calls
 //   .switchboard/board/cards/<id>.json   one card each; `order` sorts cards within their stage
 //   .switchboard/board/log.json          what the agent did, oldest first
-//   .switchboard/board/private/media/    images the cards show that never enter the repo (ignored)
+//   images and videos stay where they are; a card names them (`~/Downloads/shot.png`)
 //   .switchboard/board/state/            the author's sends (ignored)
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";

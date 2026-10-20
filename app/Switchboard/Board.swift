@@ -222,6 +222,9 @@ struct BoardPageView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
+        // Served as sbboard://board/, not file://, so a card can show an image where it already is.
+        let coordinator = context.coordinator
+        config.setURLSchemeHandler(BoardScheme(named: { [weak coordinator] in coordinator?.pushed ?? "" }), forURLScheme: BoardScheme.scheme)
         config.userContentController.add(context.coordinator, name: "board")
         let mode = review ? "window.BOARD_MODE = 'review'; window.BOARD_NEXT = \(Self.js(next ?? ""));" : ""
         config.userContentController.addUserScript(WKUserScript(source: "window.BOARD = \(json.isEmpty ? "null" : json);" + mode,
@@ -233,9 +236,7 @@ struct BoardPageView: NSViewRepresentable {
         context.coordinator.pushed = json
         context.coordinator.next = next ?? ""
         context.coordinator.onNext = onNext
-        if let page = Bundle.main.url(forResource: "index", withExtension: "html") {
-            web.loadFileURL(page, allowingReadAccessTo: page.deletingLastPathComponent())
-        }
+        web.load(URLRequest(url: URL(string: "\(BoardScheme.scheme)://board/index.html")!))
         return web
     }
 
@@ -291,6 +292,77 @@ struct BoardPageView: NSViewRepresentable {
             web?.evaluateJavaScript("window.__boardSent && window.__boardSent(\(ok));")
             Task { @MainActor in BoardCache.shared.refresh(self.project) }
         }
+    }
+}
+
+/// The board page's own origin: the page and its script from the app bundle, and the images and
+/// videos the cards point at where they already are, e.g. `~/Downloads/shot.png` (no copies to
+/// clean up). Only a file a card on this board names, a media type, inside the home folder: a
+/// card's HTML can't read anything else. Byte ranges are honoured, so videos play and seek.
+final class BoardScheme: NSObject, WKURLSchemeHandler {
+    static let scheme = "sbboard"
+    private static let bundled: Set<String> = ["index.html", "card.html", "marked.min.js"]
+    private static let page = ["html": "text/html", "js": "text/javascript"]
+    static let media = ["png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "gif": "image/gif", "webp": "image/webp",
+                        "heic": "image/heic", "svg": "image/svg+xml", "mp4": "video/mp4", "mov": "video/quicktime", "m4v": "video/mp4",
+                        "webm": "video/webm", "mp3": "audio/mpeg", "m4a": "audio/mp4", "wav": "audio/wav", "pdf": "application/pdf"]
+    /// The board's JSON as the page has it, to check a file is one its cards name.
+    let named: () -> String
+    init(named: @escaping () -> String) { self.named = named }
+
+    func webView(_ webView: WKWebView, start task: WKURLSchemeTask) {
+        let url = task.request.url ?? URL(string: "\(Self.scheme)://board/")!
+        guard let (file, type) = file(for: url), let data = try? Data(contentsOf: file, options: .mappedIfSafe) else {
+            task.didReceive(HTTPURLResponse(url: url, statusCode: 404, httpVersion: "HTTP/1.1", headerFields: [:])!)
+            task.didFinish()
+            return
+        }
+        var status = 200, body = data
+        var headers = ["Content-Type": type, "Accept-Ranges": "bytes", "Cache-Control": "no-cache"]
+        if let range = task.request.value(forHTTPHeaderField: "Range"), let (lo, hi) = Self.range(range, count: data.count) {
+            status = 206; body = data.subdata(in: lo..<(hi + 1))
+            headers["Content-Range"] = "bytes \(lo)-\(hi)/\(data.count)"
+        }
+        headers["Content-Length"] = String(body.count)
+        task.didReceive(HTTPURLResponse(url: url, statusCode: status, httpVersion: "HTTP/1.1", headerFields: headers)!)
+        task.didReceive(body)
+        task.didFinish()
+    }
+    func webView(_ webView: WKWebView, stop task: WKURLSchemeTask) {}
+
+    private func file(for url: URL) -> (URL, String)? {
+        let path = url.path.removingPercentEncoding ?? url.path
+        let trimmed = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        if Self.bundled.contains(trimmed), let f = Bundle.main.resourceURL?.appendingPathComponent(trimmed) {
+            return (f, Self.page[f.pathExtension] ?? "text/plain")
+        }
+        // `~/x` arrives as /~/x; an absolute `/Users/me/x` as itself.
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let written: [String], full: String
+        if trimmed.hasPrefix("~/") {
+            full = home + "/" + trimmed.dropFirst(2); written = [trimmed, full]
+        } else {
+            full = path; written = [path, "~" + path.dropFirst(home.count)]
+        }
+        guard let type = Self.media[(full as NSString).pathExtension.lowercased()] else { return nil }
+        let f = URL(fileURLWithPath: full).standardizedFileURL.resolvingSymlinksInPath()
+        guard f.path.hasPrefix(home + "/"), full.hasPrefix(home + "/") else { return nil }
+        let json = named()
+        guard written.contains(where: { json.contains("\"" + $0 + "\"") || json.contains("\\\"" + $0 + "\\\"") || json.contains("'" + $0 + "'") }) else { return nil }
+        var dir: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: f.path, isDirectory: &dir), !dir.boolValue else { return nil }
+        return (f, type)
+    }
+
+    /// `bytes=a-b`, `bytes=a-` or `bytes=-n`, clamped to the file.
+    private static func range(_ header: String, count: Int) -> (Int, Int)? {
+        guard count > 0, header.hasPrefix("bytes="), !header.contains(",") else { return nil }
+        let parts = header.dropFirst(6).split(separator: "-", omittingEmptySubsequences: false).map(String.init)
+        guard parts.count == 2 else { return nil }
+        let lo: Int, hi: Int
+        if parts[0].isEmpty { guard let n = Int(parts[1]), n > 0 else { return nil }; lo = max(0, count - n); hi = count - 1 }
+        else { guard let a = Int(parts[0]), a < count else { return nil }; lo = a; hi = min(Int(parts[1]) ?? count - 1, count - 1) }
+        return lo <= hi ? (lo, hi) : nil
     }
 }
 

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import type { ServerResponse } from "node:http";
+import os from "node:os";
 import path from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import { loadBoard, recordSend } from "./server/board";
@@ -7,7 +8,20 @@ import { loadBoard, recordSend } from "./server/board";
 // The board this repo keeps for itself: the board's own plan, as cards.
 const BOARD_DIR = path.resolve(__dirname, process.env.BOARD_DIR ?? "../.switchboard/board");
 
-const TYPES: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp", ".mp4": "video/mp4", ".mp3": "audio/mpeg", ".svg": "image/svg+xml" };
+const TYPES: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp", ".heic": "image/heic", ".svg": "image/svg+xml", ".mp4": "video/mp4", ".mov": "video/quicktime", ".m4v": "video/mp4", ".webm": "video/webm", ".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".wav": "audio/wav", ".pdf": "application/pdf" };
+const HOME = os.homedir();
+
+// A card's image or video where it already is (`~/Downloads/shot.png`), as the app serves it:
+// only a file a card on this board names, a media type, inside the home folder.
+function namedFile(url: string): string | null {
+  const p = decodeURIComponent(url.split("?")[0]);
+  const full = p.startsWith("/~/") ? path.join(HOME, p.slice(3)) : p;
+  const written = p.startsWith("/~/") ? [p.slice(1), full] : [full, "~" + full.slice(HOME.length)];
+  if (!TYPES[path.extname(full).toLowerCase()] || !path.resolve(full).startsWith(HOME + path.sep)) return null;
+  const json = JSON.stringify(loadBoard(BOARD_DIR));
+  if (!written.some((w) => json.includes(`"${w}"`) || json.includes(`\\"${w}\\"`) || json.includes(`'${w}'`))) return null;
+  return fs.existsSync(full) && fs.statSync(full).isFile() ? full : null;
+}
 
 // The page reads data.js (when /events says something changed, and every 15 s besides) and
 // posts its sends to /answers, as it does when Flex serves it.
@@ -16,7 +30,7 @@ function boardApi(): Plugin {
     name: "board-api",
     configureServer(server) {
       // Live arrival: tell every open page when a card, the board or the log changes. The
-      // author's own sends (state/) and private media don't need a re-read.
+      // author's own sends (state/) and private files don't need a re-read.
       const pages = new Set<ServerResponse>();
       let pending: NodeJS.Timeout | undefined;
       const watcher = fs.watch(BOARD_DIR, { recursive: true }, (_event, file) => {
@@ -62,14 +76,10 @@ function boardApi(): Plugin {
           });
           return;
         }
-        if (req.method === "GET" && url.startsWith("/media/")) {
-          const rel = decodeURIComponent(url.slice("/media/".length));
-          const roots = [path.join(BOARD_DIR, "media"), path.join(BOARD_DIR, "private", "media")];
-          const file = roots
-            .map((r) => [r, path.resolve(r, rel)])
-            .find(([r, f]) => f.startsWith(r + path.sep) && fs.existsSync(f) && fs.statSync(f).isFile())?.[1];
+        if (req.method === "GET" && (url.startsWith("/~/") || url.startsWith(HOME + "/"))) {
+          const file = namedFile(url);
           if (!file) return next();
-          res.setHeader("Content-Type", TYPES[path.extname(file).toLowerCase()] ?? "application/octet-stream");
+          res.setHeader("Content-Type", TYPES[path.extname(file).toLowerCase()]);
           fs.createReadStream(file).pipe(res);
           return;
         }
