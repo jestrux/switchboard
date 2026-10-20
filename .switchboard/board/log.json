@@ -388,5 +388,20 @@
     "item": "w-pane",
     "t": 1792502085378,
     "text": "Kept: The board as a pane beside the agent's terminal"
+  },
+  {
+    "item": "lc-home",
+    "t": 1792502085447,
+    "text": "Kept: Native SwiftUI, a web page, or both?"
+  },
+  {
+    "item": "w-modes",
+    "t": 1792502085468,
+    "text": "Kept: One board, three shapes, depending on the window"
+  },
+  {
+    "item": "w-pane",
+    "t": 1792502085491,
+    "text": "Kept: The board as a pane beside the agent's terminal"
   }
 ]
