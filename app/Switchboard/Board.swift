@@ -1,0 +1,287 @@
+import SwiftUI
+import WebKit
+
+// The board in a project window (plans/06-board.md, B2): where a coding agent hands the project
+// to its author. Native list and steps (the Mail model, decided on the board as lc-home); each
+// card's body in a web view of the same card page the phone shows. The board is files written by
+// `switchboard board …` (docs/board-contract.md); this reads them through the engine.
+
+extension CommandRef {
+    /// A pane can show the project's board instead of a command (decided on the board, w-pane).
+    static func board(_ project: String) -> CommandRef { CommandRef(project: project, address: "@board") }
+    var isBoard: Bool { address == "@board" }
+}
+
+// MARK: - Data
+
+struct BoardStep: Identifiable, Hashable {
+    let id: String, label: String, title: String, state: String
+}
+
+struct BoardCard: Identifiable, Hashable {
+    let id: String, stage: String, title: String, summary: String
+    let question: String?, unsure: Bool, blocking: Bool, version: Int
+    let options: [BoardOption]
+    /// Answered (a pick for this version is in the Record), from any device.
+    let decided: [String]?
+    var needsYou: Bool { question != nil && decided == nil }
+}
+
+struct BoardOption: Hashable {
+    let o: String, label: String, rec: Bool, then: String
+}
+
+struct BoardDecision: Identifiable, Hashable {
+    let id: String, title: String, labels: [String], notes: [String], at: Double
+}
+
+struct BoardData {
+    var json = ""
+    var steps: [BoardStep] = []
+    var cards: [BoardCard] = []
+    var record: [BoardDecision] = []
+    var needsYou: Int { cards.filter(\.needsYou).count }
+
+    init() {}
+    init(json: String) {
+        self.json = json
+        guard let root = (try? JSONSerialization.jsonObject(with: Data(json.utf8))) as? [String: Any] else { return }
+        let plain = { (h: Any?) -> String in
+            (h as? String ?? "").replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        }
+        steps = (root["stages"] as? [[String: Any]] ?? []).map {
+            BoardStep(id: $0["id"] as? String ?? "", label: $0["label"] as? String ?? "", title: plain($0["title"]), state: $0["state"] as? String ?? "")
+        }
+        let rec = root["record"] as? [[String: Any]] ?? []
+        record = rec.reversed().map {
+            BoardDecision(id: $0["id"] as? String ?? "", title: plain($0["title"]), labels: $0["labels"] as? [String] ?? [],
+                          notes: $0["notes"] as? [String] ?? [], at: ($0["at"] as? Double ?? 0) / 1000)
+        }
+        cards = (root["items"] as? [[String: Any]] ?? []).map { c in
+            let d = c["decision"] as? [String: Any]
+            let version = c["version"] as? Int ?? 1
+            let picked = rec.last { ($0["id"] as? String) == (c["id"] as? String) && !($0["pick"] is NSNull) && $0["pick"] != nil && ($0["version"] as? Int ?? 1) >= version }
+            return BoardCard(
+                id: c["id"] as? String ?? "", stage: c["stage"] as? String ?? "", title: plain(c["title"]), summary: plain(c["summary"]),
+                question: d.map { plain($0["q"]) }, unsure: d?["unsure"] != nil, blocking: c["blocking"] as? Bool ?? false, version: version,
+                options: (d?["options"] as? [[String: Any]] ?? []).map {
+                    BoardOption(o: "\($0["o"] ?? "")", label: plain($0["label"]), rec: $0["rec"] as? Bool ?? false, then: plain($0["then"]))
+                },
+                decided: picked.map { $0["labels"] as? [String] ?? [] })
+        }
+    }
+}
+
+/// Every open board, refreshed every 2 s while something shows it, re-parsed only when it changed.
+@MainActor
+final class BoardCache: ObservableObject {
+    static let shared = BoardCache()
+    @Published private(set) var boards: [String: BoardData] = [:]
+    private var watching: [String: Int] = [:]
+    private var timer: Timer?
+    weak var engine: Engine?
+
+    func data(_ slug: String) -> BoardData? { boards[slug] }
+
+    func watch(_ slug: String, engine: Engine) {
+        self.engine = engine
+        watching[slug, default: 0] += 1
+        refresh(slug)
+        if timer == nil {
+            timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+                Task { @MainActor in self?.refreshAll() }
+            }
+        }
+    }
+    func unwatch(_ slug: String) {
+        watching[slug, default: 1] -= 1
+        if watching[slug] ?? 0 <= 0 { watching[slug] = nil }
+        if watching.isEmpty { timer?.invalidate(); timer = nil }
+    }
+    func refresh(_ slug: String) {
+        guard let engine else { return }
+        let json = engine.boardSnapshot(slug: slug)
+        if json == boards[slug]?.json { return }
+        boards[slug] = json.map(BoardData.init(json:))
+    }
+    private func refreshAll() { for slug in watching.keys { refresh(slug) } }
+}
+
+// MARK: - Sidebar row
+
+/// "Board · 3" at the top of a project's commands; it opens the board in the focused pane.
+struct BoardRow: View {
+    @EnvironmentObject var store: EngineStore
+    @EnvironmentObject var context: WindowContext
+    @ObservedObject private var cache = BoardCache.shared
+    @Environment(\.sbPalette) private var p
+    let project: String
+    let indent: CGFloat
+
+    var body: some View {
+        // Zero-height anchor: an empty view never appears, so it would never start watching.
+        VStack(spacing: 0) {
+            Color.clear.frame(height: 0)
+            if let data = cache.data(project) {
+                let selected = context.selection == .board(project)
+                HStack(spacing: 8) {
+                    Image(systemName: "checklist").font(.system(size: 11, weight: .medium)).foregroundStyle(p.text3).frame(width: 14)
+                    Text("Board").font(.system(size: 13, weight: selected ? .semibold : .regular))
+                        .foregroundStyle(selected ? p.selectionText : p.text)
+                    Spacer(minLength: 4)
+                    if data.needsYou > 0 {
+                        Text("\(data.needsYou)").font(.system(size: 10, weight: .semibold)).monospacedDigit()
+                            .foregroundStyle(p.onAccent).padding(.horizontal, 5).frame(minWidth: 16, minHeight: 16)
+                            .background(p.accent, in: Capsule())
+                            .help("\(data.needsYou) need you")
+                    }
+                }
+                .padding(.leading, indent + 8).padding(.trailing, 8).frame(height: 28)
+                .background(selected ? p.selection : .clear, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .contentShape(Rectangle())
+                .onTapGesture { context.selection = .board(project) }
+            }
+        }
+        .onAppear { cache.watch(project, engine: store.engine) }
+        .onDisappear { cache.unwatch(project) }
+    }
+}
+
+// MARK: - The pane
+
+struct BoardPane: View {
+    @EnvironmentObject var store: EngineStore
+    @ObservedObject private var cache = BoardCache.shared
+    @Environment(\.sbPalette) private var p
+    let project: String
+    @State private var tab: Tab = .needs
+    @State private var selected: String?
+
+    enum Tab: String, CaseIterable { case needs = "Needs you", all = "Everything", record = "Record" }
+
+    var body: some View {
+        let data = cache.data(project) ?? BoardData()
+        HStack(spacing: 0) {
+            VStack(spacing: 0) {
+                Picker("", selection: $tab) {
+                    ForEach(Tab.allCases, id: \.self) { t in
+                        Text(t == .needs ? "Needs you \(data.needsYou)" : t.rawValue).tag(t)
+                    }
+                }
+                .pickerStyle(.segmented).labelsHidden().padding(10)
+                Divider()
+                if tab == .record { recordList(data) } else { cardList(data) }
+            }
+            .frame(width: 300)
+            Divider()
+            detail(data)
+        }
+        .background(p.pane)
+        .onAppear { cache.watch(project, engine: store.engine) }
+        .onDisappear { cache.unwatch(project) }
+    }
+
+    private func cardList(_ data: BoardData) -> some View {
+        let cards = tab == .needs ? data.cards.filter(\.needsYou) : data.cards
+        let stepsWith = data.steps.filter { s in cards.contains { $0.stage == s.id } }
+        return List(selection: $selected) {
+            ForEach(stepsWith) { s in
+                Section {
+                    ForEach(cards.filter { $0.stage == s.id }) { c in cardRow(c).tag(c.id) }
+                } header: {
+                    HStack(spacing: 6) {
+                        if !s.label.isEmpty { Text(s.label).font(.system(size: 11, design: .monospaced)).foregroundStyle(p.text3) }
+                        Text(s.title).font(.system(size: 11, weight: .semibold)).foregroundStyle(p.text2)
+                        if s.state == "now" { Text("now").font(.system(size: 10)).foregroundStyle(p.accentSoftText) }
+                    }
+                }
+            }
+            if cards.isEmpty {
+                Text(tab == .needs ? "Nothing needs you." : "No cards yet.").foregroundStyle(p.text3).frame(maxWidth: .infinity).padding(.top, 24)
+            }
+        }
+        .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
+        .onAppear { if selected == nil { selected = cards.first?.id } }
+    }
+
+    private func cardRow(_ c: BoardCard) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Circle().strokeBorder(c.needsYou ? p.accent : p.text3, lineWidth: 1.5).frame(width: 10, height: 10).padding(.top, 3)
+                .overlay { if c.decided != nil { Image(systemName: "checkmark").font(.system(size: 7, weight: .bold)).foregroundStyle(p.text3) } }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(c.title).font(.system(size: 13, weight: .medium)).foregroundStyle(p.text).lineLimit(2)
+                Text(c.decided.map { "→ " + $0.joined(separator: ", ") } ?? c.question ?? "For you to see")
+                    .font(.system(size: 11)).foregroundStyle(p.text3).lineLimit(1)
+            }
+            Spacer(minLength: 0)
+            if c.blocking && c.needsYou { pill("Blocking", fg: p.crashed) }
+            else if c.unsure && c.needsYou { pill("Unsure", fg: p.starting) }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func pill(_ t: String, fg: Color) -> some View {
+        Text(t).font(.system(size: 10, weight: .semibold)).foregroundStyle(fg)
+            .padding(.horizontal, 6).frame(height: 16).background(fg.opacity(0.12), in: Capsule())
+    }
+
+    private func recordList(_ data: BoardData) -> some View {
+        List(data.record) { r in
+            VStack(alignment: .leading, spacing: 2) {
+                Text(r.title).font(.system(size: 13, weight: .medium)).foregroundStyle(p.text).lineLimit(2)
+                Text(r.labels.isEmpty ? (r.notes.first ?? "A note") : "→ " + r.labels.joined(separator: ", "))
+                    .font(.system(size: 11)).foregroundStyle(p.text3).lineLimit(2)
+                Text(Date(timeIntervalSince1970: r.at).formatted(date: .abbreviated, time: .shortened)).font(.system(size: 10)).foregroundStyle(p.text3)
+            }
+            .padding(.vertical, 2)
+        }
+        .listStyle(.sidebar).scrollContentBackground(.hidden)
+    }
+
+    @ViewBuilder private func detail(_ data: BoardData) -> some View {
+        if tab != .record, let id = selected, data.cards.contains(where: { $0.id == id }) {
+            CardBodyView(json: data.json, cardId: id).frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            VStack(spacing: 8) {
+                Image(systemName: "checklist").font(.system(size: 26)).foregroundStyle(p.text3)
+                Text(tab == .record ? "What you decided, newest first." : "Pick a card.").foregroundStyle(p.text3)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+}
+
+// MARK: - A card's body
+
+/// The card page (`board/card.html`, bundled) in its `in=app` mode: just the card. The board's
+/// data is handed to it before it runs, as `window.BOARD`, so it needs no server.
+struct CardBodyView: NSViewRepresentable {
+    let json: String
+    let cardId: String
+
+    func makeNSView(context: Context) -> WKWebView {
+        let web = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        web.setValue(false, forKey: "drawsBackground")
+        load(web, context: context)
+        return web
+    }
+
+    func updateNSView(_ web: WKWebView, context: Context) {
+        if context.coordinator.loaded != json + cardId { load(web, context: context) }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+    final class Coordinator { var loaded = "" }
+
+    private func load(_ web: WKWebView, context: Context) {
+        context.coordinator.loaded = json + cardId
+        guard let page = Bundle.main.url(forResource: "card", withExtension: "html") else { return }
+        let ucc = web.configuration.userContentController
+        ucc.removeAllUserScripts()
+        ucc.addUserScript(WKUserScript(source: "window.BOARD = \(json);", injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        var c = URLComponents(url: page, resolvingAgainstBaseURL: false)!
+        c.queryItems = [URLQueryItem(name: "id", value: cardId), URLQueryItem(name: "in", value: "app")]
+        if let url = c.url { web.loadFileURL(url, allowingReadAccessTo: page.deletingLastPathComponent()) }
+    }
+}

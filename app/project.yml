@@ -29,6 +29,9 @@ targets:
     sources:
       - path: Switchboard
       - path: Generated
+      # The board's card page, shown in a web view in the board pane (plans/06-board.md, B2).
+      - path: ../board/card.html
+        buildPhase: resources
       # The agent skill, linked into ~/.claude/skills by Install switchboard Command.
       - path: ../skills
         type: folder

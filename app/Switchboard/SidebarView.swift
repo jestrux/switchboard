@@ -159,6 +159,8 @@ struct SidebarView: View {
 
     @ViewBuilder
     private func projectContents(_ project: ProjectInfo, indent: CGFloat) -> some View {
+        // The board first: what needs the author, then the commands (plans/06-board.md, B2).
+        BoardRow(project: project.slug, indent: indent).id("\(project.slug):@board")
         // Ids are prefixed with the project so two projects' `frontend/dev` rows never share identity.
         ForEach(project.commands, id: \.address) { cmd in
             CommandRow(project: project.slug, command: cmd, indent: indent)

@@ -108,7 +108,9 @@ struct PaneView: View {
                 if let ref = leaf.ref, let state = Optional(store.state(ref)), state.status == .crashed, let at = state.restartAt, let total = backoffTotal(state) {
                     BackoffBar(restartAt: at, total: total)
                 }
-                if let ref = leaf.ref {
+                if let ref = leaf.ref, ref.isBoard {
+                    BoardPane(project: ref.project)
+                } else if let ref = leaf.ref {
                     PaneBody(leaf: leaf, ref: ref, tier: tier)
                 } else {
                     EmptyPane(leaf: leaf, tier: tier)
@@ -257,7 +259,9 @@ struct PaneBar: View {
         let cmd = ref.flatMap(store.command)
         let fg = focused || hovering ? p.text : p.text3
         HStack(spacing: 8) {
-            if let ref {
+            if let ref, ref.isBoard {
+                Image(systemName: "checklist").font(.system(size: 12, weight: .medium)).foregroundStyle(p.text2)
+            } else if let ref {
                 StatusGlyph(status: state.status, restartAt: state.restartAt, restartTotal: backoffTotal(state))
                 if tier != .min, context.scope == .all || ref.project != scopeSlug, let proj = store.project(ref.project), showsProjectIcon(ref) {
                     ProjectIcon(project: proj, size: 16, radius: 4)
@@ -290,7 +294,7 @@ struct PaneBar: View {
                 chip(tier == .full ? "Maximized · \(context.layout.leafCount) panes" : "Max", bg: p.hover, fg: p.text2, icon: "arrow.down.right.and.arrow.up.left")
                     .help("Maximized: ⌘⇧↩ restores the split")
             }
-            if tier != .min, ref != nil {
+            if tier != .min, ref != nil, ref?.isBoard != true {
                 // Only a pending restart counts down; everything else is static text.
                 if state.restartAt != nil {
                     TimelineView(.periodic(from: .now, by: 1)) { _ in statusLabel(state, cmd: cmd, p: p) }
@@ -302,7 +306,8 @@ struct PaneBar: View {
                 }
             }
             Spacer(minLength: 4)
-            actions(ref: ref, state: state, cmd: cmd, fg: focused || hovering ? p.text2 : p.text3, p: p)
+            // The board isn't a command: no start, stop or restart (the split button stays).
+            actions(ref: ref?.isBoard == true ? nil : ref, state: state, cmd: cmd, fg: focused || hovering ? p.text2 : p.text3, p: p)
         }
         .padding(.horizontal, 10)
         .frame(height: SBMetrics.paneBar)
@@ -317,6 +322,7 @@ struct PaneBar: View {
 
     /// `Group / name` as one Text so the menu label measures correctly.
     private func titleText(cmd: CommandInfo?, ref: CommandRef?, fg: Color, p: SBPalette) -> Text {
+        if ref?.isBoard == true { return Text("Board").foregroundStyle(fg) }
         guard let cmd else { return Text("Empty pane").foregroundStyle(p.text3) }
         var prefix = ""
         if tier == .full, let g = cmd.groupId, let proj = ref.flatMap({ store.project($0.project) }),

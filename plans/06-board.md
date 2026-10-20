@@ -335,7 +335,7 @@ bodies in a web view built from Track A's page, and the board as a pane beside a
 
 - [x] 1 · The engine and bridge: `Board::snapshot` and `record_send` in `sb-core` (the send, the
   Record, unblocking), and `board_snapshot`, `board_dir`, `board_record_send` in `sb-ffi`
-- [ ] 2 · The pane: a Board row at the top of a project's sidebar opens the board as a pane;
+- [x] 2 · The pane: a Board row at the top of a project's sidebar opens the board as a pane;
   native steps and Needs you / Everything / Record on the left, the card's body in a web view
 - [ ] 3 · Answering: native option buttons, a note, Send; J/K, 1–9, ↵ for my pick when sure
 - [ ] 4 · Review mode: one card at a time, taking the pane over

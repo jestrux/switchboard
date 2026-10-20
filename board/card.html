@@ -76,6 +76,8 @@
   var b = it.body || {};
   var more = (b.html || "") + ((b.checks && b.checks.length) ? "<ul>" + b.checks.map(function (c) { return "<li>" + c.text + "</li>"; }).join("") + "</ul>" : "");
   if (more) h += "<details" + (where === "page" ? " open" : "") + "><summary>The whole card</summary><div class='body'>" + more + "</div></details>";
+  // In the app (in=app) the card's body only: the board pane answers natively.
+  if (d && where === "app") { app.innerHTML = h; return; }
   if (d) {
     h += "<p class='q'>" + esc(plain(d.q)) + (d.multi ? " <span style='font-weight:400;color:var(--ink-3)'>(pick any)</span>" : "") + "</p><div class='opts'>";
     opts.forEach(function (o, i) { h += "<button class='opt' data-o='" + esc(o.o) + "' aria-pressed='false'><span class='n'>" + (i + 1) + "</span><span class='t'><b>" + o.label + "</b>" + (o.sub ? "<span>" + o.sub + "</span>" : "") + "</span>" + (o.rec ? "<span class='rec'>my pick</span>" : "") + "</button>"; });
