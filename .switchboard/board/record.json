@@ -1,227 +1,227 @@
 [
   {
+    "at": 1792482212690,
+    "from": "board",
     "id": "w-name",
-    "title": "Switchboard already calls its main window \"the board\"",
-    "step": "windows",
-    "version": 1,
-    "pick": "board",
     "labels": [
       "Keep \"board\" and rename Switchboard's main window"
     ],
+    "notes": [],
+    "pick": "board",
     "rec": "review",
-    "way": "way",
-    "notes": [],
-    "at": 1792482212690,
-    "from": "board"
+    "step": "windows",
+    "title": "Switchboard already calls its main window \"the board\"",
+    "version": 1,
+    "way": "way"
   },
   {
-    "id": "w-mainname",
-    "title": "What should Switchboard's main window be called now?",
-    "step": "windows",
-    "version": 1,
-    "pick": "all",
-    "labels": [
-      "All Projects"
-    ],
-    "rec": "all",
-    "way": "agreed",
-    "notes": [],
     "at": 1792482285515,
-    "from": "board"
-  },
-  {
+    "from": "board",
     "id": "w-mainname",
-    "title": "What should Switchboard's main window be called now?",
-    "step": "windows",
-    "version": 1,
-    "pick": "all",
     "labels": [
       "All Projects"
     ],
-    "rec": "all",
-    "way": "agreed",
     "notes": [],
-    "at": 1792482373291,
-    "from": "board"
+    "pick": "all",
+    "rec": "all",
+    "step": "windows",
+    "title": "What should Switchboard's main window be called now?",
+    "version": 1,
+    "way": "agreed"
   },
   {
-    "id": "lc-commit",
-    "title": "Should .board/ be committed?",
-    "step": "closer",
+    "at": 1792482373291,
+    "from": "board",
+    "id": "w-mainname",
+    "labels": [
+      "All Projects"
+    ],
+    "notes": [],
+    "pick": "all",
+    "rec": "all",
+    "step": "windows",
+    "title": "What should Switchboard's main window be called now?",
     "version": 1,
-    "pick": null,
+    "way": "agreed"
+  },
+  {
+    "at": 1792493664601,
+    "from": "board",
+    "id": "lc-commit",
     "labels": [],
-    "rec": "cards",
-    "way": null,
     "notes": [
       "Don't we already have .switchboard folder as part of our API and it includes project file and i think commands file in there, maybe we just append to this? Look and tell me"
     ],
-    "at": 1792493664601,
-    "from": "board"
+    "pick": null,
+    "rec": "cards",
+    "step": "closer",
+    "title": "Should .board/ be committed?",
+    "version": 1,
+    "way": null
   },
   {
+    "at": 1792493664601,
+    "from": "board",
     "id": "c-reason",
-    "title": "Every card says why it's there",
-    "step": "cards",
-    "version": 1,
-    "pick": "yes",
     "labels": [
       "Yes: six reasons, each a filter"
     ],
-    "rec": "yes",
-    "way": "agreed",
     "notes": [],
-    "at": 1792493664601,
-    "from": "board"
+    "pick": "yes",
+    "rec": "yes",
+    "step": "cards",
+    "title": "Every card says why it's there",
+    "version": 1,
+    "way": "agreed"
   },
   {
+    "at": 1792494239170,
+    "from": "board",
     "id": "lc-commit",
-    "title": "Put the board in the project's .switchboard/ folder?",
-    "step": "closer",
-    "version": 2,
-    "pick": null,
     "labels": [],
-    "rec": "home",
-    "way": null,
     "notes": [
       "Question of course becomes what if they haven't selected a home folder? Coz this is usually not there by default, right?"
     ],
-    "at": 1792494239170,
-    "from": "board"
+    "pick": null,
+    "rec": "home",
+    "step": "closer",
+    "title": "Put the board in the project's .switchboard/ folder?",
+    "version": 2,
+    "way": null
   },
   {
+    "at": 1792494345648,
+    "from": "board",
     "id": "lc-commit",
-    "title": "Where does the board live, home or no home?",
-    "step": "closer",
-    "version": 3,
-    "pick": "follow",
     "labels": [
       "The home if there is one, else the app folder; the first card offers Keep"
     ],
-    "rec": "follow",
-    "way": "agreed",
     "notes": [],
-    "at": 1792494345648,
-    "from": "board"
+    "pick": "follow",
+    "rec": "follow",
+    "step": "closer",
+    "title": "Where does the board live, home or no home?",
+    "version": 3,
+    "way": "agreed"
   },
   {
+    "at": 1792495063789,
+    "from": "board",
     "id": "v-sidebar",
-    "title": "The sidebar: the plan is the big picture, and a heading for the zone",
-    "step": "views",
-    "version": 1,
-    "pick": null,
     "labels": [],
-    "rec": "move",
-    "way": null,
     "notes": [
       "Maybe no title at all, the plan will group the stuff below it"
     ],
-    "at": 1792495063789,
-    "from": "board"
+    "pick": null,
+    "rec": "move",
+    "step": "views",
+    "title": "The sidebar: the plan is the big picture, and a heading for the zone",
+    "version": 1,
+    "way": null
   },
   {
+    "at": 1792495472574,
+    "from": "board",
     "id": "v-sidebar",
-    "title": "The sidebar: keep it as it is, and fold the overview into the plan",
-    "step": "views",
-    "version": 2,
-    "pick": "asis",
     "labels": [
       "Keep it as it is; fold the overview under The plan"
     ],
-    "rec": "asis",
-    "way": "agreed",
     "notes": [],
-    "at": 1792495472574,
-    "from": "board"
+    "pick": "asis",
+    "rec": "asis",
+    "step": "views",
+    "title": "The sidebar: keep it as it is, and fold the overview into the plan",
+    "version": 2,
+    "way": "agreed"
   },
   {
+    "at": 1792498690774,
+    "from": "board",
     "id": "lc-lifecycle",
-    "title": "Decided cards: take them off, or keep them as the record?",
-    "step": "a5",
-    "version": 1,
-    "pick": "keep",
     "labels": [
       "Stay on the board, collapsed as Handled (the Flex way)"
     ],
-    "rec": "record",
-    "way": "unsure",
     "notes": [],
-    "at": 1792498690774,
-    "from": "board"
+    "pick": "keep",
+    "rec": "record",
+    "step": "a5",
+    "title": "Decided cards: take them off, or keep them as the record?",
+    "version": 1,
+    "way": "unsure"
   },
   {
+    "at": 1792498690774,
+    "from": "board",
     "id": "v-overview",
-    "title": "What the overview adds under The plan",
-    "step": "a5",
-    "version": 2,
-    "pick": "all",
     "labels": [
       "All three: since you last looked, health, what's owed"
     ],
-    "rec": "all",
-    "way": "agreed",
     "notes": [],
-    "at": 1792498690774,
-    "from": "board"
+    "pick": "all",
+    "rec": "all",
+    "step": "a5",
+    "title": "What the overview adds under The plan",
+    "version": 2,
+    "way": "agreed"
   },
   {
+    "at": 1792499206506,
+    "from": "board",
     "id": "a-contract",
-    "title": "The board's contract: Flex's as it is, or trimmed for software?",
-    "step": "b1",
-    "version": 1,
-    "pick": "fork",
     "labels": [
       "Fork it: a separate contract for the board"
     ],
-    "rec": "core",
-    "way": "way",
     "notes": [],
-    "at": 1792499206506,
-    "from": "board"
+    "pick": "fork",
+    "rec": "core",
+    "step": "b1",
+    "title": "The board's contract: Flex's as it is, or trimmed for software?",
+    "version": 1,
+    "way": "way"
   },
   {
+    "at": 1792499870304,
+    "from": "board",
     "id": "lc-home",
-    "title": "Native SwiftUI, a web page, or both?",
-    "step": "b2",
-    "version": 1,
-    "pick": "mail",
     "labels": [
       "Native SwiftUI chrome, card bodies in a web view (the Mail model), inside Switchboard"
     ],
-    "rec": "mail",
-    "way": "unsure",
     "notes": [],
-    "at": 1792499870304,
-    "from": "board"
+    "pick": "mail",
+    "rec": "mail",
+    "step": "b2",
+    "title": "Native SwiftUI, a web page, or both?",
+    "version": 1,
+    "way": "unsure"
   },
   {
+    "at": 1792499870304,
+    "from": "board",
     "id": "w-modes",
-    "title": "One board, three shapes, depending on the window",
-    "step": "b2",
-    "version": 1,
-    "pick": "three",
     "labels": [
       "Three shapes: a count in the main window, the room in a project window, the zone in the Boards window"
     ],
-    "rec": "three",
-    "way": "agreed",
     "notes": [],
-    "at": 1792499870304,
-    "from": "board"
+    "pick": "three",
+    "rec": "three",
+    "step": "b2",
+    "title": "One board, three shapes, depending on the window",
+    "version": 1,
+    "way": "agreed"
   },
   {
+    "at": 1792500143446,
+    "from": "board",
     "id": "w-pane",
-    "title": "The board as a pane beside the agent's terminal",
-    "step": "b2",
-    "version": 1,
-    "pick": "yes",
     "labels": [
       "Yes: a board pane you can split beside any terminal"
     ],
-    "rec": "yes",
-    "way": "agreed",
     "notes": [],
-    "at": 1792500143446,
-    "from": "board"
+    "pick": "yes",
+    "rec": "yes",
+    "step": "b2",
+    "title": "The board as a pane beside the agent's terminal",
+    "version": 1,
+    "way": "agreed"
   }
 ]

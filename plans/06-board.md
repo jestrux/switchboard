@@ -337,7 +337,9 @@ bodies in a web view built from Track A's page, and the board as a pane beside a
   Record, unblocking), and `board_snapshot`, `board_dir`, `board_record_send` in `sb-ffi`
 - [x] 2 · The pane: a Board row at the top of a project's sidebar opens the board as a pane;
   native steps and Needs you / Everything / Record on the left, the card's body in a web view
-- [ ] 3 · Answering: native option buttons, a note, Send; J/K, 1–9, ↵ for my pick when sure
+- [x] 3 · Answering: native option buttons (mine marked, "Then I'll …"), a note, Send (⌘↵), written
+  through the engine (`from: app`); then the next card that needs you. Keys J/K, 1–9, ↵ for my
+  pick when sure are in, not yet driven in a test
 - [ ] 4 · Review mode: one card at a time, taking the pane over
 - [ ] 5 · The count in All Projects: a badge on each project's tile
 
@@ -428,6 +430,9 @@ limits included.
 **Verifiables**
 
 - Idle CPU under 2% with 14 commands running, measured with `top` and a `sample`
+- A reinstall (`scripts/package.sh`) quits the app, which stops every running command; on
+  2026-10-20 one relaunch asked "Start the 14 commands that were running?" instead of bringing
+  them back. Make a reinstall leave the author's commands as they were
 
 **Gate.** Switchboard is quiet when nothing is happening.
 
