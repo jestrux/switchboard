@@ -534,6 +534,21 @@ impl Board {
         Ok(entry)
     }
 
+    /// The author has seen a card that asks nothing (said in chat): a Record entry with no pick and
+    /// `way: seen`, so every device treats it as handled, not only the browser it was marked in.
+    pub fn seen(&self, id: &str) -> Result<(), String> {
+        let c = self.card(id).ok_or(format!("no card {id}"))?;
+        if c["decision"].is_object() {
+            return Err(format!("{id} asks a question; answer it (decide) instead"));
+        }
+        let mut record = read(&self.p("record.json"), json!([]));
+        record.as_array_mut().ok_or("record.json isn't a list")?.push(json!({
+            "id": id, "title": c["title"].as_str().unwrap_or(id), "step": c["stage"].as_str().unwrap_or(""),
+            "version": c["version"].as_i64().unwrap_or(1), "pick": null, "labels": [], "rec": null, "way": "seen",
+            "notes": [], "at": now(), "from": "chat" }));
+        write(&self.p("record.json"), &record)
+    }
+
     /// Has the author sent a pick for this card (any version)?
     pub fn answered(&self) -> std::collections::HashSet<String> {
         let rec = read(&self.p("record.json"), json!([]));
@@ -550,6 +565,18 @@ mod tests {
         let b = Board { dir: t.path().join("board"), app_slug: None };
         b.step("a1", Some("now"), &[("title", "First")], None).unwrap();
         (t, b)
+    }
+
+    #[test]
+    fn seen_is_for_cards_that_ask_nothing() {
+        let (_t, b) = board();
+        b.add(json!({ "id": "s", "stage": "a1", "title": "S" }), false, false).unwrap();
+        b.add(json!({ "id": "d", "stage": "a1", "title": "D", "decision": { "q": "Q", "options": [{ "o": "a", "label": "A", "rec": 1 }] } }), false, false).unwrap();
+        assert!(b.seen("d").unwrap_err().contains("decide"));
+        b.seen("s").unwrap();
+        let rec = read(&b.p("record.json"), json!([]));
+        assert_eq!((rec[0]["way"].clone(), rec[0]["pick"].clone()), (json!("seen"), Value::Null));
+        assert!(!b.answered().contains("s"));
     }
 
     #[test]

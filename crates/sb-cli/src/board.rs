@@ -104,6 +104,8 @@ pub enum BoardCmd {
         #[arg(long)]
         note: Option<String>,
     },
+    /// The author has seen these (cards that ask nothing), on every device
+    Seen { ids: Vec<String> },
     /// A decision's work is done; it leaves What's owed
     Kept {
         id: String,
@@ -237,6 +239,12 @@ pub fn run(projects_dir: &Path, dir: Option<PathBuf>, cmd: BoardCmd) -> Result<i
                 let labels: Vec<&str> = entry["labels"].as_array().into_iter().flatten().filter_map(|l| l.as_str()).collect();
                 e(b.log(&format!("Decided in chat: {} · {}", board::plain(entry["title"].as_str().unwrap_or(&id)), labels.join(", ")), Some(&id)))?;
                 println!("decided {id}: {}", labels.join(", "));
+            }
+        }
+        BoardCmd::Seen { ids } => {
+            for id in ids {
+                e(b.seen(&id))?;
+                println!("seen {id}");
             }
         }
         BoardCmd::Kept { id, commit, undo } => {

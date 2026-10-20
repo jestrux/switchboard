@@ -97,4 +97,6 @@ stage, title, version, pick, labels, rec, way, notes: [{ text }] }], objections 
 `board`, `card` (the phone's card page) or `notification`. The server keeps it in
 `state/answers.json` and writes each decision to `record.json`: `{ id, title, step, version,
 pick, labels, rec, way, notes, at, from }`. `way` is `agreed`, `way` (against the
-recommendation) or `note`.
+recommendation) or `note`. Two entries come from the conversation instead (`from: chat`):
+`switchboard board decide` (`agreed` or `chose`), and `switchboard board seen` for a card that asks
+nothing (`way: seen`, no pick), which every device then treats as seen.

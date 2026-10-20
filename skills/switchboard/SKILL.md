@@ -153,6 +153,7 @@ switchboard board working "what you're doing" [--stage <step>]
 switchboard board step <id> done|now|next|later        # the plan's steps, in the sidebar
 switchboard board kept <id> [--commit <sha>]           # a decision's work is done
 switchboard board decide <id>… [--pick o] [--note …]   # the author decided in chat, not on the board
+switchboard board seen <id>…                           # the author has seen these (cards with no question)
 switchboard board answers --wait                       # keep this running in the background
 ```
 

@@ -505,5 +505,117 @@
     "title": "Tear the board off into its own window",
     "version": 1,
     "way": "agreed"
+  },
+  {
+    "at": 1792511493661,
+    "from": "chat",
+    "id": "m-notify",
+    "labels": [
+      "Blocked only, with my pick and a reply right in the notification"
+    ],
+    "notes": [
+      "Pasted from the board's copied send, 18:50"
+    ],
+    "pick": "act",
+    "rec": "act",
+    "step": "b4",
+    "title": "Answer from the notification",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792512198284,
+    "from": "chat",
+    "id": "lc-home",
+    "labels": [
+      "The whole board as a web view inside Switchboard"
+    ],
+    "notes": [
+      "Yes in chat: the whole board as a web view in Switchboard (what B2 built)"
+    ],
+    "pick": "web",
+    "rec": "mail",
+    "step": "b2",
+    "title": "Native SwiftUI, a web page, or both?",
+    "version": 2,
+    "way": "chose"
+  },
+  {
+    "at": 1792512198292,
+    "from": "chat",
+    "id": "today-loop",
+    "labels": [],
+    "notes": [],
+    "pick": null,
+    "rec": null,
+    "step": "a1",
+    "title": "How a project hands itself to you today",
+    "version": 2,
+    "way": "seen"
+  },
+  {
+    "at": 1792512198292,
+    "from": "chat",
+    "id": "fx-now",
+    "labels": [],
+    "notes": [],
+    "pick": null,
+    "rec": null,
+    "step": "a1",
+    "title": "Second look: Flex's prototype has grown",
+    "version": 1,
+    "way": "seen"
+  },
+  {
+    "at": 1792512198293,
+    "from": "chat",
+    "id": "fx-now-lift",
+    "labels": [],
+    "notes": [],
+    "pick": null,
+    "rec": null,
+    "step": "a1",
+    "title": "What the second look adds for us",
+    "version": 1,
+    "way": "seen"
+  },
+  {
+    "at": 1792512198293,
+    "from": "chat",
+    "id": "fx-tour",
+    "labels": [],
+    "notes": [],
+    "pick": null,
+    "rec": null,
+    "step": "a1",
+    "title": "First look: I walked through Flex's prototype",
+    "version": 1,
+    "way": "seen"
+  },
+  {
+    "at": 1792512198293,
+    "from": "chat",
+    "id": "fx-lift",
+    "labels": [],
+    "notes": [],
+    "pick": null,
+    "rec": null,
+    "step": "a1",
+    "title": "What I'd take from it, and what changes for software",
+    "version": 1,
+    "way": "seen"
+  },
+  {
+    "at": 1792512198294,
+    "from": "chat",
+    "id": "ph-found",
+    "labels": [],
+    "notes": [],
+    "pick": null,
+    "rec": null,
+    "step": "p",
+    "title": "What Fuchi and the crotchet worker already give us",
+    "version": 1,
+    "way": "seen"
   }
 ]

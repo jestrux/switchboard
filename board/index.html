@@ -789,6 +789,7 @@ function status(it) {
   if (ms === 'ready' || ms === 'making') return 'needs';
   if (it.decision && realPick(it, a) && a.v >= it.version) return 'handled';
   var s = S.seen[it.id]; if (s && s >= it.version) return 'handled';
+  if (!it.decision && (D.record || []).some(function (x) { return x.id === it.id && x.way === 'seen' && (x.version || 1) >= it.version; })) return 'handled';  // seen, said in chat: on every device
   if (it.decision && decided(it)) return 'handled';  // answered on another device, or before
   return it.decision ? 'needs' : 'see';
 }
@@ -2189,6 +2190,7 @@ function statusBars() {
 function recordRows() {
   var seen = {}, rows = [];
   (D.record || []).forEach(function (r) {
+    if (r.way === 'seen') return;  // a card that asked nothing, marked seen: not a decision
     if (!seen[r.id]) { seen[r.id] = { r: r, notes: [] }; rows.push(seen[r.id]); }
     var e = seen[r.id];
     if (e.r.pick == null && r.pick != null) e.r = r;
@@ -2271,7 +2273,7 @@ function owedRows() {
 function sinceLine() {
   var since = S.prevVisit || 0, bits = [];
   var fresh = D.items.filter(function (it) { return (it.updated || 0) > since && needsYou(it); }).length;
-  var answered = (D.record || []).filter(function (r) { return (r.at || 0) > since; }).length;
+  var answered = (D.record || []).filter(function (r) { return (r.at || 0) > since && r.way !== 'seen'; }).length;
   var done = D.log.filter(function (l) { return l.t > since && /^Done: /.test(l.text); }).map(function (l) { return plain(l.text).replace(/^Done: /, '').split(' · ')[0]; });
   var commits = ((D.health || {}).commits || []).filter(function (c) { return c.t > since; }).length;
   if (fresh) bits.push(plural(fresh, 'new card'));
