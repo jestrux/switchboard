@@ -324,6 +324,10 @@ first real `ask` through the new CLI checks its push on the phone.
 
 ### B2 · The board in a project window
 
+**Decided 2026-10-20 on the board:** native SwiftUI chrome with card bodies in a web view (the
+Mail model, `lc-home`), and three shapes by window: a count in All Projects, the full board in a
+project window, review mode in the Boards window (`w-modes`). The PRD's non-goal is amended.
+
 **Brief.** The board in SwiftUI in a project's window: list, rail and review mode, with card
 bodies in a web view built from Track A's page, and the board as a pane beside a terminal.
 
@@ -429,8 +433,6 @@ Answer these on the board before the step they affect:
 
 - **The contract: Flex's core plus optional fields, or a fork** (`a-contract`). Shapes A2
   and B1.
-- **Native SwiftUI, a web page, or both** (`lc-home`). Shapes B2.
-- **The three window shapes** (`w-modes`). Shapes B2 and B5.
 
 ## Deferred
 

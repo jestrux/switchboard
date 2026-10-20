@@ -1,27 +1,19 @@
 {
-  "id": "lc-home",
-  "stage": "b2",
-  "title": "Native SwiftUI, a web page, or both?",
-  "tags": [
-    "Look closer",
-    "Switchboard"
-  ],
-  "updated": 1792468800000,
-  "version": 1,
+  "askedAt": 1792499722282,
+  "blocking": false,
   "decision": {
-    "q": "How should the board be built?",
     "options": [
       {
-        "o": "mail",
-        "label": "Native SwiftUI chrome, card bodies in a web view (the Mail model), inside Switchboard",
-        "rec": 1,
         "act": "SwiftUI the board (rail, list, review mode, windows, menu bar) + WKWebView card bodies from the contract; amend the PRD's non-goal",
+        "label": "Native SwiftUI chrome, card bodies in a web view (the Mail model), inside Switchboard",
+        "o": "mail",
+        "rec": 1,
         "then": "Build the board in SwiftUI inside Switchboard, show each card's body in a web view from the data contract, and amend the PRD's non-goal."
       },
       {
-        "o": "web",
-        "label": "The whole board as a web view inside Switchboard",
         "act": "WKWebView of the board app in a Switchboard pane",
+        "label": "The whole board as a web view inside Switchboard",
+        "o": "web",
         "out": [
           [
             "Trade-off",
@@ -30,8 +22,8 @@
         ]
       },
       {
-        "o": "apart",
         "label": "Its own Mac app that talks to Switchboard's socket",
+        "o": "apart",
         "out": [
           [
             "Trade-off",
@@ -40,8 +32,8 @@
         ]
       },
       {
-        "o": "page",
         "label": "A page in the browser, served by Switchboard",
+        "o": "page",
         "out": [
           [
             "Trade-off",
@@ -50,14 +42,24 @@
         ]
       }
     ],
+    "q": "How should the board be built?",
+    "unsure": {
+      "where": "<code>switchboard/handoff/PRD.md:22</code> (the non-goal); <code>app/Switchboard/PaneLayout.swift:96</code> (a pane leaf holds a terminal, the seam for a board pane); the prototype's <code>review/index.html</code> (the bodies).",
+      "why": "Two pulls. A Mac app's pleasures (real lists, menus that list every key, ⌘Z, window tabs, tearing off windows, Quick Look, the menu bar, widgets, Spotlight) argue for native SwiftUI. But Flex's card bodies (waveforms, storyboards, Swipe and Flip compares, timecoded players) are rich HTML that already works, and rebuilding each in SwiftUI is a lot of work for little gain. Switchboard's PRD also lists \"AI-agent orchestration\" as a non-goal, so any version of this changes what Switchboard is."
+    },
     "why": [
       "<b>Mail's model: native chrome, web bodies.</b> Mail draws its mailbox list, toolbar, keys and windows natively and shows each message in a web view. Do the same here: the rail, the list, review mode, windows, the menu bar and notifications in SwiftUI; each card's body (checks, beats, gallery, compare, video, fields) in a WKWebView, from the same data contract. Flex's bodies are reused, and everything you touch feels like a Mac app.",
       "It lives in Switchboard, because Switchboard already knows the projects, the agents' sessions and the servers, and its skill is already in every agent."
-    ],
-    "unsure": {
-      "why": "Two pulls. A Mac app's pleasures (real lists, menus that list every key, ⌘Z, window tabs, tearing off windows, Quick Look, the menu bar, widgets, Spotlight) argue for native SwiftUI. But Flex's card bodies (waveforms, storyboards, Swipe and Flip compares, timecoded players) are rich HTML that already works, and rebuilding each in SwiftUI is a lot of work for little gain. Switchboard's PRD also lists \"AI-agent orchestration\" as a non-goal, so any version of this changes what Switchboard is.",
-      "where": "<code>switchboard/handoff/PRD.md:22</code> (the non-goal); <code>app/Switchboard/PaneLayout.swift:96</code> (a pane leaf holds a terminal, the seam for a board pane); the prototype's <code>review/index.html</code> (the bodies)."
-    }
+    ]
   },
-  "order": 10
+  "id": "lc-home",
+  "order": 10,
+  "stage": "b2",
+  "tags": [
+    "Look closer",
+    "Switchboard"
+  ],
+  "title": "Native SwiftUI, a web page, or both?",
+  "updated": 1792468800000,
+  "version": 1
 }

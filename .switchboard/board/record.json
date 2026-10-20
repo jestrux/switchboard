@@ -178,5 +178,35 @@
     "notes": [],
     "at": 1792499206506,
     "from": "board"
+  },
+  {
+    "id": "lc-home",
+    "title": "Native SwiftUI, a web page, or both?",
+    "step": "b2",
+    "version": 1,
+    "pick": "mail",
+    "labels": [
+      "Native SwiftUI chrome, card bodies in a web view (the Mail model), inside Switchboard"
+    ],
+    "rec": "mail",
+    "way": "unsure",
+    "notes": [],
+    "at": 1792499870304,
+    "from": "board"
+  },
+  {
+    "id": "w-modes",
+    "title": "One board, three shapes, depending on the window",
+    "step": "b2",
+    "version": 1,
+    "pick": "three",
+    "labels": [
+      "Three shapes: a count in the main window, the room in a project window, the zone in the Boards window"
+    ],
+    "rec": "three",
+    "way": "agreed",
+    "notes": [],
+    "at": 1792499870304,
+    "from": "board"
   }
 ]

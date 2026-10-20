@@ -348,5 +348,20 @@
     "item": "a-contract",
     "t": 1792499633660,
     "text": "B1: the board store in sb-core and switchboard board; the Node CLI retired"
+  },
+  {
+    "item": null,
+    "t": 1792499722259,
+    "text": "Now: B2 · The board in a project window"
+  },
+  {
+    "item": "lc-home",
+    "t": 1792499722283,
+    "text": "Blocked on you: Native SwiftUI, a web page, or both?"
+  },
+  {
+    "item": "w-modes",
+    "t": 1792499724680,
+    "text": "Blocked on you: One board, three shapes, depending on the window"
   }
 ]

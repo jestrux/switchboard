@@ -47,7 +47,12 @@
       }
     ],
     "stagesLabel": "The plan",
-    "working": null
+    "working": {
+      "item": "lc-home",
+      "since": 1792499726209,
+      "stage": "b2",
+      "text": "B2: waiting on lc-home and w-modes"
+    }
   },
   "stages": [
     {
@@ -119,7 +124,7 @@
       "doc": "plans/06-board.md#B2",
       "id": "b2",
       "label": "B2",
-      "state": "next",
+      "state": "now",
       "title": "The board in a project window"
     },
     {

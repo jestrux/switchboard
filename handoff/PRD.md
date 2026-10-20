@@ -20,6 +20,8 @@ The problem: a single product often spans several repos or folders (API, web fro
 
 - Cross-platform support (Mac only; the Rust core should not block it later).
 - Remote or SSH sessions, AI-agent orchestration, team sync or cloud accounts.
+  *Changed 2026-10-20:* the **board** (`plans/06-board.md`), where a coding agent hands a project to
+  its author, is now in scope; it doesn't run or schedule agents, it carries their decisions.
 - Copying Solo's assets or exact config schema.
 
 ## MVP scope
