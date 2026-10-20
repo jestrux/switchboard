@@ -59,6 +59,11 @@ Update this table and the "Next step" line in each plan file as work lands.
 
 - **[Open questions](plans/open-questions.md)**: product decisions still undecided. Some
   block items above; each says which.
+- **Honour `.nvmrc`**: a login shell ignores it, so every Node repo that pins a version needs
+  `source ~/.nvm/nvm.sh && nvm use && …` in each run line (an agent hit this on 2026-10-20 with
+  three repos pinning Node 25 against a login shell's Node 20). Proposed: when a command's folder,
+  or one above it, has an `.nvmrc`, run `nvm use` first; `node: system` on a command turns it off.
+  Until then, `switchboard edit-command` sets the run lines.
 
 ## Reference material in `plans/`
 

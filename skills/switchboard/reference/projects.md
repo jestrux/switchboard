@@ -167,6 +167,9 @@ switchboard import-solo <folder>…        # convert Solo's solo.yml (--dry-run 
 switchboard add-command set-hero/web --id dev --run "npm run dev" [--cwd …] [--no-autostart]
                                          # into the group's config, or its repo commands.yaml
                                          # a new group also takes --group-name and --group-cwd
+switchboard edit-command set-hero/web/dev --run "…" [--cwd …] [--name …] [--env K=V] [--unset-env K]
+                                         # change an existing command where it's defined;
+                                         # also --[no-]autostart, --[no-]restart-on-crash
 switchboard cleanup                      # stop sessions left behind by a crash
 ```
 

@@ -129,3 +129,54 @@ fn add_command_writes_config_or_the_groups_fragment() {
         assert!(out.contains(addr), "{addr} missing from:\n{out}");
     }
 }
+
+#[test]
+fn edit_command_changes_it_where_it_lives() {
+    let tmp = tempfile::tempdir().unwrap();
+    let home = tmp.path();
+    let projects = home.join("Projects");
+    let repo = home.join("api");
+    std::fs::create_dir_all(repo.join(".switchboard")).unwrap();
+    std::fs::write(repo.join(".switchboard/commands.yaml"), "commands:\n  - { id: dev, run: make dev }\n").unwrap();
+    std::fs::create_dir_all(projects.join("hero")).unwrap();
+    std::fs::write(
+        projects.join("hero/config.yaml"),
+        format!("version: 1\nname: Hero\ncommands:\n  - id: docs\n    run: mkdocs serve\ngroups:\n  - id: web\n    cwd: /tmp\n    commands:\n      - id: dev\n        run: npm run dev\n        env: {{ PORT: '3000', DEBUG: '1' }}\n  - id: api\n    from: {}\n    overrides:\n      dev: {{ autostart: true }}\n", repo.display()),
+    )
+    .unwrap();
+    let pd = projects.to_str().unwrap();
+    let run = "source ~/.nvm/nvm.sh && nvm use >/dev/null && npm run dev -- --port 5351";
+
+    // An inline group's command: only the fields passed change.
+    let (code, out, err) = sb(home, &["--projects-dir", pd, "edit-command", "hero/web/dev", "--run", run, "--env", "PORT=5351", "--unset-env", "DEBUG", "--no-autostart"]);
+    assert_eq!(code, 0, "{err}");
+    assert!(out.contains("changed hero/web/dev: run, env PORT, env DEBUG removed, autostart"), "{out}");
+    let cfg = std::fs::read_to_string(projects.join("hero/config.yaml")).unwrap();
+    assert!(cfg.contains("nvm use") && cfg.contains("5351") && !cfg.contains("DEBUG") && cfg.contains("autostart: false") && cfg.contains("cwd: /tmp"), "{cfg}");
+
+    // Again: nothing to change.
+    let (code, out, _) = sb(home, &["--projects-dir", pd, "edit-command", "hero/web/dev", "--run", run]);
+    assert_eq!(code, 0);
+    assert!(out.contains("already has that"), "{out}");
+
+    // A group from a repo: its commands.yaml changes, and the project's override of that field goes.
+    let (code, _, err) = sb(home, &["--projects-dir", pd, "edit-command", "hero/api/dev", "--run", "make dev-fast", "--no-autostart"]);
+    assert_eq!(code, 0, "{err}");
+    let frag = std::fs::read_to_string(repo.join(".switchboard/commands.yaml")).unwrap();
+    assert!(frag.contains("make dev-fast") && frag.contains("autostart: false"), "{frag}");
+    let cfg = std::fs::read_to_string(projects.join("hero/config.yaml")).unwrap();
+    assert!(!cfg.contains("autostart: true"), "{cfg}");
+
+    // Ungrouped, and the refusals.
+    let (code, _, err) = sb(home, &["--projects-dir", pd, "edit-command", "hero/docs", "--name", "Docs"]);
+    assert_eq!(code, 0, "{err}");
+    let (code, _, err) = sb(home, &["--projects-dir", pd, "edit-command", "hero/web/nope", "--run", "x"]);
+    assert_eq!(code, 2);
+    assert!(err.contains("nope"), "{err}");
+    let (code, _, err) = sb(home, &["--projects-dir", pd, "edit-command", "hero/web/dev", "--run", " "]);
+    assert_eq!(code, 2);
+    assert!(err.contains("run can't be empty"), "{err}");
+    let (code, _, err) = sb(home, &["--projects-dir", pd, "edit-command", "hero", "--run", "x"]);
+    assert_eq!(code, 2);
+    assert!(err.contains("name a command"), "{err}");
+}

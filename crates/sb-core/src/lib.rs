@@ -19,6 +19,6 @@ pub mod tools;
 pub mod watcher;
 
 pub use config::{CommandConfig, ConfigError, GroupConfig, ProjectConfig, ResolvedCommand};
-pub use engine::{CommandState, Engine, EngineError, Event, Status};
+pub use engine::{CommandEdit, CommandState, Engine, EngineError, Event, Status};
 pub use project::{Conflict, InstallError, Project};
 pub use session::{CommandKey, Exit, Session};

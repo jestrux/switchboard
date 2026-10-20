@@ -581,6 +581,52 @@ impl Engine {
         Ok(address)
     }
 
+    /// Change an existing command's fields (`switchboard edit-command`), where it's defined: the
+    /// project's config, or the repo's `commands.yaml` for a group that comes from one. A project
+    /// override of a field being changed is dropped, so the edit takes effect. Validates before
+    /// writing; a running command shows `needs_restart` until restarted. Returns what changed.
+    pub fn edit_command(&self, slug: &str, address: &str, e: &CommandEdit) -> Result<Vec<String>, EngineError> {
+        let p = self.project(slug).ok_or_else(|| EngineError::UnknownProject(slug.to_string()))?;
+        let mut cfg = p.config.clone().map_err(|_| EngineError::ProjectInvalid(slug.to_string()))?;
+        let unknown = || EngineError::UnknownCommand(address.to_string());
+        let (group, id) = match address.split_once('/') {
+            Some((g, i)) => (Some(g), i),
+            None => (None, address),
+        };
+        let mut changed = vec![];
+        let Some(g) = group else {
+            let cmd = cfg.commands.iter_mut().find(|c| c.id == id).ok_or_else(unknown)?;
+            changed = e.apply(cmd)?;
+            cfg.validate().map_err(|x| EngineError::Spawn(x.to_string()))?;
+            p.save_config(&cfg).map_err(|x| EngineError::Spawn(x.to_string()))?;
+            self.reload();
+            return Ok(changed);
+        };
+        let base = crate::fragment::from_base(&cfg, &p.dir);
+        let group = cfg.groups.iter_mut().find(|x| x.id == g).ok_or_else(|| EngineError::UnknownGroup(g.to_string()))?;
+        if let Some(cmd) = group.commands.iter_mut().find(|c| c.id == id) {
+            changed = e.apply(cmd)?;
+        } else if let Some(from) = group.from.clone() {
+            let folder = crate::fragment::resolve_folder(&from, &base);
+            let mut fragment = crate::fragment::Fragment::load(&folder).unwrap_or_default();
+            let cmd = fragment.commands.iter_mut().find(|c| c.id == id).ok_or_else(unknown)?;
+            changed = e.apply(cmd)?;
+            fragment.save(&folder).map_err(|x| EngineError::Spawn(x.to_string()))?;
+            if let Some(o) = group.overrides.get_mut(id) {
+                if e.name.is_some() { o.name = None; }
+                if e.autostart.is_some() { o.autostart = None; }
+                if e.restart_on_crash.is_some() { o.restart_on_crash = None; }
+                for k in e.env.keys().chain(e.unset_env.iter()) { o.env.remove(k); }
+            }
+        } else {
+            return Err(unknown());
+        }
+        cfg.validate().map_err(|x| EngineError::Spawn(x.to_string()))?;
+        p.save_config(&cfg).map_err(|x| EngineError::Spawn(x.to_string()))?;
+        self.reload();
+        Ok(changed)
+    }
+
     pub fn projects(&self) -> Vec<Project> {
         self.state.lock().unwrap().projects.clone()
     }
@@ -1085,5 +1131,42 @@ impl SessionObserver for Observer {
                 });
             }
         }
+    }
+}
+
+/// The fields `edit_command` changes; `None` (or empty) leaves a field as it is. An empty `cwd`
+/// or `name` clears it back to the default (the group's folder, the id).
+#[derive(Debug, Clone, Default)]
+pub struct CommandEdit {
+    pub run: Option<String>,
+    pub cwd: Option<String>,
+    pub name: Option<String>,
+    pub env: std::collections::BTreeMap<String, String>,
+    pub unset_env: Vec<String>,
+    pub autostart: Option<bool>,
+    pub restart_on_crash: Option<bool>,
+}
+
+impl CommandEdit {
+    fn apply(&self, c: &mut crate::config::CommandConfig) -> Result<Vec<String>, EngineError> {
+        let mut changed = vec![];
+        if let Some(run) = &self.run {
+            if run.trim().is_empty() {
+                return Err(EngineError::Spawn("run can't be empty".into()));
+            }
+            if *run != c.run { c.run = run.clone(); changed.push("run".into()); }
+        }
+        let blank = |s: &String| (!s.is_empty()).then(|| s.clone());
+        if let Some(v) = &self.cwd { let v = blank(v); if v != c.cwd { c.cwd = v; changed.push("cwd".into()); } }
+        if let Some(v) = &self.name { let v = blank(v); if v != c.name { c.name = v; changed.push("name".into()); } }
+        for (k, v) in &self.env {
+            if c.env.get(k) != Some(v) { c.env.insert(k.clone(), v.clone()); changed.push(format!("env {k}")); }
+        }
+        for k in &self.unset_env {
+            if c.env.remove(k).is_some() { changed.push(format!("env {k} removed")); }
+        }
+        if let Some(a) = self.autostart { if c.autostart() != a { c.autostart = (!a).then_some(false); changed.push("autostart".into()); } }
+        if let Some(r) = self.restart_on_crash { if c.restart_on_crash() != r { c.restart_on_crash = r.then_some(true); changed.push("restart_on_crash".into()); } }
+        Ok(changed)
     }
 }

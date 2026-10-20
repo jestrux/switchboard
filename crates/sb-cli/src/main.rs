@@ -97,6 +97,39 @@ enum Cmd {
         #[arg(long)]
         json: bool,
     },
+    /// Change an existing command where it's defined: the project's config, or its group's repo
+    /// commands.yaml. Only the fields you pass change; the file is rewritten, so its comments go
+    EditCommand {
+        /// `project/group/command`, or `project/command` when ungrouped
+        target: String,
+        /// What to run, through your login shell
+        #[arg(long)]
+        run: Option<String>,
+        /// Folder to run in ("" for the group's)
+        #[arg(long)]
+        cwd: Option<String>,
+        /// Display name ("" for the id)
+        #[arg(long)]
+        name: Option<String>,
+        /// Set environment, KEY=VALUE (repeatable)
+        #[arg(long = "env", value_name = "KEY=VALUE")]
+        env: Vec<String>,
+        /// Remove an environment variable (repeatable)
+        #[arg(long = "unset-env", value_name = "KEY")]
+        unset_env: Vec<String>,
+        /// Start it with the project
+        #[arg(long, conflicts_with = "no_autostart")]
+        autostart: bool,
+        /// Do not start it with the project
+        #[arg(long)]
+        no_autostart: bool,
+        /// Restart it with backoff when it crashes
+        #[arg(long, conflicts_with = "no_restart_on_crash")]
+        restart_on_crash: bool,
+        /// Do not restart it when it crashes
+        #[arg(long)]
+        no_restart_on_crash: bool,
+    },
     /// Add a command to a project's config (or its group's repo commands.yaml)
     AddCommand {
         /// `project` or `project/group`
@@ -193,6 +226,12 @@ fn main() {
         Cmd::Open { project } => app::open(project),
         Cmd::Board { dir, cmd } => board::run(&projects_dir, dir, cmd),
         Cmd::Keep { project, folder, json } => app::keep(&projects_dir, &project, folder, json),
+        Cmd::EditCommand { target, run, cwd, name, env, unset_env, autostart, no_autostart, restart_on_crash, no_restart_on_crash } => {
+            let flag = |on: bool, off: bool| if on { Some(true) } else if off { Some(false) } else { None };
+            let edit = sb_core::CommandEdit { run, cwd, name, env: Default::default(), unset_env,
+                                              autostart: flag(autostart, no_autostart), restart_on_crash: flag(restart_on_crash, no_restart_on_crash) };
+            edit_command(&projects_dir, &target, &env, edit)
+        }
         Cmd::AddCommand { project, id, run, name, cwd, no_autostart, restart_on_crash, env, group_name, group_cwd } => {
             add_command(&projects_dir, &project, AddArgs { id, run, name, cwd, no_autostart, restart_on_crash, env, group_name, group_cwd })
         }
@@ -291,6 +330,36 @@ pub(crate) fn list(projects_dir: &Path) -> Result<i32> {
         println!();
     }
     Ok(0)
+}
+
+// ----- edit-command -------------------------------------------------------------
+
+fn edit_command(projects_dir: &Path, target: &str, env: &[String], mut e: sb_core::CommandEdit) -> Result<i32> {
+    for kv in env {
+        let (k, v) = kv.split_once('=').ok_or_else(|| anyhow!("--env takes KEY=VALUE, got {kv:?}"))?;
+        e.env.insert(k.to_string(), v.to_string());
+    }
+    let (slug, address) = app::split_target(target, None);
+    let address = address.ok_or_else(|| anyhow!("name a command: project/group/command, or project/command"))?;
+    if let Some(cwd) = e.cwd.as_deref().filter(|c| !c.is_empty()) {
+        if !sb_core::config::expand_tilde(cwd).is_dir() {
+            eprintln!("{} {cwd} does not exist yet", "warning:".yellow());
+        }
+    }
+    let engine = Engine::new(projects_dir);
+    match engine.edit_command(&slug, &address, &e) {
+        Ok(changed) if changed.is_empty() => {
+            println!("{} {slug}/{address} already has that", "ok".green().bold());
+            Ok(0)
+        }
+        Ok(changed) => {
+            println!("{} {slug}/{address}: {}", "changed".green().bold(), changed.join(", "));
+            println!("  if it's running, apply it: switchboard restart {slug}/{address}");
+            Ok(0)
+        }
+        Err(sb_core::EngineError::UnknownGroup(g)) => bail!("{slug} has no group {g:?}"),
+        Err(err) => bail!("{err}"),
+    }
 }
 
 // ----- add-command --------------------------------------------------------------

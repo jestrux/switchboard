@@ -72,8 +72,23 @@ description: Drive the running app from a terminal or an agent, or run projects 
   Also `--name`, `--cwd`, `--env KEY=VALUE` (repeatable) and `--restart-on-crash`.
 - **State:** The config is validated before it is written. The app picks the change up
   within a second, and running commands are untouched.
-- **Limits:** Adds only; edit or remove a command in the YAML. A duplicate id in the group
-  is refused.
+- **Limits:** Adds only (`edit-command` changes one); remove a command in the YAML. A
+  duplicate id in the group is refused.
+
+## Changing a command
+
+- **What:** `switchboard edit-command` changes an existing command's fields where it's
+  defined: the project's `config.yaml`, or the repo's `.switchboard/commands.yaml` for a group
+  that comes from one. Only the fields passed change. When the project overrides a field that
+  changes (`groups[].overrides`), the override is dropped so the edit takes effect.
+- **Reach it:** `switchboard edit-command set-hero/web/dev --run "source ~/.nvm/nvm.sh && nvm use && npm run dev"`.
+  Also `--cwd` and `--name` (`""` returns either to its default), `--env KEY=VALUE` and
+  `--unset-env KEY` (repeatable), `--autostart`/`--no-autostart`,
+  `--restart-on-crash`/`--no-restart-on-crash`. It prints what changed.
+- **State:** Validated before it's written; the app picks it up within a second. A running
+  command keeps its old run line and shows `needs_restart` until it's restarted.
+- **Limits:** The file is rewritten, so its YAML comments are lost (as with `add-command`).
+  Ad-hoc terminals aren't in the config and can't be edited. It doesn't rename a command's id.
 
 ## Validate and clean up
 

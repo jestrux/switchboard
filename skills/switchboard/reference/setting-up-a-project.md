@@ -76,7 +76,8 @@ Two problems have come up every time so far:
   needs `run: source venv/bin/activate && make dev`. Check the venv folder's real name.
 - **A pinned Node version.** A login shell does not switch on `.nvmrc`. Use
   `run: source ~/.nvm/nvm.sh && nvm use && <command>`. Old Grunt apps often need this,
-  because `grunt` is installed under one specific Node version.
+  because `grunt` is installed under one specific Node version. On a project that's already
+  set up, fix each command with `switchboard edit-command <slug>/<group>/<cmd> --run "…"`.
 
 ## 4. Icon
 

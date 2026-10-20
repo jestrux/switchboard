@@ -99,6 +99,23 @@ switchboard start <slug>/<group>/dev && switchboard wait <slug>/<group>/dev
 - When the group comes from a repo, the command is written to that repo's
   `.switchboard/commands.yaml`. Mention it, because that is a change in their repo.
 
+## Changing a command
+
+To change an existing command (its run line, folder, env, autostart), use `edit-command`
+rather than editing YAML. Only the fields you pass change:
+
+```sh
+switchboard edit-command <slug>/<group>/<cmd> --run "source ~/.nvm/nvm.sh && nvm use >/dev/null && npm run dev"
+#   also --cwd, --name ("" = the default), --env K=V, --unset-env K,
+#   --autostart / --no-autostart, --restart-on-crash / --no-restart-on-crash
+switchboard restart <slug>/<group>/<cmd>   # if it's running: it shows needs_restart until then
+```
+
+- Check the new run line from a login shell in its folder first, as for `add-command`.
+- It writes where the command is defined; for a group from a repo that's the repo's
+  `.switchboard/commands.yaml`, so say so. The file is rewritten without its comments.
+- Several commands (a dev server, its typecheck and tests) each need their own call.
+
 ## A project's home (keeping its settings in a repo)
 
 A project's **home** is the repo folder that holds its `.switchboard/project.yaml` (and its
