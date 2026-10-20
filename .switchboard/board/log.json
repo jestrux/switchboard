@@ -273,5 +273,20 @@
     "t": 1792498043803,
     "text": "Audit: retired 5 superseded or built cards, moved 4 phone cards to B5/B6, the old name out of the cards, v-overview rewritten",
     "item": null
+  },
+  {
+    "t": 1792498119505,
+    "text": "Blocked on you: What the overview adds under The plan",
+    "item": "v-overview"
+  },
+  {
+    "t": 1792498121434,
+    "text": "Blocked on you: Decided cards: take them off, or keep them as the record?",
+    "item": "lc-lifecycle"
+  },
+  {
+    "t": 1792498323887,
+    "text": "A5: reason filters, Needs you is decisions only, and the Record",
+    "item": "c-reason"
   }
 ]

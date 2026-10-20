@@ -1,0 +1,137 @@
+[
+  {
+    "id": "w-name",
+    "title": "Switchboard already calls its main window \"the board\"",
+    "step": "windows",
+    "version": 1,
+    "pick": "board",
+    "labels": [
+      "Keep \"board\" and rename Switchboard's main window"
+    ],
+    "rec": "review",
+    "way": "way",
+    "notes": [],
+    "at": 1792482212690,
+    "from": "board"
+  },
+  {
+    "id": "w-mainname",
+    "title": "What should Switchboard's main window be called now?",
+    "step": "windows",
+    "version": 1,
+    "pick": "all",
+    "labels": [
+      "All Projects"
+    ],
+    "rec": "all",
+    "way": "agreed",
+    "notes": [],
+    "at": 1792482285515,
+    "from": "board"
+  },
+  {
+    "id": "w-mainname",
+    "title": "What should Switchboard's main window be called now?",
+    "step": "windows",
+    "version": 1,
+    "pick": "all",
+    "labels": [
+      "All Projects"
+    ],
+    "rec": "all",
+    "way": "agreed",
+    "notes": [],
+    "at": 1792482373291,
+    "from": "board"
+  },
+  {
+    "id": "lc-commit",
+    "title": "Should .board/ be committed?",
+    "step": "closer",
+    "version": 1,
+    "pick": null,
+    "labels": [],
+    "rec": "cards",
+    "way": null,
+    "notes": [
+      "Don't we already have .switchboard folder as part of our API and it includes project file and i think commands file in there, maybe we just append to this? Look and tell me"
+    ],
+    "at": 1792493664601,
+    "from": "board"
+  },
+  {
+    "id": "c-reason",
+    "title": "Every card says why it's there",
+    "step": "cards",
+    "version": 1,
+    "pick": "yes",
+    "labels": [
+      "Yes: six reasons, each a filter"
+    ],
+    "rec": "yes",
+    "way": "agreed",
+    "notes": [],
+    "at": 1792493664601,
+    "from": "board"
+  },
+  {
+    "id": "lc-commit",
+    "title": "Put the board in the project's .switchboard/ folder?",
+    "step": "closer",
+    "version": 2,
+    "pick": null,
+    "labels": [],
+    "rec": "home",
+    "way": null,
+    "notes": [
+      "Question of course becomes what if they haven't selected a home folder? Coz this is usually not there by default, right?"
+    ],
+    "at": 1792494239170,
+    "from": "board"
+  },
+  {
+    "id": "lc-commit",
+    "title": "Where does the board live, home or no home?",
+    "step": "closer",
+    "version": 3,
+    "pick": "follow",
+    "labels": [
+      "The home if there is one, else the app folder; the first card offers Keep"
+    ],
+    "rec": "follow",
+    "way": "agreed",
+    "notes": [],
+    "at": 1792494345648,
+    "from": "board"
+  },
+  {
+    "id": "v-sidebar",
+    "title": "The sidebar: the plan is the big picture, and a heading for the zone",
+    "step": "views",
+    "version": 1,
+    "pick": null,
+    "labels": [],
+    "rec": "move",
+    "way": null,
+    "notes": [
+      "Maybe no title at all, the plan will group the stuff below it"
+    ],
+    "at": 1792495063789,
+    "from": "board"
+  },
+  {
+    "id": "v-sidebar",
+    "title": "The sidebar: keep it as it is, and fold the overview into the plan",
+    "step": "views",
+    "version": 2,
+    "pick": "asis",
+    "labels": [
+      "Keep it as it is; fold the overview under The plan"
+    ],
+    "rec": "asis",
+    "way": "agreed",
+    "notes": [],
+    "at": 1792495472574,
+    "from": "board"
+  }
+]

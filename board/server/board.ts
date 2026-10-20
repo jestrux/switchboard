@@ -64,7 +64,31 @@ export function loadBoard(dir: string) {
       (a.order ?? 0) - (b.order ?? 0) ||
       a.id.localeCompare(b.id),
   );
-  return { project: board.project ?? {}, stages, items: cards, log: readJson(path.join(dir, "log.json"), []) };
+  return { project: board.project ?? {}, stages, items: cards, log: readJson(path.join(dir, "log.json"), []), record: readJson(path.join(dir, "record.json"), []) };
+}
+
+/** One decision, as the Record keeps it (A5): what was asked, what was picked or said, when
+ *  and from where. Kept in `record.json`, committed, so a card answered anywhere is handled
+ *  everywhere and the decision outlives the card. */
+type Decision = { id: string; title: string; step: string; version: number; pick: unknown; labels: string[];
+                  rec: unknown; way: string; notes: string[]; at: number; from: string };
+type Answer = { id?: string; stage?: string; title?: string; version?: number; pick?: unknown; labels?: string[];
+                rec?: unknown; way?: string; notes?: { text?: string }[] };
+
+export function recordDecisions(dir: string, send: { answers?: Answer[]; from?: string; sentAt?: number }) {
+  const file = path.join(dir, "record.json");
+  const record = readJson<Decision[]>(file, []);
+  for (const a of send.answers ?? []) {
+    if (!a.id) continue;
+    const notes = (a.notes ?? []).map((n) => String(n.text ?? "")).filter(Boolean);
+    const picked = a.pick != null && !(Array.isArray(a.pick) && !a.pick.length);
+    if (!picked && !notes.length) continue;
+    record.push({ id: a.id, title: String(a.title ?? a.id), step: String(a.stage ?? ""), version: a.version ?? 1,
+                  pick: picked ? a.pick : null, labels: a.labels ?? [], rec: a.rec ?? null, way: String(a.way ?? ""),
+                  notes, at: send.sentAt ?? Date.now(), from: send.from ?? "board" });
+  }
+  fs.writeFileSync(file + ".tmp", JSON.stringify(record, null, 2) + "\n");
+  fs.renameSync(file + ".tmp", file);
 }
 
 /** Appends one send from the page to `.switchboard/board/state/answers.json`, newest last. */
@@ -74,6 +98,7 @@ export function recordSend(dir: string, send: unknown) {
   const sends = readJson<unknown[]>(file, []);
   sends.push({ receivedAt: Date.now(), ...(send as object) });
   fs.writeFileSync(file, JSON.stringify(sends, null, 2) + "\n");
+  recordDecisions(dir, send as { answers?: Answer[] });
   // A card with a pick no longer blocks the agent (a note alone doesn't unblock it). The path
   // check matches the CLI's id rule.
   for (const a of ((send as { answers?: { id?: string; pick?: unknown }[] }).answers ?? [])) {

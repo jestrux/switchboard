@@ -691,7 +691,7 @@ function normItem(it, i) {
   var kind = body.video ? 'video' : body.compare.length ? 'compare' : body.gallery.length ? 'gallery' : (body.audio || body.takes.length) ? 'audio' : body.image ? 'image' : body.beats.length ? 'beats' : body.fields.length ? 'fields' : body.checks.length ? 'checks' : d ? 'choose' : 'text';
   return {
     id: String(it.id || ('item-' + i)), stage: it.stage, title: it.title || 'Untitled', sub: it.sub || '', summary: it.summary || '',
-    tags: (it.blocking ? ['Blocking'] : []).concat(toArr(it.tags).map(String).filter(function (t) { return t !== 'Blocking'; })), blocking: !!it.blocking, wide: !!it.wide, version: +it.version || 1, updated: +it.updated || 0, changed: it.changed || '', askedAt: +it.askedAt || 0,
+    tags: (it.blocking ? ['Blocking'] : []).concat(toArr(it.tags).map(String).filter(function (t) { return t !== 'Blocking'; })), blocking: !!it.blocking, reason: it.reason || '', forWho: it.for || '', wide: !!it.wide, version: +it.version || 1, updated: +it.updated || 0, changed: it.changed || '', askedAt: +it.askedAt || 0,
     notePrompt: it.notePrompt || '', body: body, decision: d, kind: body.make ? (body.results.length ? 'audio' : 'fields') : kind, order: i,
     at: Array.isArray(it.at) ? it.at.map(Number) : it.at != null ? [Number(it.at)] : null,
     visual: !!(body.video || body.image || body.compare.length || body.gallery.length || body.custom)
@@ -729,6 +729,7 @@ function norm(raw) {
     stages: stages, items: ordered, byStage: byStage, song: song, settled: settled, fps: fps,
     aspect: dims ? (+dims[1] / +dims[2]) : null,
     log: toArr(raw.log).map(function (l) { return { t: +l.t || 0, text: l.text || '', item: l.item || null }; }).sort(function (a, b) { return b.t - a.t; }),
+    record: toArr(raw.record).filter(function (r) { return r && r.id; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }),
     byId: items.reduce(function (o, it) { o[it.id] = it; return o; }, {})
   };
 }
@@ -767,6 +768,11 @@ function makeStep(it) {
   if ((a && a.o === 'saved') || S.uploaded[it.id] || (D.project.working && D.project.working.item === it.id)) return 'reading';
   return S.making[it.id] ? 'making' : 'ready';
 }
+// The latest decision with a pick for a card, from the Record (any device), if it covers this version.
+function decided(it) {
+  var r = (D.record || []).filter(function (x) { return x.id === it.id && x.pick != null && (x.version || 1) >= it.version; })[0];
+  return r || null;
+}
 function status(it) {
   var a = answer(it), ms = makeStep(it);
   if (ms === 'dropped') return 'handled';
@@ -774,16 +780,28 @@ function status(it) {
   if (ms === 'ready' || ms === 'making') return 'needs';
   if (it.decision && realPick(it, a) && a.v >= it.version) return 'handled';
   var s = S.seen[it.id]; if (s && s >= it.version) return 'handled';
+  if (it.decision && decided(it)) return 'handled';  // answered on another device, or before
   return it.decision ? 'needs' : 'see';
 }
 function isOpen(it) { var s = status(it); return s === 'needs' || s === 'see'; }
+// Why a card is here (A5; decided on the board, c-reason). A card can say (reason: answer | others,
+// set by the agent); otherwise it's worked out. Each is a filter in the Tags menu.
+var REASONS = [['decision', 'Decisions'], ['closer', 'Look closer'], ['answer', 'Your questions, answered'], ['changed', 'Changed since you decided'], ['others', 'For someone else'], ['see', 'For you to see']];
+function reasonOf(it) {
+  if (it.reason) return it.reason;
+  if (isChanged(it)) return 'changed';
+  if (it.decision && it.decision.unsure) return 'closer';
+  return it.decision ? 'decision' : 'see';
+}
+// Needs you is what needs a decision; "for you to see" cards stay in their step and Everything.
+function needsYou(it) { return status(it) === 'needs'; }
 function isChanged(it) { var a = answer(it); return !!(realPick(it, a) && a.v < it.version); }
 // New and blocking cards sit at the top of Needs you until handled: blocking first, then the newest.
 // "New" here means not opened yet, not "since your last visit": a reload doesn't push a card you
 // haven't looked at back into its stage. Asking for a card again brings it back up.
 function unopened(it) { return Math.max(it.updated || 0, it.askedAt || 0) > (S.opened[it.id] || S.openedSince); }
 function markOpened(id) { if (!id || !S.opened) return; S.opened[id] = now(); save(); }
-function upTop(it) { return isOpen(it) && (it.blocking || unopened(it)); }
+function upTop(it) { return needsYou(it) && (it.blocking || unopened(it)); }
 function topOrder(a, b) { return (b.blocking - a.blocking) || (Math.max(b.updated, b.askedAt || 0) - Math.max(a.updated, a.askedAt || 0)); }
 function isNew(it) { return it.updated > S.prevVisit && !(S.answers[it.id] && S.answers[it.id].t > it.updated); }
 function optLabel(it, o) { var x = it.decision && it.decision.options.filter(function (k) { return k.o === o; })[0]; return x ? x.label : o; }
@@ -801,12 +819,12 @@ function wayOf(it) {
 }
 function stageCounts(st) {
   var list = D.byStage[st.id] || [], open = 0, handled = 0, needs = 0, agent = 0;
-  list.forEach(function (it) { var s = status(it); if (s === 'handled') handled++; else if (s === 'agent') agent++; else { open++; if (s === 'needs') needs++; } });
+  list.forEach(function (it) { var s = status(it); if (s === 'handled') handled++; else if (s === 'agent') agent++; else if (s === 'needs') { open++; needs++; } });
   return { total: list.length, open: open, handled: handled, needs: needs, agent: agent };
 }
 function totals() {
   var open = 0, handled = 0;
-  D.items.forEach(function (it) { var s = status(it); if (s === 'handled') handled++; else if (s !== 'agent') open++; });
+  D.items.forEach(function (it) { var s = status(it); if (s === 'handled') handled++; else if (s === 'needs') open++; });
   return { open: open, handled: handled, total: D.items.length };
 }
 function notesOf(id) { return S.notes[id] || []; }
@@ -1610,6 +1628,7 @@ function notNeeded(it) { S.answers[it.id] = { o: 'not-needed', v: it.version, t:
 function savedThem(it) { S.answers[it.id] = { o: 'saved', v: it.version, t: now() }; UI.sticky[it.id] = true; save(); render(); }
 function answerLabel(it) {
   var a = answer(it); if (a && SPECIAL[a.o]) return specialLabel(it, a);
+  if (!a && decided(it)) return decided(it).labels.join(', ');
   return chosenOpts(it).map(function (o) { return plain(o.label); }).join(', ');
 }
 function specialLabel(it, a) {
@@ -1897,7 +1916,7 @@ function cardContent(it, mode) {
 /* ───────────────────────── view state ───────────────────────── */
 var UI = {
   uploads: {}, showFields: {}, flash: null, flex: null, pinAt: {},
-  view: 'inbox', stage: null, sel: null, focus: null, seg: 'open', q: '', tags: [], tagsOpen: false, handledOpen: false,
+  view: 'inbox', stage: null, sel: null, focus: null, seg: 'open', q: '', tags: [], reasons: [], tagsOpen: false, handledOpen: false,
   review: null, drawer: false, showText: false, lightbox: null, help: false, welcome: false,
   expanded: {}, sticky: {}, glow: {}, objecting: {}, cmpMode: {}, flip: {}, swipe: {}, fill: {}, sbSel: {}, sbView: {}, pinOff: {},
   offline: false, offlineSince: 0, readAt: 0, pending: null, pendingN: 0, toast: null, activePlayer: null, sentFlash: null, sendError: ''
@@ -1912,6 +1931,7 @@ function setView(v, stage, sel) {
   var r = document.querySelector('.irow.on'); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'nearest' });
 }
 function matches(it) {
+  if (UI.reasons.length && UI.reasons.indexOf(reasonOf(it)) < 0) return false;
   if (UI.tags.length && !UI.tags.some(function (t) { return it.tags.indexOf(t) >= 0; })) return false;
   if (!UI.q) return true;
   var q = UI.q.toLowerCase(), hay = [it.title, it.sub, plain(it.summary), it.tags.join(' '), it.decision ? it.decision.q : '', notesOf(it.id).map(function (n) { return n.text; }).join(' '), (stageOf(it.stage) || {}).title].join(' ').toLowerCase();
@@ -1925,7 +1945,7 @@ function listRows() {
     rows.forEach(function (it) { (isOpen(it) ? open : done).push(it); });
     return { rows: rows, open: open, done: done };
   }
-  D.items.forEach(function (it) { if (!matches(it)) return; if (isOpen(it) || UI.sticky[it.id]) open.push(it); else done.push(it); });
+  D.items.forEach(function (it) { if (!matches(it)) return; if (UI.view === 'inbox' && status(it) === 'see') return; if (needsYou(it) || UI.sticky[it.id]) open.push(it); else done.push(it); });
   if (UI.seg === 'open') { rows = open.slice(); if (UI.handledOpen) rows = rows.concat(done); }
   else if (UI.seg === 'handled') rows = done;
   else rows = D.items.filter(matches);
@@ -1966,7 +1986,8 @@ function rail() {
   var navs = h('div', { class: 'nav' },
     h('button', { type: 'button', class: 'nav-a row' + (UI.view === 'inbox' && !UI.review ? ' on' : ''), onclick: function () { setView('inbox'); } }, I.inbox(), h('span', { class: 'grow' }, 'Needs you'), t.open ? h('span', { class: 'badge-count' }, String(t.open)) : h('span', { class: 'mono muted', style: 'font-size:11px' }, '0')),
     h('button', { type: 'button', class: 'nav-a row' + (UI.view === 'all' ? ' on' : ''), onclick: function () { setView('all'); } }, I.all(), h('span', { class: 'grow' }, 'Everything'), h('span', { class: 'mono muted', style: 'font-size:11px' }, String(t.total))),
-    h('button', { type: 'button', class: 'nav-a row' + (UI.view === 'activity' ? ' on' : ''), onclick: function () { setView('activity'); } }, I.activity(), h('span', { class: 'grow' }, 'Agent activity'), last ? h('span', { class: 'mono muted', style: 'font-size:11px' }, agoShort(last.t)) : null));
+    h('button', { type: 'button', class: 'nav-a row' + (UI.view === 'activity' ? ' on' : ''), onclick: function () { setView('activity'); } }, I.activity(), h('span', { class: 'grow' }, 'Agent activity'), last ? h('span', { class: 'mono muted', style: 'font-size:11px' }, agoShort(last.t)) : null),
+    h('button', { type: 'button', class: 'nav-a row' + (UI.view === 'record' ? ' on' : ''), onclick: function () { setView('record'); } }, I.check(14), h('span', { class: 'grow' }, 'Record'), h('span', { class: 'mono muted', style: 'font-size:11px' }, String(recordRows().length))));
   nav.appendChild(navs);
   var steps = D.stages.filter(function (s) { return s.state && s.state !== 'later'; }), stepsDone = steps.filter(function (s) { return s.state === 'done'; }).length;
   nav.appendChild(h('div', { class: 'rail-sec' }, h('b', null, D.project.stagesLabel), h('span', null, steps.length ? stepsDone + ' of ' + steps.length + ' done' : t.handled + ' of ' + t.total + ' handled')));
@@ -2014,6 +2035,8 @@ function inboxRow(it) {
     s !== 'handled' && s !== 'agent' && (!it.body.make || it.body.results.length) && d && d.stance === 'unsure' ? h('span', { class: 'pill unsure' }, I.q(10), 'Unsure') : null,
     s !== 'handled' && s !== 'agent' && (!it.body.make || it.body.results.length) && d && d.stance === 'rec' && !isChanged(it) ? h('span', { class: 'pill rec', title: 'The agent would pick this' }, I.agent(10), plain(d.rec.label).length > 14 ? plain(d.rec.label).slice(0, 13) + '…' : plain(d.rec.label)) : null,
     it.blocking && s !== 'handled' ? h('span', { class: 'pill block', title: 'The agent can\'t go on without this' }, 'Blocking') : null,
+    s !== 'handled' && reasonOf(it) === 'answer' ? h('span', { class: 'pill v', title: 'Your question, answered' }, 'Answered') : null,
+    s !== 'handled' && reasonOf(it) === 'others' ? h('span', { class: 'pill v', title: 'For someone else' }, it.forWho ? 'For ' + it.forWho : 'For someone else') : null,
     isNew(it) && s !== 'handled' ? h('span', { class: 'pill new' }, 'New') : null);
 }
 function inboxList() {
@@ -2024,16 +2047,25 @@ function inboxList() {
   search.addEventListener('input', function () { UI.q = search.value; render(); });
   search.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); if (search.value) { UI.q = ''; render(); } else search.blur(); } if (e.key === 'Enter' || e.key === 'ArrowDown') { e.preventDefault(); search.blur(); var r = listRows().rows[0]; if (r) select(r.id); } });
   search.addEventListener('blur', function () { setTimeout(applyPending, 0); });
-  var tagsBtn = h('button', { type: 'button', class: 'btn sm', 'aria-expanded': UI.tagsOpen ? 'true' : 'false', style: UI.tags.length ? 'color:var(--ink);border-color:var(--line-2)' : '', onclick: function () { UI.tagsOpen = !UI.tagsOpen; render(); } }, I.filter(), UI.tags.length ? 'Tags · ' + UI.tags.length : 'Tags');
+  var tagsBtn = h('button', { type: 'button', class: 'btn sm', 'aria-expanded': UI.tagsOpen ? 'true' : 'false', style: (UI.tags.length + UI.reasons.length) ? 'color:var(--ink);border-color:var(--line-2)' : '', onclick: function () { UI.tagsOpen = !UI.tagsOpen; render(); } }, I.filter(), (UI.tags.length + UI.reasons.length) ? 'Filters · ' + (UI.tags.length + UI.reasons.length) : 'Filters');
   var menu = null;
   if (UI.tagsOpen) {
     menu = h('div', { class: 'tagsmenu', role: 'menu' });
+    menu.appendChild(h('div', { class: 'muted', style: 'padding:4px 8px 2px;font-size:11px' }, 'Why it\'s here'));
+    REASONS.forEach(function (r) {
+      var n = D.items.filter(function (it) { return reasonOf(it) === r[0]; }).length;
+      if (!n && r[0] !== 'decision') return;
+      var cb = h('input', { type: 'checkbox', checked: UI.reasons.indexOf(r[0]) >= 0 });
+      cb.addEventListener('change', function () { var i = UI.reasons.indexOf(r[0]); if (i >= 0) UI.reasons.splice(i, 1); else UI.reasons.push(r[0]); render(); });
+      menu.appendChild(h('label', null, cb, r[1], h('span', { class: 'muted', style: 'margin-left:auto' }, String(n))));
+    });
+    menu.appendChild(h('div', { class: 'muted', style: 'padding:8px 8px 2px;font-size:11px;border-top:1px solid var(--line);margin-top:4px' }, 'Tags'));
     allTags.forEach(function (tg) {
       var cb = h('input', { type: 'checkbox', checked: UI.tags.indexOf(tg) >= 0 });
       cb.addEventListener('change', function () { var i = UI.tags.indexOf(tg); if (i >= 0) UI.tags.splice(i, 1); else UI.tags.push(tg); render(); });
       menu.appendChild(h('label', null, cb, tg, h('span', { class: 'muted', style: 'margin-left:auto' }, String(D.items.filter(function (it) { return it.tags.indexOf(tg) >= 0; }).length))));
     });
-    if (UI.tags.length) menu.appendChild(h('button', { type: 'button', class: 'btn sm', style: 'width:100%;margin-top:4px;justify-content:center', onclick: function () { UI.tags = []; render(); } }, 'Clear tags'));
+    if (UI.tags.length || UI.reasons.length) menu.appendChild(h('button', { type: 'button', class: 'btn sm', style: 'width:100%;margin-top:4px;justify-content:center', onclick: function () { UI.tags = []; UI.reasons = []; render(); } }, 'Clear filters'));
     if (!allTags.length) menu.appendChild(h('div', { class: 'muted', style: 'padding:6px 8px' }, 'No tags on these cards'));
   }
   var page = UI.view, stg = page === 'stage' ? stageOf(UI.stage) : null;
@@ -2068,7 +2100,7 @@ function inboxList() {
       if (wk) g.appendChild(h('div', { class: 'irow', style: 'cursor:default' }, h('span', { class: 'spin', style: 'margin-top:4px' }), h('span', { style: 'flex:1;min-width:0;display:flex;flex-direction:column;gap:2px' }, h('span', { class: 'irow-t', style: 'color:var(--ink-2);font-weight:400' }, 'The agent is working…'), h('span', { class: 'irow-s' }, h('span', null, plain(w2.text || ''))))));
       pb.appendChild(g);
     });
-    if (!pb.childNodes.length) pb.appendChild(h('div', { class: 'muted', style: 'padding:24px 10px;text-align:center' }, UI.q || UI.tags.length ? 'No cards match.' : 'Nothing here yet.'));
+    if (!pb.childNodes.length) pb.appendChild(h('div', { class: 'muted', style: 'padding:24px 10px;text-align:center' }, UI.q || UI.tags.length || UI.reasons.length ? 'No cards match.' : 'Nothing here yet.'));
     var sl = D.settled.filter(function (x) { return stg ? x.stage === stg.id : true; });
     if (sl.length) {
       var ob = sl.filter(function (x) { return S.objections[x.id]; }).length;
@@ -2110,7 +2142,7 @@ function inboxList() {
     if (working) g.appendChild(h('div', { class: 'irow', style: 'cursor:default' }, h('span', { class: 'spin', style: 'margin-top:4px' }), h('span', { style: 'flex:1;min-width:0;display:flex;flex-direction:column;gap:2px' }, h('span', { class: 'irow-t', style: 'color:var(--ink-2);font-weight:400' }, 'The agent is working…'), h('span', { class: 'irow-s' }, h('span', null, plain(w.text || ''))))));
     body.appendChild(g);
   });
-  if (!body.childNodes.length) body.appendChild(h('div', { class: 'muted', style: 'padding:24px 10px;text-align:center' }, UI.q || UI.tags.length ? 'No cards match.' : UI.seg === 'handled' ? 'Nothing handled yet.' : 'Nothing open.'));
+  if (!body.childNodes.length) body.appendChild(h('div', { class: 'muted', style: 'padding:24px 10px;text-align:center' }, UI.q || UI.tags.length || UI.reasons.length ? 'No cards match.' : UI.seg === 'handled' ? 'Nothing handled yet.' : 'Nothing open.'));
   if (UI.seg === 'open' && L.done.length) {
     body.appendChild(h('button', { type: 'button', class: 'row', style: 'margin-top:14px;width:100%;display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:6px;color:var(--ink-3);font-size:12px;text-align:left', 'aria-expanded': UI.handledOpen ? 'true' : 'false', onclick: function () { UI.handledOpen = !UI.handledOpen; render(); } },
       I.check(12, 'var(--ink-3)'), h('span', { style: 'flex:1' }, 'Handled · ' + L.done.length), UI.handledOpen ? I.down() : I.right(12)));
@@ -2130,6 +2162,76 @@ function statusBars() {
   if (UI.offline) out.push(h('div', { class: 'bar-warn', role: 'status' }, I.warn(14), h('span', { style: 'flex:1' }, 'Can\'t read ', h('span', { class: 'mono', style: 'font-size:12px' }, 'data.js'), UI.offlineSince ? [' since ', h('span', { class: 'mono', style: 'font-size:12px' }, clock(UI.offlineSince, true))] : null, '. Showing what was there; your answers are still saved here.'), h('span', { style: 'font-size:12px;color:var(--warn)' }, 'Retrying every 3 s')));
   if (UI.pending) out.push(h('div', { class: 'bar-wait', role: 'status', id: 'waitbar' }, h('span', { class: 'dot' }), h('span', { style: 'flex:1' }, plural(UI.pendingN || 1, 'update') + ' from the agent ' + (UI.pendingN === 1 ? 'is' : 'are') + ' waiting. They\'ll apply when you leave this field.'), h('span', { class: 'kbd' }, 'Esc')));
   return out;
+}
+// The Record (A5): what you decided, newest first, searchable. One row per card, with its
+// latest decision and every note you left on it. Kept in record.json, committed.
+function recordRows() {
+  var seen = {}, rows = [];
+  (D.record || []).forEach(function (r) {
+    if (!seen[r.id]) { seen[r.id] = { r: r, notes: [] }; rows.push(seen[r.id]); }
+    var e = seen[r.id];
+    if (e.r.pick == null && r.pick != null) e.r = r;
+    (r.notes || []).forEach(function (n) { e.notes.push({ text: n, at: r.at }); });
+  });
+  var q = (UI.recQ || '').toLowerCase();
+  return rows.filter(function (e) {
+    if (!q) return true;
+    return [plain(e.r.title), (e.r.labels || []).join(' '), e.notes.map(function (n) { return n.text; }).join(' ')].join(' ').toLowerCase().indexOf(q) >= 0;
+  });
+}
+function recordList() {
+  var sec = h('section', { class: 'list', 'aria-label': 'Record' });
+  var search = h('input', { type: 'search', placeholder: 'Search decisions and notes', value: UI.recQ || '' });
+  search.addEventListener('input', function () {
+    UI.recQ = search.value; UI.recSel = 0; render();
+    var s2 = document.querySelector('.list input[type=search]'); if (s2) { s2.focus(); s2.setSelectionRange(s2.value.length, s2.value.length); }
+  });
+  sec.appendChild(h('div', { class: 'list-head' },
+    h('div', { style: 'display:flex;flex-direction:column' }, h('h1', { class: 'h-list' }, 'Record'), h('span', { class: 'muted' }, 'What you decided, newest first')),
+    h('label', { class: 'search' }, I.search(), search)));
+  var body = h('div', { class: 'list-body', 'data-scroll': 'record' }), rows = recordRows(), lastDay = '';
+  rows.forEach(function (e, i) {
+    var r = e.r, d = new Date(r.at || 0);
+    var day = d.toDateString() === new Date().toDateString() ? 'Today' : d.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'short' });
+    if (day !== lastDay) { body.appendChild(h('div', { class: 'grp-h', style: 'padding-top:10px' }, h('b', null, day))); lastDay = day; }
+    body.appendChild(h('button', { type: 'button', class: 'irow row' + ((UI.recSel || 0) === i ? ' on' : ''), onclick: function () { UI.recSel = i; render(); } },
+      h('span', { class: 'mono', style: 'flex:0 0 40px;font-size:11px;line-height:19px;color:var(--ink-3)' }, clock(r.at || 0)),
+      h('span', { style: 'flex:1;min-width:0;display:flex;flex-direction:column;gap:2px' },
+        h('span', { class: 'irow-t', html: r.title }),
+        h('span', { class: 'irow-s' }, h('span', null, r.pick != null ? '→ ' + (r.labels || []).join(', ') : 'A note, no pick yet')))));
+  });
+  if (!rows.length) body.appendChild(h('div', { class: 'muted', style: 'padding:24px 10px;text-align:center' }, UI.recQ ? 'No decisions match.' : 'Nothing decided yet.'));
+  sec.appendChild(body);
+  return sec;
+}
+function recordPane() {
+  var e = recordRows()[UI.recSel || 0], main = h('main', { class: 'main' });
+  var r = e && e.r, it = r && D.byId[r.id], st = r && stageOf(r.step);
+  var bar = h('div', { class: 'topbar' }, h('span', { class: 'crumb' }, 'Record'));
+  if (r) { bar.appendChild(h('span', { style: 'color:var(--ink-3);display:flex' }, I.chev())); bar.appendChild(h('span', { class: 'crumb-t', html: r.title })); }
+  bar.appendChild(h('div', { class: 'right' },
+    it ? h('button', { type: 'button', class: 'btn sm', onclick: function () { setView('stage', it.stage, it.id); } }, 'Open the card') : null,
+    h('span', { class: 'vsep' }), sendBtn()));
+  main.appendChild(bar);
+  var col = h('div', { class: 'read-col', style: 'max-width:720px' });
+  if (r) {
+    var how = { agreed: 'with my recommendation', way: 'against my recommendation' }[r.way] || '';
+    var where = { card: 'the phone', notification: 'a notification', board: 'the board' }[r.from] || r.from || 'the board';
+    col.appendChild(h('div', { class: 'head-col' },
+      h('span', { class: 'mono muted', style: 'font-size:11px' },
+        (st ? String(st.n) + ' · ' + st.title + ' · ' : '') + new Date(r.at || 0).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' · from ' + where),
+      h('h2', { class: 'h-read', html: r.title })));
+    if (r.pick != null) col.appendChild(h('div', { class: 'stance' },
+      h('div', { class: 'stance-h' }, I.check(14), h('b', null, 'Decided: ' + (r.labels || []).join(', ')), how ? h('span', { class: 'muted', style: 'margin-left:6px' }, how) : null)));
+    e.notes.forEach(function (n) {
+      col.appendChild(h('div', { style: 'padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-top:8px' },
+        h('span', { class: 'mono muted', style: 'font-size:11px;display:block;margin-bottom:4px' }, 'Your note · ' + clock(n.at || 0)),
+        h('span', { text: n.text })));
+    });
+    if (!it) col.appendChild(h('p', { class: 'muted', style: 'margin-top:12px' }, 'The card has since come off the board; this is its record.'));
+  } else col.appendChild(h('div', { class: 'center', style: 'min-height:50%' }, h('span', { class: 'muted' }, 'Nothing decided yet.')));
+  main.appendChild(h('div', { class: 'scroll', 'data-scroll': 'rec-' + (UI.recSel || 0) }, h('div', { class: 'read nomedia' }, col)));
+  return main;
 }
 function activityList() {
   var sec = h('section', { class: 'list', 'aria-label': 'Agent activity' });
@@ -2288,7 +2390,7 @@ function settledBlock(list, id) {
 /* ───────────────────────── review mode ───────────────────────── */
 function startReview() {
   var tops = D.items.filter(upTop).sort(topOrder);
-  var q = tops.concat(D.items.filter(function (it) { return isOpen(it) && tops.indexOf(it) < 0; })).map(function (it) { return it.id; });
+  var q = tops.concat(D.items.filter(function (it) { return needsYou(it) && tops.indexOf(it) < 0; })).map(function (it) { return it.id; });
   if (!q.length) return;
   var start = UI.view === 'inbox' && q.indexOf(UI.sel) >= 0 ? q.indexOf(UI.sel) : 0;
   UI.review = { queue: q, i: start }; UI.tagsOpen = false; render();
@@ -2574,6 +2676,7 @@ function render() {
   if (UI.view === 'film' && !D.film) UI.view = 'inbox';
   if (UI.view === 'inbox' || UI.view === 'all' || UI.view === 'stage') { app.appendChild(inboxList()); app.appendChild(readingPane()); }
   else if (UI.view === 'film') { app.appendChild(filmList()); app.appendChild(filmPane()); }
+  else if (UI.view === 'record') { app.appendChild(recordList()); app.appendChild(recordPane()); }
   else { app.appendChild(activityList()); app.appendChild(activityPane()); }
   var layer = document.getElementById('layer'); layer.innerHTML = '';
   if (UI.review) layer.appendChild(reviewView());

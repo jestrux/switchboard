@@ -35,5 +35,7 @@
       "where": "<code>flex-review-handoff/context/review-board-template.html</code> (removes) against the Flex DESIGN.md's \"Handled\" state (keeps)."
     }
   },
-  "order": 20
+  "order": 20,
+  "askedAt": 1792498121434,
+  "blocking": true
 }

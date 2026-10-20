@@ -48,10 +48,10 @@
       }
     ],
     "working": {
-      "since": 1792497188087,
-      "text": "A5: the audit's gaps",
+      "since": 1792498323940,
+      "text": "A5: waiting on the overview and lc-lifecycle",
       "stage": "a5",
-      "item": "c-reason"
+      "item": "v-overview"
     }
   },
   "stages": [

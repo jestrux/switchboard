@@ -269,10 +269,16 @@ set-hero project, whose home is `~/Documents/web/set-hero`, so its board would l
 
 **Parts**
 
-- [ ] Reason labels on cards, each a filter (decided: decision, look closer, your question
-  answered, changed, for someone else; "from the wishlist" waits for the wishlist, deferred)
-- [ ] "For you to see" cards out of the Needs you count
-- [ ] Decided cards into a searchable Record
+- [x] Reason labels on cards, each a filter (decided: decision, look closer, your question
+  answered, changed, for someone else; "from the wishlist" waits for the wishlist, deferred).
+  A card can say its `reason` (`answer`, `others` with `for`); otherwise it's worked out. They're
+  "Why it's here" in the Filters menu, above Tags
+- [x] "For you to see" cards out of Needs you and its count; they stay in their step and
+  Everything (Needs you went from 53 to 41)
+- [x] A searchable Record of decisions (`record.json`, committed, written by the server on every
+  send): newest first, with the pick, how it compared to the recommendation, where it came
+  from and every note. A card answered on any device is handled everywhere. Whether decided
+  cards also leave the board is `lc-lifecycle`, asked
 - [ ] The overview as part of The plan in the sidebar (decided, `v-sidebar`): since you last
   looked, health, what's owed
 
