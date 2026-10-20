@@ -495,9 +495,13 @@ input[type=range]{accent-color:var(--accent-line)}
 .box ol{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:19px;color:var(--ink-2)}
 .dashbox{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1px dashed var(--line-2);font-size:13px}
 pre.sendtxt{margin:0;padding:14px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-family:var(--mono);font-size:11.5px;line-height:18px;color:var(--ink-2);white-space:pre-wrap}
-.lightbox{position:fixed;inset:0;z-index:70;background:rgba(5,5,7,.92);display:flex;align-items:center;justify-content:center;padding:32px;animation:fade var(--m-base)}
-.lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px}
-.lightbox .cap{position:absolute;left:0;right:0;bottom:16px;text-align:center;font-size:13px;color:#c9c8d0}
+.lightbox{position:fixed;inset:0;z-index:70;background:rgba(5,5,7,.92);display:flex;align-items:center;justify-content:center;padding:32px 32px 92px;animation:fade var(--m-base)}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;transform-origin:center;transition:transform 90ms ease-out;cursor:zoom-in;user-select:none;-webkit-user-drag:none}
+.lightbox.panning img{transition:none;cursor:grabbing}
+.lightbox .zl{position:absolute;top:14px;right:16px;font:12px var(--mono);color:#c9c8d0;background:rgba(255,255,255,.08);padding:3px 8px;border-radius:6px}
+.lightbox .cap{position:absolute;left:0;right:0;bottom:12px;padding:0 48px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:#c9c8d0;pointer-events:none}
+.lightbox .cap .t{max-width:900px;text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lightbox .cap .k{font-size:12px;color:#9a99a4;white-space:nowrap}
 .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:41;width:560px;max-height:80vh;overflow:auto;border-radius:12px;background:var(--bg);border:1px solid var(--line-2);box-shadow:0 10px 30px rgba(0,0,0,.5);padding:28px 32px;display:flex;flex-direction:column;gap:18px;animation:fade var(--m-base)}
 .keys{display:grid;grid-template-columns:120px 1fr;gap:8px 16px;font-size:13px;line-height:20px}
 .keys dt{text-align:right}
@@ -2722,15 +2726,59 @@ function drawerView() {
 
 /* ───────────────────────── overlays ───────────────────────── */
 // With `set` (the other images beside it: [{ src, cap }]), ← → step through them.
-function openLightbox(src, cap, set, i) { UI.lightbox = { src: src, cap: cap || '', set: set || null, i: i || 0 }; render(); }
+function openLightbox(src, cap, set, i) { UI.lightbox = { src: src, cap: cap || '', set: set || null, i: i || 0, z: 1, x: 0, y: 0 }; render(); }
 function lightboxStep(n) {
   var L = UI.lightbox; if (!L || !L.set || L.set.length < 2) return;
-  L.i = (L.i + n + L.set.length) % L.set.length; L.src = L.set[L.i].src; L.cap = L.set[L.i].cap; render();
+  L.i = (L.i + n + L.set.length) % L.set.length; L.src = L.set[L.i].src; L.cap = L.set[L.i].cap; L.z = 1; L.x = L.y = 0; render();
 }
+// Zoom: 1 is fit to the window, up to 8×; about a point (cx, cy from the window's centre) so what's
+// under the pointer stays put. Applied to the image directly, not by re-rendering.
+function lbApply() {
+  var L = UI.lightbox, im = document.querySelector('.lightbox img'), zl = document.querySelector('.lightbox .zl'); if (!L || !im) return;
+  im.style.transform = 'translate(' + L.x + 'px,' + L.y + 'px) scale(' + L.z + ')';
+  im.style.cursor = L.z > 1 ? 'grab' : 'zoom-in';
+  if (zl) { zl.textContent = Math.round(L.z * 100) + '%'; zl.style.visibility = L.z > 1 ? 'visible' : 'hidden'; }
+}
+function lbZoom(f, cx, cy) {
+  var L = UI.lightbox; if (!L) return;
+  var z = clamp(L.z * f, 1, 8), r = z / L.z; cx = cx || 0; cy = cy || 0;
+  L.x = cx - (cx - L.x) * r; L.y = cy - (cy - L.y) * r; L.z = z;
+  if (z === 1) { L.x = L.y = 0; }
+  lbApply();
+}
+function lbFit() { var L = UI.lightbox; if (L) { L.z = 1; L.x = L.y = 0; lbApply(); } }
 function lightboxView() {
   var L = UI.lightbox, many = L.set && L.set.length > 1;
-  return h('div', { class: 'lightbox', role: 'dialog', 'aria-label': 'Full size', onclick: function () { UI.lightbox = null; render(); } }, h('img', { src: L.src, alt: L.cap }),
-    h('span', { class: 'cap' }, plain(L.cap), many ? '  ·  ' + (L.i + 1) + ' of ' + L.set.length + '  ·  ' : '  ·  ', many ? h('span', { class: 'kbd', style: 'color:#c9c8d0' }, '← →') : null, many ? ' ' : null, h('span', { class: 'kbd', style: 'color:#c9c8d0' }, 'Esc'), ' close'));
+  var box = h('div', { class: 'lightbox', role: 'dialog', 'aria-label': 'Full size' });
+  var img = h('img', { src: L.src, alt: L.cap, draggable: 'false' });
+  var at = function (e) { return [e.clientX - innerWidth / 2, e.clientY - innerHeight / 2]; };
+  var drag = null, moved = false;
+  box.addEventListener('click', function (e) { if (e.target === box) { UI.lightbox = null; render(); } });
+  img.addEventListener('mousedown', function (e) { if (e.button) return; e.preventDefault(); moved = false; drag = [e.clientX, e.clientY, L.x, L.y]; });
+  box.addEventListener('mousemove', function (e) {
+    if (!drag) return;
+    var dx = e.clientX - drag[0], dy = e.clientY - drag[1];
+    if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
+    if (moved && L.z > 1) { box.classList.add('panning'); L.x = drag[2] + dx; L.y = drag[3] + dy; lbApply(); }
+  });
+  var up = function () { drag = null; box.classList.remove('panning'); };
+  box.addEventListener('mouseup', up); box.addEventListener('mouseleave', up);
+  img.addEventListener('click', function (e) { e.stopPropagation(); if (moved) return; if (L.z === 1) { var p = at(e); lbZoom(2.5, p[0], p[1]); } });
+  img.addEventListener('dblclick', function (e) { e.stopPropagation(); lbFit(); });
+  // A pinch arrives as a wheel with ctrlKey; ⌘-scroll zooms too; a plain scroll pans when zoomed.
+  box.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    if (e.ctrlKey || e.metaKey) { var p = at(e); lbZoom(Math.exp(-e.deltaY * 0.01), p[0], p[1]); }
+    else if (L.z > 1) { L.x -= e.deltaX; L.y -= e.deltaY; lbApply(); }
+  }, { passive: false });
+  box.appendChild(img);
+  box.appendChild(h('span', { class: 'zl', style: 'visibility:hidden' }, '100%'));
+  var kbd = function (t) { return h('span', { class: 'kbd', style: 'color:#c9c8d0' }, t); };
+  box.appendChild(h('div', { class: 'cap' }, L.cap ? h('span', { class: 't' }, plain(L.cap)) : null,
+    h('span', { class: 'k' }, many ? (L.i + 1) + ' of ' + L.set.length + '  ·  ' : '', many ? kbd('← →') : null, many ? '  ' : null,
+      kbd('⌘ +'), ' ', kbd('⌘ −'), ' zoom  ·  ', kbd('0'), ' fit  ·  ', kbd('Esc'), ' close')));
+  setTimeout(lbApply, 0);
+  return box;
 }
 // An image in a step's plan or in a card's HTML opens full size, with its neighbours (Kinpay's
 // plan shows 120 design screens as thumbnails). Card media has its own frames and handlers.
@@ -2859,6 +2907,12 @@ document.addEventListener('keydown', function (e) {
     else if (UI.drawer) UI.drawer = false; else if (UI.tagsOpen) UI.tagsOpen = false; else if (UI.review) { var c = current(); UI.review = null; if (c) { UI.view = 'inbox'; UI.sel = c.id; } }
     else if (UI.toast) UI.toast = null; else return;
     e.preventDefault(); render(); return;
+  }
+  if (UI.lightbox) {
+    // ⌘+ / ⌘− (or + and − alone) zoom; 0 (⌘0 in a browser) fits. In the app, ⌘0 is the menu's.
+    if (k === '=' || k === '+') { e.preventDefault(); lbZoom(1.25); return; }
+    if (k === '-' || k === '_') { e.preventDefault(); lbZoom(0.8); return; }
+    if (k === '0') { e.preventDefault(); lbFit(); return; }
   }
   if (e.metaKey || e.ctrlKey || e.altKey) {
     if (k === 'Enter' && UI.drawer) { e.preventDefault(); drawerPrimary(); }
