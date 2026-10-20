@@ -166,25 +166,15 @@ struct BoardPane: View {
     @State private var picks: [String] = []
     @State private var note = ""
     @FocusState private var focused: Bool
+    /// Review mode: one card at a time, blocking first, the queue fixed when it starts.
+    @State private var queue: [String]? = nil
 
     enum Tab: String, CaseIterable { case needs = "Needs you", all = "Everything", record = "Record" }
 
     var body: some View {
         let data = cache.data(project) ?? BoardData()
-        HStack(spacing: 0) {
-            VStack(spacing: 0) {
-                Picker("", selection: $tab) {
-                    ForEach(Tab.allCases, id: \.self) { t in
-                        Text(t == .needs ? "Needs you \(data.needsYou)" : t.rawValue).tag(t)
-                    }
-                }
-                .pickerStyle(.segmented).labelsHidden().padding(10)
-                Divider()
-                if tab == .record { recordList(data) } else { cardList(data) }
-            }
-            .frame(width: 300)
-            Divider()
-            detail(data)
+        Group {
+            if let queue { review(data, queue) } else { browse(data) }
         }
         .background(p.pane)
         .focusable().focused($focused).focusEffectDisabled()
@@ -194,11 +184,97 @@ struct BoardPane: View {
         .onDisappear { cache.unwatch(project) }
     }
 
+    private func startReview(_ data: BoardData) {
+        let needs = visible(data).filter(\.needsYou)
+        let q = (needs.filter(\.blocking) + needs.filter { !$0.blocking }).map(\.id)
+        guard !q.isEmpty else { return }
+        queue = q; selected = q.first; focused = true
+    }
+
+    @ViewBuilder private func review(_ data: BoardData, _ q: [String]) -> some View {
+        let i = q.firstIndex(of: selected ?? "") ?? 0
+        let card = data.cards.first { $0.id == q[min(i, q.count - 1)] }
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Button { queue = nil } label: { Label("Exit review", systemImage: "chevron.left") }
+                    .buttonStyle(.plain).foregroundStyle(p.text2).keyboardShortcut(.escape, modifiers: [])
+                Spacer()
+                // One segment per card: done, here, to come.
+                HStack(spacing: 3) {
+                    ForEach(Array(q.enumerated()), id: \.offset) { j, id in
+                        let done = data.cards.first { $0.id == id }?.decided != nil
+                        Capsule().fill(j == i ? p.accent : (done ? p.running : p.line)).frame(width: j == i ? 14 : 6, height: 4)
+                    }
+                }
+                .frame(maxWidth: 360)
+                Text("\(i + 1) of \(q.count)").font(.system(size: 12, design: .monospaced)).foregroundStyle(p.text3)
+                Spacer()
+            }
+            .padding(.horizontal, 14).frame(height: 40)
+            Divider()
+            if let card {
+                CardBodyView(json: data.json, cardId: card.id).frame(maxWidth: .infinity, maxHeight: .infinity)
+                if card.question != nil {
+                    Divider()
+                    AnswerBar(project: project, card: card, projectDir: data.projectDir, projectName: data.projectName,
+                              picks: $picks, note: $note, onSent: { stepReview(1, q) })
+                }
+                Divider()
+                HStack {
+                    Button("Previous  K") { stepReview(-1, q) }.disabled(i == 0)
+                    Spacer()
+                    Text(card.sure ? "1–\(card.options.count) pick · ↵ my pick · ⌘↵ send" : "1–\(card.options.count) pick · ⌘↵ send")
+                        .font(.system(size: 11)).foregroundStyle(p.text3)
+                    Spacer()
+                    Button(i + 1 < q.count ? "Skip  J" : "Done") { if i + 1 < q.count { stepReview(1, q) } else { queue = nil } }
+                }
+                .buttonStyle(.borderless).padding(.horizontal, 14).frame(height: 36)
+            }
+        }
+    }
+
+    private func stepReview(_ n: Int, _ q: [String]) {
+        let i = q.firstIndex(of: selected ?? "") ?? 0
+        let j = i + n
+        if j >= q.count { queue = nil; cache.refresh(project); return }
+        selected = q[max(0, j)]; picks = []; note = ""
+        cache.refresh(project)
+    }
+
+    @ViewBuilder private func browse(_ data: BoardData) -> some View {
+        HStack(spacing: 0) {
+            VStack(spacing: 0) {
+                Picker("", selection: $tab) {
+                    ForEach(Tab.allCases, id: \.self) { t in
+                        Text(t == .needs ? "Needs you \(data.needsYou)" : t.rawValue).tag(t)
+                    }
+                }
+                .pickerStyle(.segmented).labelsHidden().padding(.horizontal, 10).padding(.top, 10)
+                Button { startReview(data) } label: {
+                    Label("Review one by one", systemImage: "play.fill").frame(maxWidth: .infinity)
+                }
+                .disabled(data.needsYou == 0).padding(10)
+                Divider()
+                if tab == .record { recordList(data) } else { cardList(data) }
+            }
+            .frame(width: 300)
+            Divider()
+            detail(data)
+        }
+    }
+
     /// J/K move, 1–9 pick, ↵ takes my pick when I'm sure (never on an unsure card), ⌘↵ sends.
     private func handleKey(_ key: KeyPress, _ data: BoardData) -> KeyPress.Result {
         let cards = visible(data)
         let i = cards.firstIndex { $0.id == selected }
         let card = i.map { cards[$0] }
+        if let q = queue {
+            switch key.characters {
+            case "j": stepReview(1, q); return .handled
+            case "k": stepReview(-1, q); return .handled
+            default: break
+            }
+        } else if key.characters == "r" { startReview(data); return .handled }
         switch key.characters {
         case "j": if let i, i + 1 < cards.count { selected = cards[i + 1].id } else if i == nil { selected = cards.first?.id }; return .handled
         case "k": if let i, i > 0 { selected = cards[i - 1].id }; return .handled
@@ -227,7 +303,7 @@ struct BoardPane: View {
     private func send(_ card: BoardCard, _ data: BoardData) {
         guard BoardSend.send(store: store, project: project, card: card, picks: picks, note: note,
                              projectDir: data.projectDir, projectName: data.projectName) else { return }
-        advance(after: card.id, in: data)
+        if let q = queue { stepReview(1, q) } else { advance(after: card.id, in: data) }
     }
 
     /// After a send: the next card that needs you, or stay.

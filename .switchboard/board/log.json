@@ -368,5 +368,25 @@
     "item": "w-pane",
     "t": 1792500103836,
     "text": "Blocked on you: The board as a pane beside the agent's terminal"
+  },
+  {
+    "item": null,
+    "t": 1792502085320,
+    "text": "Done: B2 · The board in a project window"
+  },
+  {
+    "item": "lc-home",
+    "t": 1792502085349,
+    "text": "Kept: Native SwiftUI, a web page, or both?"
+  },
+  {
+    "item": "w-modes",
+    "t": 1792502085364,
+    "text": "Kept: One board, three shapes, depending on the window"
+  },
+  {
+    "item": "w-pane",
+    "t": 1792502085378,
+    "text": "Kept: The board as a pane beside the agent's terminal"
   }
 ]

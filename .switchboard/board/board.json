@@ -47,12 +47,7 @@
       }
     ],
     "stagesLabel": "The plan",
-    "working": {
-      "item": "w-pane",
-      "since": 1792500105459,
-      "stage": "b2",
-      "text": "B2 step 1: the engine reads a board and records sends"
-    }
+    "working": null
   },
   "stages": [
     {
@@ -124,7 +119,7 @@
       "doc": "plans/06-board.md#B2",
       "id": "b2",
       "label": "B2",
-      "state": "now",
+      "state": "done",
       "title": "The board in a project window"
     },
     {

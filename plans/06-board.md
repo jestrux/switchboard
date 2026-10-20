@@ -1,10 +1,10 @@
 # 6. The board: where an agent hands a project to its author
 
-**Status: In progress.** A1–A4, P, B0, A5 and B1 are done: `switchboard start switchboard/board/board`
+**Status: In progress.** A1–A4, P, B0, A5, B1 and B2 are done: `switchboard start switchboard/board/board`
 serves this repo's board on http://localhost:5198, the agent writes it with `scripts/board`,
 answers come straight back from the Mac or the phone, and `switchboard keep` suggests and adopts
-a project's home (this repo is the Switchboard project's home since 2026-10-20). Next: B2, the
-board in a project window. Each step's brief, parts, verifiables and gate are under **The steps**.
+a project's home (this repo is the Switchboard project's home since 2026-10-20). Next: B3, the
+menu bar. Each step's brief, parts, verifiables and gate are under **The steps**.
 
 ## What it is
 
@@ -340,14 +340,18 @@ bodies in a web view built from Track A's page, and the board as a pane beside a
 - [x] 3 · Answering: native option buttons (mine marked, "Then I'll …"), a note, Send (⌘↵), written
   through the engine (`from: app`); then the next card that needs you. Keys J/K, 1–9, ↵ for my
   pick when sure are in, not yet driven in a test
-- [ ] 4 · Review mode: one card at a time, taking the pane over
-- [ ] 5 · The count in All Projects: a badge on each project's tile
+- [x] 4 · Review mode: Review one by one (R) takes the pane over: blocking first, then the rest
+  of Needs you; a segmented progress bar and "n of N"; Previous K, Skip J, Exit (Esc); a send
+  moves on
+- [x] 5 · The count in All Projects: the Needs you count as an accent badge on each project's
+  rail tile, top right (the crash dot moves to the top left beside it)
 
 **Verifiables**
 
 - Driven with `scripts/dev/uidrive.swift`, and screenshots
 
-**Gate.** A day's work done in the app, not the browser.
+**Gate.** A day's work done in the app, not the browser. Done 2026-10-20: checked by driving the app (the pane, answering a throwaway card,
+review mode's Skip and Exit, the rail badge). The keys are built but not yet driven in a test.
 
 ### B3 · Menu bar
 

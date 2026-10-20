@@ -228,6 +228,7 @@ struct RailView: View {
 
 struct RailTile: View {
     @EnvironmentObject var store: EngineStore
+    @ObservedObject private var boards = BoardCache.shared
     @Environment(\.sbTheme) private var theme
     @Environment(\.colorScheme) private var scheme
     let project: ProjectInfo
@@ -253,12 +254,22 @@ struct RailTile: View {
             } else if running > 0 {
                 badge("\(running)", bg: p.running, fg: look.isDark ? Color(hex: 0x0B0C0E) : .white, look: look)
             }
+            // What needs the author on this project's board (plans/06-board.md, B2; w-modes: a
+            // count in All Projects), top right; a crash dot moves to the top left beside it.
+            let needs = boards.data(project.slug)?.needsYou ?? 0
+            if needs > 0 && project.error == nil {
+                badge("\(needs)", bg: p.accent, fg: p.onAccent, look: look)
+                    .offset(x: 0, y: -SBMetrics.railTile + 8)
+                    .help("\(needs) on the board need you")
+            }
             if crashed > 0 && project.error == nil {
                 Circle().fill(p.crashed).frame(width: 7, height: 7)
                     .shadow(color: look.glows ? p.crashed : .clear, radius: 3)
-                    .offset(x: 2, y: -SBMetrics.railTile + 6)
+                    .offset(x: needs > 0 ? -SBMetrics.railTile + 4 : 2, y: -SBMetrics.railTile + 6)
             }
         }
+        .onAppear { boards.watch(project.slug, engine: store.engine) }
+        .onDisappear { boards.unwatch(project.slug) }
         .padding(4)
         .background {
             if selected {

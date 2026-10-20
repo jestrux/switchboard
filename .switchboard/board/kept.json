@@ -1,23 +1,15 @@
 {
-  "w-name": {
-    "at": 1792498800451,
-    "commit": "8358489"
-  },
-  "w-mainname": {
-    "at": 1792498800510,
-    "commit": "8358489"
+  "c-reason": {
+    "at": 1792498800616,
+    "commit": "d092697"
   },
   "lc-commit": {
     "at": 1792498800565,
     "commit": "05df56e"
   },
-  "c-reason": {
-    "at": 1792498800616,
-    "commit": "d092697"
-  },
-  "v-sidebar": {
-    "at": 1792498800667,
-    "commit": "dc8215f"
+  "lc-home": {
+    "at": 1792502085349,
+    "commit": "HEAD"
   },
   "lc-lifecycle": {
     "at": 1792498800716,
@@ -26,5 +18,25 @@
   "v-overview": {
     "at": 1792498836095,
     "commit": "0eadaad"
+  },
+  "v-sidebar": {
+    "at": 1792498800667,
+    "commit": "dc8215f"
+  },
+  "w-mainname": {
+    "at": 1792498800510,
+    "commit": "8358489"
+  },
+  "w-modes": {
+    "at": 1792502085363,
+    "commit": "HEAD"
+  },
+  "w-name": {
+    "at": 1792498800451,
+    "commit": "8358489"
+  },
+  "w-pane": {
+    "at": 1792502085377,
+    "commit": "HEAD"
   }
 }
