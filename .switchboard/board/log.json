@@ -288,5 +288,40 @@
     "t": 1792498323887,
     "text": "A5: reason filters, Needs you is decisions only, and the Record",
     "item": "c-reason"
+  },
+  {
+    "t": 1792498800455,
+    "text": "Kept: Switchboard already calls its main window \"the board\"",
+    "item": "w-name"
+  },
+  {
+    "t": 1792498800513,
+    "text": "Kept: What should Switchboard's main window be called now?",
+    "item": "w-mainname"
+  },
+  {
+    "t": 1792498800570,
+    "text": "Kept: Where does the board live, home or no home?",
+    "item": "lc-commit"
+  },
+  {
+    "t": 1792498800619,
+    "text": "Kept: Every card says why it's there",
+    "item": "c-reason"
+  },
+  {
+    "t": 1792498800674,
+    "text": "Kept: The sidebar: keep it as it is, and fold the overview into the plan",
+    "item": "v-sidebar"
+  },
+  {
+    "t": 1792498800719,
+    "text": "Kept: Decided cards: take them off, or keep them as the record?",
+    "item": "lc-lifecycle"
+  },
+  {
+    "t": 1792498835929,
+    "text": "Done: A5 · The audit's gaps",
+    "item": null
   }
 ]

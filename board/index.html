@@ -129,6 +129,13 @@ svg{flex:0 0 auto}
 .pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;line-height:16px;padding:0 6px;border-radius:8px;white-space:nowrap}
 .pill.new{border:1px solid var(--accent-line);color:var(--accent-line);padding:0 5px}
 .pill.unsure{background:rgba(255,181,71,.12);color:var(--warn);padding:0 6px 0 4px}
+.ov{display:flex;flex-direction:column;gap:1px;margin:2px 0 8px}
+.ov-line{display:flex;align-items:baseline;gap:8px;padding:3px 8px;border-radius:6px;font-size:12px;line-height:17px;text-align:left;width:100%}
+.ov-line.on{background:var(--hover)}
+.ov-k{flex:0 0 78px;color:var(--ink-3)}
+.ov-v{flex:1;min-width:0;color:var(--ink-2)}
+.ov-health{display:flex;flex-wrap:wrap;gap:1px 8px}.ov-health>span{display:inline-flex;align-items:center;gap:5px}
+.ov-dot{width:6px;height:6px;border-radius:99px;display:inline-block}
 .pill.block{background:color-mix(in oklab,var(--bad) 14%,transparent);color:var(--bad);padding:0 6px}
 .pill.rec{border:1px solid var(--line-2);color:var(--ink-2);font-weight:400}
 .pill.v{background:var(--time-soft);color:var(--time);font-family:var(--mono);font-weight:400}
@@ -730,6 +737,7 @@ function norm(raw) {
     aspect: dims ? (+dims[1] / +dims[2]) : null,
     log: toArr(raw.log).map(function (l) { return { t: +l.t || 0, text: l.text || '', item: l.item || null }; }).sort(function (a, b) { return b.t - a.t; }),
     record: toArr(raw.record).filter(function (r) { return r && r.id; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); }),
+    kept: raw.kept || {}, health: raw.health || null,
     byId: items.reduce(function (o, it) { o[it.id] = it; return o; }, {})
   };
 }
@@ -1991,6 +1999,7 @@ function rail() {
   nav.appendChild(navs);
   var steps = D.stages.filter(function (s) { return s.state && s.state !== 'later'; }), stepsDone = steps.filter(function (s) { return s.state === 'done'; }).length;
   nav.appendChild(h('div', { class: 'rail-sec' }, h('b', null, D.project.stagesLabel), h('span', null, steps.length ? stepsDone + ' of ' + steps.length + ' done' : t.handled + ' of ' + t.total + ' handled')));
+  nav.appendChild(overviewBlock());
   var ol = h('ol', { class: 'journey' });
   D.stages.forEach(function (s) {
     // A plan step says its own state; otherwise it's worked out from its cards.
@@ -2231,6 +2240,84 @@ function recordPane() {
     if (!it) col.appendChild(h('p', { class: 'muted', style: 'margin-top:12px' }, 'The card has since come off the board; this is its record.'));
   } else col.appendChild(h('div', { class: 'center', style: 'min-height:50%' }, h('span', { class: 'muted' }, 'Nothing decided yet.')));
   main.appendChild(h('div', { class: 'scroll', 'data-scroll': 'rec-' + (UI.recSel || 0) }, h('div', { class: 'read nomedia' }, col)));
+  return main;
+}
+// The overview (A5; decided on the board, v-sidebar and v-overview): what the plan's steps can't
+// show, under The plan. Since you last looked, health, and what's owed.
+function owedRows() {
+  var seen = {}, rows = [];
+  (D.record || []).forEach(function (r) {
+    if (r.pick == null || seen[r.id]) return;
+    seen[r.id] = true;
+    var it = D.byId[r.id]; if (!it || !it.decision || (D.kept || {})[r.id]) return;
+    var picks = Array.isArray(r.pick) ? r.pick.map(String) : [String(r.pick)];
+    var then = it.decision.options.filter(function (o) { return picks.indexOf(String(o.o)) >= 0 && o.then; }).map(function (o) { return plain(o.then); });
+    if (then.length) rows.push({ it: it, r: r, then: then.join(' ') });
+  });
+  return rows;
+}
+function sinceLine() {
+  var since = S.prevVisit || 0, bits = [];
+  var fresh = D.items.filter(function (it) { return (it.updated || 0) > since && needsYou(it); }).length;
+  var answered = (D.record || []).filter(function (r) { return (r.at || 0) > since; }).length;
+  var done = D.log.filter(function (l) { return l.t > since && /^Done: /.test(l.text); }).map(function (l) { return plain(l.text).replace(/^Done: /, '').split(' · ')[0]; });
+  var commits = ((D.health || {}).commits || []).filter(function (c) { return c.t > since; }).length;
+  if (fresh) bits.push(plural(fresh, 'new card'));
+  if (answered) bits.push(answered + ' answered');
+  if (done.length) bits.push(done.join(', ') + ' done');
+  if (commits) bits.push(plural(commits, 'commit'));
+  return bits.length ? bits.join(' · ') : 'Nothing new';
+}
+function overviewBlock() {
+  var hl = D.health || {}, owed = owedRows();
+  var line = function (label, body, opts) {
+    opts = opts || {};
+    return h(opts.onclick ? 'button' : 'div', { type: opts.onclick ? 'button' : undefined, class: 'ov-line' + (opts.onclick ? ' row' : '') + (opts.on ? ' on' : ''), onclick: opts.onclick || null, title: opts.title || '' },
+      h('span', { class: 'ov-k' }, label), h('span', { class: 'ov-v' }, body));
+  };
+  var dot = function (ok) { return h('span', { class: 'ov-dot', style: 'background:' + (ok ? 'var(--ok)' : 'var(--warn)') }); };
+  var healthBits = [];
+  if (hl.uncommitted != null) healthBits.push(h('span', null, dot(!hl.uncommitted), hl.uncommitted ? hl.uncommitted + ' uncommitted' : 'committed'));
+  if (hl.unpushed != null) healthBits.push(h('span', null, dot(!hl.unpushed), hl.unpushed ? hl.unpushed + ' unpushed' : 'pushed'));
+  if (hl.servers && hl.servers.length) {
+    var down = hl.servers.filter(function (s) { return s.status !== 'running'; });
+    healthBits.push(h('span', { title: hl.servers.map(function (s) { return s.name + ': ' + s.status; }).join('\n') }, dot(!down.length), down.length ? down.length + ' not running' : 'servers up'));
+  }
+  return h('div', { class: 'ov' },
+    line('Since you looked', sinceLine(), { title: 'Since ' + (S.prevVisit ? new Date(S.prevVisit).toLocaleString() : 'your first visit') }),
+    healthBits.length ? line('Health', h('span', { class: 'ov-health' }, healthBits)) : null,
+    line('What\'s owed', owed.length ? plural(owed.length, 'commitment') : 'Nothing', { onclick: function () { setView('owed'); }, on: UI.view === 'owed' }));
+}
+function owedList() {
+  var sec = h('section', { class: 'list', 'aria-label': 'What\'s owed' }), rows = owedRows();
+  sec.appendChild(h('div', { class: 'list-head' }, h('div', { style: 'display:flex;flex-direction:column' }, h('h1', { class: 'h-list' }, 'What\'s owed'),
+    h('span', { class: 'muted' }, 'What your answers committed the agent to, until it\'s kept'))));
+  var body = h('div', { class: 'list-body', 'data-scroll': 'owed' });
+  rows.forEach(function (o, i) {
+    body.appendChild(h('button', { type: 'button', class: 'irow row' + ((UI.owedSel || 0) === i ? ' on' : ''), onclick: function () { UI.owedSel = i; render(); } },
+      h('span', { class: 'ring', style: 'margin-top:4px' }),
+      h('span', { style: 'flex:1;min-width:0;display:flex;flex-direction:column;gap:2px' }, h('span', { class: 'irow-t', html: o.it.title }),
+        h('span', { class: 'irow-s' }, h('span', null, o.then)))));
+  });
+  if (!rows.length) body.appendChild(h('div', { class: 'muted', style: 'padding:24px 10px;text-align:center' }, 'Nothing owed: every decision\'s work is done.'));
+  sec.appendChild(body);
+  return sec;
+}
+function owedPane() {
+  var o = owedRows()[UI.owedSel || 0], main = h('main', { class: 'main' });
+  var bar = h('div', { class: 'topbar' }, h('span', { class: 'crumb' }, 'What\'s owed'));
+  if (o) { bar.appendChild(h('span', { style: 'color:var(--ink-3);display:flex' }, I.chev())); bar.appendChild(h('span', { class: 'crumb-t', html: o.it.title })); }
+  bar.appendChild(h('div', { class: 'right' }, o ? h('button', { type: 'button', class: 'btn sm', onclick: function () { setView('stage', o.it.stage, o.it.id); } }, 'Open the card') : null, h('span', { class: 'vsep' }), sendBtn()));
+  main.appendChild(bar);
+  var col = h('div', { class: 'read-col', style: 'max-width:720px' });
+  if (o) {
+    col.appendChild(h('div', { class: 'head-col' },
+      h('span', { class: 'mono muted', style: 'font-size:11px' }, 'Decided ' + new Date(o.r.at || 0).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ': ' + (o.r.labels || []).join(', ')),
+      h('h2', { class: 'h-read', html: o.it.title })));
+    col.appendChild(h('div', { class: 'stance' }, h('div', { class: 'stance-h' }, I.agent(14), h('b', null, 'Owed: '), h('span', null, o.then))));
+    col.appendChild(h('p', { class: 'muted', style: 'margin-top:12px;font-size:13px' }, 'The agent marks it kept with ', h('code', null, 'board kept ' + o.it.id), ' when the work lands.'));
+  } else col.appendChild(h('div', { class: 'center', style: 'min-height:50%' }, h('span', { class: 'muted' }, 'Nothing owed.')));
+  main.appendChild(h('div', { class: 'scroll', 'data-scroll': 'owed-' + (UI.owedSel || 0) }, h('div', { class: 'read nomedia' }, col)));
   return main;
 }
 function activityList() {
@@ -2677,6 +2764,7 @@ function render() {
   if (UI.view === 'inbox' || UI.view === 'all' || UI.view === 'stage') { app.appendChild(inboxList()); app.appendChild(readingPane()); }
   else if (UI.view === 'film') { app.appendChild(filmList()); app.appendChild(filmPane()); }
   else if (UI.view === 'record') { app.appendChild(recordList()); app.appendChild(recordPane()); }
+  else if (UI.view === 'owed') { app.appendChild(owedList()); app.appendChild(owedPane()); }
   else { app.appendChild(activityList()); app.appendChild(activityPane()); }
   var layer = document.getElementById('layer'); layer.innerHTML = '';
   if (UI.review) layer.appendChild(reviewView());

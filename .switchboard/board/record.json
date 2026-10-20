@@ -133,5 +133,35 @@
     "notes": [],
     "at": 1792495472574,
     "from": "board"
+  },
+  {
+    "id": "lc-lifecycle",
+    "title": "Decided cards: take them off, or keep them as the record?",
+    "step": "a5",
+    "version": 1,
+    "pick": "keep",
+    "labels": [
+      "Stay on the board, collapsed as Handled (the Flex way)"
+    ],
+    "rec": "record",
+    "way": "unsure",
+    "notes": [],
+    "at": 1792498690774,
+    "from": "board"
+  },
+  {
+    "id": "v-overview",
+    "title": "What the overview adds under The plan",
+    "step": "a5",
+    "version": 2,
+    "pick": "all",
+    "labels": [
+      "All three: since you last looked, health, what's owed"
+    ],
+    "rec": "all",
+    "way": "agreed",
+    "notes": [],
+    "at": 1792498690774,
+    "from": "board"
   }
 ]

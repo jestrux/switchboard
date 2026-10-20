@@ -47,12 +47,7 @@
         "text": "The inbox inside the board stays <b>Needs you</b>."
       }
     ],
-    "working": {
-      "since": 1792498323940,
-      "text": "A5: waiting on the overview and lc-lifecycle",
-      "stage": "a5",
-      "item": "v-overview"
-    }
+    "working": null
   },
   "stages": [
     {
@@ -108,7 +103,7 @@
       "title": "The audit's gaps",
       "label": "A5",
       "blurb": "Reason labels, the Needs you count, the Record, the overview under The plan",
-      "state": "now",
+      "state": "done",
       "doc": "plans/06-board.md#A5"
     },
     {

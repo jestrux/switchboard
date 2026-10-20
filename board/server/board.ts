@@ -7,6 +7,7 @@
 //   .switchboard/board/log.json          what the agent did, oldest first
 //   .switchboard/board/private/media/    images the cards show that never enter the repo (ignored)
 //   .switchboard/board/state/            the author's sends (ignored)
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { marked } from "marked";
@@ -45,6 +46,41 @@ function withDoc(dir: string, step: Step): Step {
   return { ...step, docHtml: marked.parse(md, { async: false, gfm: true }) as string, parts: { done, total: done + open } };
 }
 
+/** The overview's health (A5, `v-overview`): what's uncommitted or unpushed in the board's repo,
+ *  its recent commits, and whether the project's commands are running (from Switchboard). Cached
+ *  for 15 s: git and `switchboard status` are too slow to run on every read. */
+let healthCache: { at: number; dir: string; value: unknown } | null = null;
+function health(dir: string) {
+  if (healthCache && healthCache.dir === dir && Date.now() - healthCache.at < 15000) return healthCache.value;
+  const repo = path.resolve(dir, "..", "..");
+  const run = (cmd: string, args: string[], cwd = repo) => {
+    try { return execFileSync(cmd, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 4000 }).trim(); }
+    catch { return null; }
+  };
+  const inRepo = run("git", ["rev-parse", "--show-toplevel"]) !== null;
+  const status = inRepo ? run("git", ["status", "--porcelain"]) : null;
+  const ahead = inRepo ? run("git", ["rev-list", "--count", "@{u}..HEAD"]) : null;
+  const log = inRepo ? run("git", ["log", "--since=14.days", "--format=%ct%x09%h%x09%s"]) : null;
+  let servers: { name: string; status: string; url?: string }[] | null = null;
+  const sb = run("switchboard", ["status", "--json"], process.cwd());
+  if (sb) {
+    try {
+      const projects = JSON.parse(sb) as { commands: { name: string; status: string; url?: string; autostart: boolean; cwd?: string }[] }[];
+      const mine = projects.find((p) => p.commands.some((c) => c.cwd && (c.cwd === repo || c.cwd.startsWith(repo + path.sep))));
+      servers = mine ? mine.commands.filter((c) => c.autostart).map((c) => ({ name: c.name, status: c.status, url: c.url })) : null;
+    } catch { servers = null; }
+  }
+  const value = {
+    repo: inRepo,
+    uncommitted: status === null ? null : status ? status.split("\n").length : 0,
+    unpushed: ahead === null ? null : Number(ahead),
+    commits: log ? log.split("\n").map((l) => { const [t, h, ...m] = l.split("\t"); return { t: Number(t) * 1000, hash: h, subject: m.join("\t") }; }) : [],
+    servers,
+  };
+  healthCache = { at: Date.now(), dir, value };
+  return value;
+}
+
 /** The board as the page's data contract (`window.FLEX_REVIEW`). */
 export function loadBoard(dir: string) {
   const board = readJson<{ project?: object; stages?: Step[] }>(path.join(dir, "board.json"), {});
@@ -64,7 +100,8 @@ export function loadBoard(dir: string) {
       (a.order ?? 0) - (b.order ?? 0) ||
       a.id.localeCompare(b.id),
   );
-  return { project: board.project ?? {}, stages, items: cards, log: readJson(path.join(dir, "log.json"), []), record: readJson(path.join(dir, "record.json"), []) };
+  return { project: board.project ?? {}, stages, items: cards, log: readJson(path.join(dir, "log.json"), []),
+           record: readJson(path.join(dir, "record.json"), []), kept: readJson(path.join(dir, "kept.json"), {}), health: health(dir) };
 }
 
 /** One decision, as the Record keeps it (A5): what was asked, what was picked or said, when
@@ -97,7 +134,9 @@ export function recordSend(dir: string, send: unknown) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const sends = readJson<unknown[]>(file, []);
   sends.push({ receivedAt: Date.now(), ...(send as object) });
-  fs.writeFileSync(file, JSON.stringify(sends, null, 2) + "\n");
+  // Atomic, so `board answers --wait` never reads half a file.
+  fs.writeFileSync(file + ".tmp", JSON.stringify(sends, null, 2) + "\n");
+  fs.renameSync(file + ".tmp", file);
   recordDecisions(dir, send as { answers?: Answer[] });
   // A card with a pick no longer blocks the agent (a note alone doesn't unblock it). The path
   // check matches the CLI's id rule.

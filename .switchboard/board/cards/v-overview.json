@@ -54,5 +54,5 @@
   "summary": "The plan in the sidebar already shows where the project is: each step done, now or next, with its open cards. The overview adds what the plan can't show, under The plan, not as a page of its own (decided, <code>v-sidebar</code>).",
   "changed": "Rewritten for the plan in the sidebar",
   "askedAt": 1792498119505,
-  "blocking": true
+  "blocking": false
 }

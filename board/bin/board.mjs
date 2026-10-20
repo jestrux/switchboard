@@ -14,6 +14,8 @@
 //   board step <id> [done|now|next|later]  a step of the plan, shown in the sidebar with its state;
 //                                 --title, --label ("A1"), --blurb, --doc <plan.md#A1>, --after <id>,
 //                                 --remove (only when empty)
+//   board kept <id> [--commit <sha>]  a decision's commitment is kept: it leaves What's owed;
+//                                 --undo puts it back
 //   board list                    the cards, with whether each is still open
 //   board answers                 sends not read yet (then marks them read); --wait, --timeout, --json, --all
 //
@@ -35,7 +37,7 @@ for (let i = 0; i < argv.length; i++) {
   if (!a.startsWith("--")) { args.push(a); continue; }
   const [k, v] = a.slice(2).split("=", 2);
   if (v !== undefined) flags[k] = v;
-  else if (i + 1 < argv.length && !argv[i + 1].startsWith("--") && !["ask", "clear", "wait", "json", "all", "remove", "blocking", "no-push", "quiet"].includes(k)) flags[k] = argv[++i];
+  else if (i + 1 < argv.length && !argv[i + 1].startsWith("--") && !["ask", "clear", "wait", "json", "all", "remove", "blocking", "no-push", "quiet", "undo"].includes(k)) flags[k] = argv[++i];
   else flags[k] = true;
 }
 const verb = args.shift();
@@ -251,6 +253,17 @@ switch (verb) {
     if (state === "now") log(`Now: ${e.label ? e.label + " · " : ""}${plain(e.title)}`, null);
     if (state === "done") log(`Done: ${e.label ? e.label + " · " : ""}${plain(e.title)}`, null);
     console.log(`${e.id}${e.state ? " · " + e.state : ""}`);
+    break;
+  }
+  case "kept": {
+    const id = args[0]; if (!id) fail("give the card's id");
+    const f = path.join(DIR, "kept.json"), k = read(f, {});
+    const rec = read(path.join(DIR, "record.json"), []);
+    if (!flags.undo && !rec.some((r) => r.id === id && r.pick != null)) fail(`${id} has no decision in the Record`);
+    if (flags.undo) delete k[id]; else k[id] = { at: now(), commit: typeof flags.commit === "string" ? flags.commit : null };
+    write(f, k);
+    if (!flags.undo) log(`Kept: ${plain((cards().find((c) => c.id === id) || {}).title || id)}`, id);
+    console.log(flags.undo ? `owed again: ${id}` : `kept ${id}`);
     break;
   }
   case "list": {

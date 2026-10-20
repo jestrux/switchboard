@@ -1,10 +1,10 @@
 # 6. The board: where an agent hands a project to its author
 
-**Status: In progress.** A1–A4, P and B0 are done: `switchboard start switchboard/board/board`
+**Status: In progress.** A1–A4, P, B0 and A5 are done: `switchboard start switchboard/board/board`
 serves this repo's board on http://localhost:5198, the agent writes it with `scripts/board`,
 answers come straight back from the Mac or the phone, and `switchboard keep` suggests and adopts
-a project's home (this repo is the Switchboard project's home since 2026-10-20). Now: A5, the
-audit's gaps. Each step's brief, parts, verifiables and gate are under **The steps**.
+a project's home (this repo is the Switchboard project's home since 2026-10-20). Next: B1, the
+engine and CLI. Each step's brief, parts, verifiables and gate are under **The steps**.
 
 ## What it is
 
@@ -277,10 +277,12 @@ set-hero project, whose home is `~/Documents/web/set-hero`, so its board would l
   Everything (Needs you went from 53 to 41)
 - [x] A searchable Record of decisions (`record.json`, committed, written by the server on every
   send): newest first, with the pick, how it compared to the recommendation, where it came
-  from and every note. A card answered on any device is handled everywhere. Whether decided
-  cards also leave the board is `lc-lifecycle`, asked
-- [ ] The overview as part of The plan in the sidebar (decided, `v-sidebar`): since you last
-  looked, health, what's owed
+  from and every note. A card answered on any device is handled everywhere. Decided cards stay
+  on the board, collapsed as Handled (decided 2026-10-20, `lc-lifecycle`); the Record sits beside them
+- [x] The overview under The plan in the sidebar (decided, `v-sidebar`, `v-overview`): since you
+  last looked (new cards, answers, steps done, commits), health (uncommitted, unpushed, the
+  project's servers, from git and `switchboard status`), and what's owed (each decision's
+  "then" until `board kept <id> [--commit]`), with its own list
 
 **Verifiables**
 
@@ -289,7 +291,7 @@ set-hero project, whose home is `~/Documents/web/set-hero`, so its board would l
 **Design.** Built in the page's own design language (Flex's prototype, the Screening-room
 design), like everything else on the board; screenshots for the author before the gate.
 
-**Gate.** The board can be read at a glance: what needs you, what happened, what's owed.
+**Gate.** The board can be read at a glance: what needs you, what happened, what's owed. Done 2026-10-20.
 
 ### B1 · Engine and CLI
 
