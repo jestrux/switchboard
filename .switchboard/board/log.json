@@ -453,5 +453,145 @@
     "item": "lc-signal",
     "t": 1792507414349,
     "text": "Asked: Can Switchboard tell when the agent is waiting on you?"
+  },
+  {
+    "item": "c-thread",
+    "t": 1792508089877,
+    "text": "Decided in chat: A note can be a question, and the answer comes back on the card · Yes: note → my answer under it → answered, never re-sent"
+  },
+  {
+    "item": "prec-review",
+    "t": 1792508089878,
+    "text": "Decided in chat: Precedent: reviewing work · Looks right"
+  },
+  {
+    "item": "c-changed",
+    "t": 1792508089879,
+    "text": "Decided in chat: \"Changed since you decided\" flags itself · Yes"
+  },
+  {
+    "item": "prec-progress",
+    "t": 1792508089879,
+    "text": "Decided in chat: Precedent: progress · Looks right"
+  },
+  {
+    "item": "prec-decisions",
+    "t": 1792508089880,
+    "text": "Decided in chat: Precedent: decisions · Looks right"
+  },
+  {
+    "item": "c-others",
+    "t": 1792508089880,
+    "text": "Decided in chat: Questions for other people · Yes, with the person's name"
+  },
+  {
+    "item": "c-owed",
+    "t": 1792508089881,
+    "text": "Decided in chat: An owed list: what I've committed to and haven't built · Yes, on the overview"
+  },
+  {
+    "item": "prec-agents",
+    "t": 1792508089881,
+    "text": "Decided in chat: Precedent: agents and inboxes · Looks right"
+  },
+  {
+    "item": "a-send",
+    "t": 1792508089881,
+    "text": "Decided in chat: Answers go straight to the agent · Straight to the agent through Switchboard, copy as a fallback"
+  },
+  {
+    "item": "s-open",
+    "t": 1792508089882,
+    "text": "Decided in chat: Open the work from the card · Yes"
+  },
+  {
+    "item": "v-review",
+    "t": 1792508089882,
+    "text": "Decided in chat: Review mode: one card at a time, from the keyboard · Yes, in the first version"
+  },
+  {
+    "item": "prec-mac",
+    "t": 1792508089883,
+    "text": "Decided in chat: Precedent: on the Mac · Looks right"
+  },
+  {
+    "item": "m-delights",
+    "t": 1792508089883,
+    "text": "Decided in chat: Small Mac touches · Quick Look and Markup, Keys in the menus, plus a real ⌘Z, Drag and drop"
+  },
+  {
+    "item": "s-menubar",
+    "t": 1792508089884,
+    "text": "Decided in chat: Answer from the menu bar · A count, and a popover to answer the next card"
+  },
+  {
+    "item": "w-boards",
+    "t": 1792508089884,
+    "text": "Decided in chat: One Boards window for every project · Its own single Boards window"
+  },
+  {
+    "item": "w-tear",
+    "t": 1792508089885,
+    "text": "Decided in chat: Tear the board off into its own window · Yes, with Bring Back like projects"
+  },
+  {
+    "item": "prec-review",
+    "t": 1792508089891,
+    "text": "Kept: Precedent: reviewing work"
+  },
+  {
+    "item": "prec-progress",
+    "t": 1792508089897,
+    "text": "Kept: Precedent: progress"
+  },
+  {
+    "item": "prec-decisions",
+    "t": 1792508089903,
+    "text": "Kept: Precedent: decisions"
+  },
+  {
+    "item": "prec-agents",
+    "t": 1792508089908,
+    "text": "Kept: Precedent: agents and inboxes"
+  },
+  {
+    "item": "prec-mac",
+    "t": 1792508089914,
+    "text": "Kept: Precedent: on the Mac"
+  },
+  {
+    "item": "c-changed",
+    "t": 1792508089919,
+    "text": "Kept: \"Changed since you decided\" flags itself"
+  },
+  {
+    "item": "c-others",
+    "t": 1792508089925,
+    "text": "Kept: Questions for other people"
+  },
+  {
+    "item": "c-owed",
+    "t": 1792508089930,
+    "text": "Kept: An owed list: what I've committed to and haven't built"
+  },
+  {
+    "item": "a-send",
+    "t": 1792508089936,
+    "text": "Kept: Answers go straight to the agent"
+  },
+  {
+    "item": "v-review",
+    "t": 1792508089941,
+    "text": "Kept: Review mode: one card at a time, from the keyboard"
+  },
+  {
+    "item": "s-menubar",
+    "t": 1792508089947,
+    "text": "Kept: Answer from the menu bar"
+  },
+  {
+    "item": "w-boards",
+    "t": 1792508089953,
+    "text": "Kept: One Boards window for every project"
   }
 ]

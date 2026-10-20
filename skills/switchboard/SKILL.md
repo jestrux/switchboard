@@ -135,6 +135,7 @@ switchboard board update <id> patch.json [--changed "what changed"]
 switchboard board working "what you're doing" [--stage <step>]
 switchboard board step <id> done|now|next|later        # the plan's steps, in the sidebar
 switchboard board kept <id> [--commit <sha>]           # a decision's work is done
+switchboard board decide <id>… [--pick o] [--note …]   # the author decided in chat, not on the board
 switchboard board answers --wait                       # keep this running in the background
 ```
 
@@ -144,6 +145,8 @@ switchboard board answers --wait                       # keep this running in th
 - **Obvious calls don't get a card:** `switchboard board settle <id> "the call"` lists it as
   going ahead unless the author objects.
 - **`--blocking` only when you truly can't go on** without the answer.
+- **When the author decides in the conversation**, record it with `decide` (their pick, or the
+  recommendation they agreed to), so the Record and What's owed stay true; then `kept` once built.
 - **Read answers as they come** (`answers --wait` returns when the author sends); never read them
   with the output hidden, which marks them read unseen. While the author is testing the board,
   ask whether what arrived is a real answer before acting on it.

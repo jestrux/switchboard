@@ -94,6 +94,16 @@ pub enum BoardCmd {
         #[arg(long)]
         remove: bool,
     },
+    /// The author decided in conversation: record their pick (the recommended one unless --pick)
+    Decide {
+        ids: Vec<String>,
+        /// The option(s) they chose, if not the recommendation
+        #[arg(long, value_delimiter = ',')]
+        pick: Vec<String>,
+        /// What they said, kept with the decision
+        #[arg(long)]
+        note: Option<String>,
+    },
     /// A decision's work is done; it leaves What's owed
     Kept {
         id: String,
@@ -220,6 +230,14 @@ pub fn run(projects_dir: &Path, dir: Option<PathBuf>, cmd: BoardCmd) -> Result<i
                 e(b.log(&format!("{}: {label}{}", if st == "now" { "Now" } else { "Done" }, board::plain(s["title"].as_str().unwrap_or(&id))), None))?;
             }
             println!("{id}{}", s["state"].as_str().map(|x| format!(" · {x}")).unwrap_or_default());
+        }
+        BoardCmd::Decide { ids, pick, note } => {
+            for id in ids {
+                let entry = e(b.decide(&id, &pick, note.as_deref()))?;
+                let labels: Vec<&str> = entry["labels"].as_array().into_iter().flatten().filter_map(|l| l.as_str()).collect();
+                e(b.log(&format!("Decided in chat: {} · {}", board::plain(entry["title"].as_str().unwrap_or(&id)), labels.join(", ")), Some(&id)))?;
+                println!("decided {id}: {}", labels.join(", "));
+            }
         }
         BoardCmd::Kept { id, commit, undo } => {
             e(b.kept(&id, commit.as_deref(), undo))?;

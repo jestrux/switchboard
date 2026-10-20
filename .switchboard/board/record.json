@@ -223,5 +223,287 @@
     "title": "The board as a pane beside the agent's terminal",
     "version": 1,
     "way": "agreed"
+  },
+  {
+    "at": 1792508089876,
+    "from": "chat",
+    "id": "c-thread",
+    "labels": [
+      "Yes: note → my answer under it → answered, never re-sent"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "yes",
+    "rec": "yes",
+    "step": "a5",
+    "title": "A note can be a question, and the answer comes back on the card",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089878,
+    "from": "chat",
+    "id": "prec-review",
+    "labels": [
+      "Looks right"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "right",
+    "rec": "right",
+    "step": "a5",
+    "title": "Precedent: reviewing work",
+    "version": 2,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089878,
+    "from": "chat",
+    "id": "c-changed",
+    "labels": [
+      "Yes"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "yes",
+    "rec": "yes",
+    "step": "a5",
+    "title": "\"Changed since you decided\" flags itself",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089879,
+    "from": "chat",
+    "id": "prec-progress",
+    "labels": [
+      "Looks right"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "right",
+    "rec": "right",
+    "step": "a5",
+    "title": "Precedent: progress",
+    "version": 2,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089879,
+    "from": "chat",
+    "id": "prec-decisions",
+    "labels": [
+      "Looks right"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "right",
+    "rec": "right",
+    "step": "a5",
+    "title": "Precedent: decisions",
+    "version": 2,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089880,
+    "from": "chat",
+    "id": "c-others",
+    "labels": [
+      "Yes, with the person's name"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "yes",
+    "rec": "yes",
+    "step": "a5",
+    "title": "Questions for other people",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089880,
+    "from": "chat",
+    "id": "c-owed",
+    "labels": [
+      "Yes, on the overview"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "yes",
+    "rec": "yes",
+    "step": "a5",
+    "title": "An owed list: what I've committed to and haven't built",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089881,
+    "from": "chat",
+    "id": "prec-agents",
+    "labels": [
+      "Looks right"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "right",
+    "rec": "right",
+    "step": "b1",
+    "title": "Precedent: agents and inboxes",
+    "version": 2,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089881,
+    "from": "chat",
+    "id": "a-send",
+    "labels": [
+      "Straight to the agent through Switchboard, copy as a fallback"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "direct",
+    "rec": "direct",
+    "step": "b1",
+    "title": "Answers go straight to the agent",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089882,
+    "from": "chat",
+    "id": "s-open",
+    "labels": [
+      "Yes"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "yes",
+    "rec": "yes",
+    "step": "b2",
+    "title": "Open the work from the card",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089882,
+    "from": "chat",
+    "id": "v-review",
+    "labels": [
+      "Yes, in the first version"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "yes",
+    "rec": "yes",
+    "step": "b2",
+    "title": "Review mode: one card at a time, from the keyboard",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089882,
+    "from": "chat",
+    "id": "prec-mac",
+    "labels": [
+      "Looks right"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "right",
+    "rec": "right",
+    "step": "b2",
+    "title": "Precedent: on the Mac",
+    "version": 2,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089883,
+    "from": "chat",
+    "id": "m-delights",
+    "labels": [
+      "Quick Look and Markup",
+      "Keys in the menus, plus a real ⌘Z",
+      "Drag and drop"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": [
+      "ql",
+      "menus",
+      "dnd"
+    ],
+    "rec": [
+      "ql",
+      "menus",
+      "dnd"
+    ],
+    "step": "b2",
+    "title": "Small Mac touches",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089883,
+    "from": "chat",
+    "id": "s-menubar",
+    "labels": [
+      "A count, and a popover to answer the next card"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "pop",
+    "rec": "pop",
+    "step": "b3",
+    "title": "Answer from the menu bar",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089884,
+    "from": "chat",
+    "id": "w-boards",
+    "labels": [
+      "Its own single Boards window"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "window",
+    "rec": "window",
+    "step": "b5",
+    "title": "One Boards window for every project",
+    "version": 1,
+    "way": "agreed"
+  },
+  {
+    "at": 1792508089884,
+    "from": "chat",
+    "id": "w-tear",
+    "labels": [
+      "Yes, with Bring Back like projects"
+    ],
+    "notes": [
+      "Marked done in chat, 2026-10-20"
+    ],
+    "pick": "yes",
+    "rec": "yes",
+    "step": "b5",
+    "title": "Tear the board off into its own window",
+    "version": 1,
+    "way": "agreed"
   }
 ]

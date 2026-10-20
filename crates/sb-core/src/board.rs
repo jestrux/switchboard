@@ -503,6 +503,38 @@ impl Board {
         write(&self.p("record.json"), &record)
     }
 
+    /// The author decided in conversation, not on the board: record it as theirs (`from: chat`),
+    /// with the options named in `picks`, or the recommended ones. Unblocks the card.
+    pub fn decide(&self, id: &str, picks: &[String], note: Option<&str>) -> Result<Value, String> {
+        let mut c = self.card(id).ok_or(format!("no card {id}"))?;
+        let d = c["decision"].clone();
+        let opts = d["options"].as_array().ok_or(format!("{id} has no decision"))?;
+        let is_rec = |o: &Value| o["rec"] == true || o["rec"].as_i64().is_some_and(|n| n != 0);
+        let rec: Vec<String> = opts.iter().filter(|o| is_rec(o)).filter_map(|o| o["o"].as_str().map(String::from)).collect();
+        let pick: Vec<String> = if picks.is_empty() { rec.clone() } else { picks.to_vec() };
+        if pick.is_empty() {
+            return Err(format!("{id} has no recommended option; name one with --pick"));
+        }
+        let mut labels = vec![];
+        for p in &pick {
+            let o = opts.iter().find(|o| o["o"].as_str() == Some(p.as_str())).ok_or(format!("{id} has no option {p}"))?;
+            labels.push(json!(plain(o["label"].as_str().unwrap_or(p))));
+        }
+        let one = |v: &[String]| if v.len() == 1 { json!(v[0]) } else { json!(v) };
+        let entry = json!({ "id": id, "title": c["title"].as_str().unwrap_or(id), "step": c["stage"].as_str().unwrap_or(""),
+                            "version": c["version"].as_i64().unwrap_or(1), "pick": one(&pick), "labels": labels,
+                            "rec": one(&rec), "way": if pick == rec { "agreed" } else { "chose" },
+                            "notes": note.map(|n| vec![json!(n)]).unwrap_or_default(), "at": now(), "from": "chat" });
+        let mut record = read(&self.p("record.json"), json!([]));
+        record.as_array_mut().ok_or("record.json isn't a list")?.push(entry.clone());
+        write(&self.p("record.json"), &record)?;
+        if c["blocking"] == true {
+            obj(&mut c).insert("blocking".into(), json!(false));
+            self.save_card(&c)?;
+        }
+        Ok(entry)
+    }
+
     /// Has the author sent a pick for this card (any version)?
     pub fn answered(&self) -> std::collections::HashSet<String> {
         let rec = read(&self.p("record.json"), json!([]));
@@ -519,6 +551,22 @@ mod tests {
         let b = Board { dir: t.path().join("board"), app_slug: None };
         b.step("a1", Some("now"), &[("title", "First")], None).unwrap();
         (t, b)
+    }
+
+    #[test]
+    fn decide_records_the_recommendation() {
+        let (_t, b) = board();
+        b.add(json!({ "id": "d", "stage": "a1", "title": "D", "blocking": true,
+                      "decision": { "q": "Q", "options": [{ "o": "a", "label": "A", "rec": 1 }, { "o": "b", "label": "B" }] } }), false, true).unwrap();
+        b.add(json!({ "id": "s", "stage": "a1", "title": "S" }), false, false).unwrap();
+        assert!(b.decide("s", &[], None).unwrap_err().contains("no decision"));
+        assert!(b.decide("d", &["z".into()], None).unwrap_err().contains("no option"));
+        let e = b.decide("d", &[], Some("said so")).unwrap();
+        assert_eq!((e["pick"].clone(), e["way"].clone(), e["from"].clone()), (json!("a"), json!("agreed"), json!("chat")));
+        assert!(b.answered().contains("d"));
+        assert_eq!(b.card("d").unwrap()["blocking"], false);
+        b.kept("d", None, false).unwrap();
+        assert_eq!(b.decide("d", &["b".into()], None).unwrap()["way"], "chose");
     }
 
     #[test]
