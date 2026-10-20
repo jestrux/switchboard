@@ -193,6 +193,7 @@ impl Board {
     pub fn add(&self, mut card: Value, ask: bool, blocking: bool) -> Result<Value, String> {
         let (id, stage, title) = (card["id"].as_str(), card["stage"].as_str(), card["title"].as_str());
         let (Some(id), Some(stage), Some(_)) = (id, stage, title) else { return Err("a card needs id, stage and title".into()) };
+        check_card(&card)?;
         let (id, stage) = (id.to_string(), stage.to_string());
         let steps = self.step_ids();
         if !steps.contains(&stage) {
@@ -234,6 +235,8 @@ impl Board {
         for (k, v) in p.iter() {
             co.insert(k.clone(), v.clone());
         }
+        check_card(&c)?;
+        let co = obj(&mut c);
         if news || changed.is_some() {
             co.insert("updated".into(), json!(now()));
         }
@@ -556,6 +559,58 @@ impl Board {
     }
 }
 
+/// A card in the contract's shape (docs/board-contract.md), or every way it isn't, with where each
+/// field goes. A card the page can't read shows only its title: no question, no picture.
+pub fn check_card(c: &Value) -> Result<(), String> {
+    const TOP: &[&str] = &["id", "stage", "title", "sub", "summary", "tags", "order", "version", "updated", "askedAt", "blocking",
+                           "reason", "for", "decision", "body", "notePrompt", "visual", "wide", "changed", "make"];
+    const DECISION: &[&str] = &["q", "options", "why", "basis", "multi", "unsure"];
+    const BODY: &[&str] = &["html", "checks", "beats", "gallery", "image", "video", "compare", "fields", "audio", "poster", "takes"];
+    const VIDEO: &[&str] = &["mp4", "mov", "m4v", "webm"];
+    let mut bad = vec![];
+    let Some(o) = c.as_object() else { return Err("a card is a JSON object".into()) };
+    for k in o.keys() {
+        if DECISION.contains(&k.as_str()) {
+            bad.push(format!("`{k}` goes inside `decision`, not at the top of the card"));
+        } else if BODY.contains(&k.as_str()) {
+            bad.push(format!("`{k}` goes inside `body`, not at the top of the card"));
+        } else if !TOP.contains(&k.as_str()) {
+            bad.push(format!("`{k}` isn't a card field"));
+        }
+    }
+    if let Some(d) = o.get("decision").filter(|d| !d.is_null()) {
+        if !d["q"].is_string() {
+            bad.push("`decision.q` (the question) is missing".into());
+        }
+        match d["options"].as_array() {
+            None => bad.push("`decision.options` is missing".into()),
+            Some(opts) => {
+                for (i, op) in opts.iter().enumerate() {
+                    if !(op["o"].is_string() || op["o"].is_number()) {
+                        bad.push(format!("option {} needs an `o` (a short id, e.g. \"yes\")", i + 1));
+                    }
+                    if !op["label"].is_string() {
+                        bad.push(format!("option {} needs a `label`", i + 1));
+                    }
+                }
+            }
+        }
+        if !(d["why"].is_null() || d["why"].is_array()) {
+            bad.push("`decision.why` is a list of paragraphs: [\"…\"]".into());
+        }
+    }
+    let b = &c["body"];
+    for (k, v) in [("image", &b["image"]), ("top-level image", &c["image"])] {
+        if let Some(src) = v.as_str() {
+            let ext = src.rsplit('.').next().unwrap_or("").to_lowercase();
+            if VIDEO.contains(&ext.as_str()) {
+                bad.push(format!("{src} is a video: use `body.video`, not {k}"));
+            }
+        }
+    }
+    if bad.is_empty() { Ok(()) } else { Err(format!("this card doesn't match the board's format (docs/board-contract.md):\n  - {}", bad.join("\n  - "))) }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -565,6 +620,22 @@ mod tests {
         let b = Board { dir: t.path().join("board"), app_slug: None };
         b.step("a1", Some("now"), &[("title", "First")], None).unwrap();
         (t, b)
+    }
+
+    #[test]
+    fn cards_in_the_wrong_shape_are_refused_with_where_things_go() {
+        let (_t, b) = board();
+        let flat = json!({ "id": "f", "stage": "a1", "title": "F", "q": "Q?", "options": [{ "label": "Yes", "rec": true }],
+                           "why": "because", "basis": "taste", "image": "~/Downloads/film.mp4" });
+        let e = b.add(flat, false, false).unwrap_err();
+        for want in ["`q` goes inside `decision`", "`options` goes inside `decision`", "`image` goes inside `body`", "use `body.video`"] {
+            assert!(e.contains(want), "{want} missing from: {e}");
+        }
+        let e = b.add(json!({ "id": "g", "stage": "a1", "title": "G", "decision": { "q": "Q?", "options": [{ "label": "Yes" }] } }), false, false).unwrap_err();
+        assert!(e.contains("option 1 needs an `o`"), "{e}");
+        b.add(json!({ "id": "h", "stage": "a1", "title": "H", "body": { "video": "~/Downloads/film.mp4" },
+                      "decision": { "q": "Q?", "why": ["because"], "options": [{ "o": "yes", "label": "Yes", "rec": true }] } }), false, false).unwrap();
+        assert!(b.update("h", json!({ "q": "moved?" }), None, false).unwrap_err().contains("`q` goes inside `decision`"));
     }
 
     #[test]

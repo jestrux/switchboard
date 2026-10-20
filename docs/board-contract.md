@@ -71,6 +71,9 @@ Times are milliseconds since 1970. HTML is allowed in titles, summaries and bodi
 ```
 
 - **Required:** `id` (letters, digits, `.`, `_`, `-`), `stage` (a step's id), `title`.
+- **Checked:** `board add` and `board update` refuse a card in another shape (a question's fields
+  at the top instead of in `decision`, a picture outside `body`, an option without `o` or `label`,
+  a video given as an image) and say where each field goes; the page can't read such a card.
 - **Set by the CLI:** `order`, `updated`, `version`; `changed` and a new version with
   `update --changed`; `askedAt` with `ask`; `blocking` with `ask --blocking`.
 - **Why it's here:** worked out (a decision, look closer when `unsure`, changed, for you to see

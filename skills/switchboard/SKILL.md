@@ -157,9 +157,23 @@ switchboard board seen <id>…                           # the author has seen t
 switchboard board answers --wait                       # keep this running in the background
 ```
 
-- **A card needs** `id`, `stage` (a step's id) and `title`; a decision has `q`, `options` (one
-  with `rec: true` and a `then`), `why`, and `basis` (`evidence` or `taste`). When you're unsure,
-  say so with `unsure: { why, where }` instead of recommending.
+- **A card needs** `id`, `stage` (a step's id) and `title`. The question goes **inside
+  `decision`** and pictures **inside `body`**; `add` and `update` refuse anything else and say
+  where it goes:
+
+  ```json
+  { "id": "film-done", "stage": "m3", "title": "The film is done", "summary": "One paragraph.",
+    "body": { "video": "~/Downloads/walkthrough.mp4" },
+    "decision": { "q": "Is it good enough to review the PRs against?", "basis": "taste",
+      "why": ["Why I recommend it, a paragraph each."],
+      "options": [{ "o": "good", "label": "Good", "rec": true, "then": "Review the PRs against it." },
+                  { "o": "redo", "label": "Re-record it" }] } }
+  ```
+
+  Each option has an `o` (a short id) and a `label`; one has `rec: true` and a `then`. `basis` is
+  `evidence` or `taste`. When you're unsure, put `unsure: { why, where }` in `decision` instead of
+  recommending. Pictures are `body.image`, `body.gallery: [{ src, caption }]`, `body.video`.
+  `update` merges fields, so to fix a card's shape, `remove` it and `add` it again.
 - **Images and videos: point at the file where it is** (`"image": "~/Downloads/shot.png"`). Don't
   copy it into the board or run a server for it; Switchboard shows any image a card names, and
   the phone does too while it's on the Mac's network.
