@@ -25,7 +25,7 @@
       }
     ],
     "why": [
-      "<b>No more copy-paste.</b> \"Send\" hands the answers to Switchboard, and the agent reads them with <code>switchboard review answers</code>, or waits for them with <code>--wait</code> the way <code>switchboard wait</code> already waits for a server. The page shows \"Sent 10:42\", and the agent acknowledges each card as it picks it up (<a href=\"https://linear.app/developers/agent-interaction\" target=\"_blank\" rel=\"noopener\">Linear asks agents to acknowledge within 10 seconds</a>). Copy-to-chat stays as the fallback. <b>Flex's prototype already works this way</b>: when Flex serves the board, Send goes straight to the agent (\"Served by Flex\"), and Show as text is the fallback. Switchboard plays Flex's part."
+      "<b>No more copy-paste.</b> \"Send\" hands the answers to Switchboard, and the agent reads them with <code>switchboard board answers</code>, or waits for them with <code>--wait</code> the way <code>switchboard wait</code> already waits for a server. The page shows \"Sent 10:42\", and the agent acknowledges each card as it picks it up (<a href=\"https://linear.app/developers/agent-interaction\" target=\"_blank\" rel=\"noopener\">Linear asks agents to acknowledge within 10 seconds</a>). Copy-to-chat stays as the fallback. <b>Flex's prototype already works this way</b>: when Flex serves the board, Send goes straight to the agent (\"Served by Flex\"), and Show as text is the fallback. Switchboard plays Flex's part."
     ],
     "basis": "evidence"
   },

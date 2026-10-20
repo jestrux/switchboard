@@ -1,66 +1,56 @@
 {
   "id": "v-overview",
   "stage": "a5",
-  "title": "What the overview shows",
+  "title": "What the overview adds under The plan",
   "tags": [
     "Views",
     "Overview",
     "Two ways in"
   ],
-  "updated": 1792468800000,
-  "version": 1,
+  "updated": 1792498043738,
+  "version": 2,
   "body": {
     "checks": [
       {
         "state": "ok",
-        "text": "<b>The project so far</b>, at the top: a card like Flex's film card, showing each phase as built, building (with a percentage) or planned. Clicking it opens what's built: the running app through Switchboard, and the latest walkthrough film. It keeps updating while the agent works."
+        "text": "<b>Since you last looked</b>, in one line: \"3 new cards · 2 answered by the agent · B0 done · 9 commits\" (Linear Pulse)."
       },
       {
-        "text": "<b>The phase strip</b>: done, now, next, one segment per phase, like a status page. It shows movement since you last looked, and a phase that hasn't moved in days shows as a raised hand (<a href=\"https://basecamp.com/shapeup/3.4-chapter-13\" target=\"_blank\" rel=\"noopener\">Hill Charts</a>).",
-        "state": "ok"
+        "state": "ok",
+        "text": "<b>Health</b>: tests green, anything uncommitted or unpushed, dev servers running (Switchboard knows)."
       },
       {
-        "text": "<b>Since you last looked</b>, in one line: \"3 new decisions · 2 answered by the agent · Phase 6 → 7 · 9 commits\" (<a href=\"https://linear.app/docs/pulse\" target=\"_blank\" rel=\"noopener\">Linear Pulse</a>).",
-        "state": "ok"
-      },
-      {
-        "text": "<b>The health strip</b>, which answers what you kept asking: tests green, anything uncommitted or unpushed, plan, sprint review and memory up to date, dev servers running (Switchboard knows), the last film and design review.",
-        "state": "ok"
-      },
-      {
-        "text": "<b>The agent's health note</b>, rewritten at each gate: on track, at risk or off track, plus two sentences (<a href=\"https://linear.app/docs/initiative-and-project-updates\" target=\"_blank\" rel=\"noopener\">Linear project updates</a>).",
-        "state": "ok"
-      },
-      {
-        "text": "<b>What's owed</b>: every commitment from your picks and the settled list, built or still to do.",
-        "state": "ok"
+        "state": "ok",
+        "text": "<b>What's owed</b>: what your answers committed the agent to, until a commit closes each one."
       }
     ]
   },
   "decision": {
-    "q": "The overview",
+    "q": "The overview, under The plan",
+    "basis": "taste",
+    "why": [
+      "These are the three questions the plan's steps can't answer: what changed, is anything broken or unsaved, and what's been promised. The phase strip and \"the project so far\" from the first version are what the sidebar's plan now is."
+    ],
     "options": [
       {
-        "o": "full",
-        "label": "All of it: the project so far, the phase strip, since you last looked, health, the health note, what's owed",
-        "rec": 1,
-        "act": "Overview: phase strip, since-last digest, health strip, agent health note, owed list",
-        "then": "Build the overview: the project so far, the phase strip, since you last looked, health, the health note, and what's owed."
+        "o": "all",
+        "label": "All three: since you last looked, health, what's owed",
+        "rec": true,
+        "then": "Add the three under The plan in the sidebar."
       },
       {
         "o": "lean",
-        "label": "Phase strip and since-last-look only, to start"
+        "label": "Since you last looked only, to start"
       },
       {
-        "o": "hill",
-        "label": "A hill chart instead of a phase strip"
+        "o": "other",
+        "label": "Something else",
+        "sub": "say what in the note"
       }
-    ],
-    "why": [
-      "Today these answers live in a chat, in <code>PLAN.md</code>'s status line, and in the sprint review. One screen ends the \"is X updated?\" round trips."
-    ],
-    "basis": "taste"
+    ]
   },
   "wide": true,
-  "order": 20
+  "order": 20,
+  "summary": "The plan in the sidebar already shows where the project is: each step done, now or next, with its open cards. The overview adds what the plan can't show, under The plan, not as a page of its own (decided, <code>v-sidebar</code>).",
+  "changed": "Rewritten for the plan in the sidebar"
 }

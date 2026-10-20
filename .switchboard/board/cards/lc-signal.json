@@ -29,7 +29,7 @@
       }
     ],
     "why": [
-      "<b>Two signals, and only one drives the badge.</b> The badge counts <em>explicit</em> cards the agent posted (<code>switchboard review add</code>): real decisions, never chatter. The hook becomes a quiet second signal: a dot on the project's tile saying \"the agent is waiting\", without raising the count. That follows <a href=\"https://linear.app/developers/agent-interaction\" target=\"_blank\" rel=\"noopener\">Linear's agent states</a>, where \"awaiting input\" is something the agent declares.",
+      "<b>Two signals, and only one drives the badge.</b> The badge counts <em>explicit</em> cards the agent posted (<code>switchboard board add</code>): real decisions, never chatter. The hook becomes a quiet second signal: a dot on the project's tile saying \"the agent is waiting\", without raising the count. That follows <a href=\"https://linear.app/developers/agent-interaction\" target=\"_blank\" rel=\"noopener\">Linear's agent states</a>, where \"awaiting input\" is something the agent declares.",
       "It also avoids the anti-pattern every precedent warns about: notification fatigue."
     ],
     "unsure": {

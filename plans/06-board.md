@@ -388,7 +388,6 @@ Answer these on the board before the step they affect:
 
 - **The contract: Flex's core plus optional fields, or a fork** (`a-contract`). Shapes A2
   and B1.
-- **Where cards live** (`a-data`) is now covered by `lc-commit` below; close it on the board.
 - **Native SwiftUI, a web page, or both** (`lc-home`). Shapes B2.
 - **The three window shapes** (`w-modes`). Shapes B2 and B5.
 

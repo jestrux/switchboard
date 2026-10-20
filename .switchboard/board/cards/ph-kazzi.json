@@ -1,6 +1,6 @@
 {
   "id": "ph-kazzi",
-  "stage": "p",
+  "stage": "b5",
   "title": "What Kazzi's thinking adds to our workflow",
   "tags": [
     "Phone",
@@ -9,12 +9,12 @@
   ],
   "updated": 1792468800000,
   "version": 1,
-  "summary": "Kazzi showed how you think about picking up work. These are the ideas I'd fold into Review, on the Mac first and therefore on the phone too, not a port of Kazzi.",
+  "summary": "Kazzi showed how you think about picking up work. These are the ideas I'd fold into the board, on the Mac first and therefore on the phone too, not a port of Kazzi.",
   "body": {
     "checks": [
       {
         "state": "ok",
-        "text": "<b>The project is the unit, not the task.</b> Kazzi's \"you pick up a project\" confirms Review's shape: the phone opens on projects, each showing whose move it is, and a project opens onto its cards."
+        "text": "<b>The project is the unit, not the task.</b> Kazzi's \"you pick up a project\" confirms the board's shape: the phone opens on projects, each showing whose move it is, and a project opens onto its cards."
       },
       {
         "state": "ok",
@@ -34,12 +34,12 @@
       },
       {
         "state": "warn",
-        "text": "<b>What we don't take</b>: Kazzi's collections, its models and its single-player rule. The agent writes to the board, so things do arrive overnight. Review's data contract (cards, answers, the Record) stays the one model."
+        "text": "<b>What we don't take</b>: Kazzi's collections, its models and its single-player rule. The agent writes to the board, so things do arrive overnight. the board's data contract (cards, answers, the Record) stays the one model."
       }
     ]
   },
   "decision": {
-    "q": "Which ideas join Review?",
+    "q": "Which ideas joon the board?",
     "multi": true,
     "options": [
       {

@@ -1,7 +1,7 @@
 {
   "id": "w-tear",
   "stage": "b5",
-  "title": "Tear Review off into its own window",
+  "title": "Tear the board off into its own window",
   "tags": [
     "Windows",
     "Switchboard's windows"
@@ -15,17 +15,17 @@
         "o": "yes",
         "label": "Yes, with Bring Back like projects",
         "rec": 1,
-        "act": "WindowGroup('Review', for: ReviewScope); drag-out + ⌥⌘R; restored at launch; Bring Back",
-        "then": "Let Review tear off into its own window, restored at launch, with Bring Back."
+        "act": "WindowGroup('Board', for: BoardScope); drag-out + ⌥⌘R; restored at launch; Bring Back",
+        "then": "Let the board tear off into its own window, restored at launch, with Bring Back."
       },
       {
         "o": "no",
-        "label": "No: Review stays inside project windows"
+        "label": "No: The board stays inside project windows"
       }
     ],
     "why": [
-      "Drag the Review pane out of a project window, or press ⌥⌘R, and it becomes its own window (<code>WindowGroup(\"Review\", for: ReviewScope)</code>, for one project or for all). It's restored at launch like project windows are. Switchboard already does this for whole projects (\"Show Window\" and \"Bring Back\"), and Safari, Xcode and Finder do it with tabs.",
-      "This suits a second screen: Review on one display, the running app on the other, with no window switching."
+      "Drag the board pane out of a project window, or press ⌥⌘R, and it becomes its own window (<code>WindowGroup(\"The board\", for: BoardScope)</code>, for one project or for all). It's restored at launch like project windows are. Switchboard already does this for whole projects (\"Show Window\" and \"Bring Back\"), and Safari, Xcode and Finder do it with tabs.",
+      "This suits a second screen: The board on one display, the running app on the other, with no window switching."
     ],
     "basis": "taste"
   },

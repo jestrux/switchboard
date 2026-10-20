@@ -28,11 +28,11 @@
       },
       {
         "state": "ok",
-        "text": "<b>Every key in the menus.</b> A Review menu lists J/K, 1–9, L and S, so Help ▸ Search finds them, and a key you forget is one menu away."
+        "text": "<b>Every key in the menus.</b> A the board menu lists J/K, 1–9, L and S, so Help ▸ Search finds them, and a key you forget is one menu away."
       },
       {
         "state": "ok",
-        "text": "<b>Window tabs.</b> ⌘T puts several projects' Review in one window's tabs."
+        "text": "<b>Window tabs.</b> ⌘T puts several projects' the board in one window's tabs."
       },
       {
         "state": "ok",
@@ -62,7 +62,7 @@
         "o": "menus",
         "label": "Keys in the menus, plus a real ⌘Z",
         "rec": 1,
-        "act": "Review menu with every key; answers in the undo stack"
+        "act": "The board menu with every key; answers in the undo stack"
       },
       {
         "o": "dnd",

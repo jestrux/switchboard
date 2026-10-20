@@ -1,44 +1,44 @@
 {
   "id": "a-contract",
   "stage": "b1",
-  "title": "Review's contract: Flex's as it is, or trimmed for software?",
+  "title": "The board's contract: Flex's as it is, or trimmed for software?",
   "tags": [
     "Loop",
     "Data",
     "Back to the agent"
   ],
-  "summary": "Flex's contract carries film-only fields (song, film, scenes, playheads). Review needs phases, commits, URLs and the owed list instead.",
+  "summary": "Flex's contract carries film-only fields (song, film, scenes, playheads). The board needs phases, commits, URLs and the owed list instead.",
   "decision": {
     "q": "The contract",
     "basis": "evidence",
     "why": [
-      "<b>Keep Flex's core and add software's fields beside it.</b> Items, stages, decisions, basis, unsure, then, settled, working, log and demo carry over unchanged, so Flex's page and Review read the same core. Film fields stay optional; Review adds <code>phase</code>, <code>commit</code>, <code>open</code> (URL, logs, file:line), <code>owed</code> and <code>short</code>."
+      "<b>Keep Flex's core and add software's fields beside it.</b> Items, stages, decisions, basis, unsure, then, settled, working, log and demo carry over unchanged, so Flex's page and the board read the same core. Film fields stay optional; the board adds <code>phase</code>, <code>commit</code>, <code>open</code> (URL, logs, file:line), <code>owed</code> and <code>short</code>."
     ],
     "options": [
       {
         "o": "core",
         "label": "Flex's core, unchanged, plus optional software fields",
         "rec": true,
-        "then": "Write the shared core as a schema both Flex and Switchboard validate against, and add Review's fields as optional.",
+        "then": "Write the shared core as a schema both Flex and Switchboard validate against, and add the board's fields as optional.",
         "out": [
           [
             "Flex",
             "Keeps working with no change"
           ],
           [
-            "Review",
+            "The board",
             "Adds phase, commit, open, owed, short"
           ]
         ]
       },
       {
         "o": "fork",
-        "label": "Fork it: a separate contract for Review",
-        "then": "Write a separate Review schema.",
+        "label": "Fork it: a separate contract for the board",
+        "then": "Write a separate the board schema.",
         "out": [
           [
             "Flex",
-            "Drifts away from Review",
+            "Drifts away from the board",
             true
           ]
         ]

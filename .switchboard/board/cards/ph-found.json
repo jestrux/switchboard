@@ -14,11 +14,11 @@
     "checks": [
       {
         "state": "ok",
-        "text": "<b>Fuchi's action round trip is almost a Review answer already.</b> The phone sends <code>actionRun(id, choice, text)</code> and the Mac replies with <code>actionResult</code>. An action can offer choices and a typed-text prompt (<code>ActionDescriptor</code>, <code>FuchiWire/Surfaces.swift:128</code>). A card is an action with options and a note. Built 2026-10-17."
+        "text": "<b>Fuchi's action round trip is almost a the board answer already.</b> The phone sends <code>actionRun(id, choice, text)</code> and the Mac replies with <code>actionResult</code>. An action can offer choices and a typed-text prompt (<code>ActionDescriptor</code>, <code>FuchiWire/Surfaces.swift:128</code>). A card is an action with options and a note. Built 2026-10-17."
       },
       {
         "state": "ok",
-        "text": "<b>One shared Swift package and an extension system.</b> FuchiWire (the protocol), FuchiSync (the backend client) and FuchiTheme are shared by Mac, iPhone and iPad. A feature is <code>Extensions/&lt;id&gt;/{Core,Mac,Mobile}</code> plus an <code>extension.json</code>. Review would be one more extension, not a new app."
+        "text": "<b>One shared Swift package and an extension system.</b> FuchiWire (the protocol), FuchiSync (the backend client) and FuchiTheme are shared by Mac, iPhone and iPad. A feature is <code>Extensions/&lt;id&gt;/{Core,Mac,Mobile}</code> plus an <code>extension.json</code>. The board would be one more extension, not a new app."
       },
       {
         "state": "ok",

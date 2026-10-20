@@ -3,7 +3,8 @@
 // The agent writes the board only through this; it never edits the page or the card files.
 //
 //   board add <file|->            post a card (JSON); --ask asks for it now, --blocking marks it blocking
-//   board update <id> <file|->    merge fields into a card; --changed "what" makes it a new version
+//   board update <id> <file|->    merge fields into a card; --changed "what" makes it a new version;
+//                                 --quiet for wording fixes that aren't news
 //   board ask <id>                "I need this one now": a Needs you notification on the page and a push to
 //                                 the phone (Fuchi's NOTIFY_PLAN); --blocking: I can't go on without it; --no-push
 //   board remove <id>             take a card off the board
@@ -34,7 +35,7 @@ for (let i = 0; i < argv.length; i++) {
   if (!a.startsWith("--")) { args.push(a); continue; }
   const [k, v] = a.slice(2).split("=", 2);
   if (v !== undefined) flags[k] = v;
-  else if (i + 1 < argv.length && !argv[i + 1].startsWith("--") && !["ask", "clear", "wait", "json", "all", "remove", "blocking", "no-push"].includes(k)) flags[k] = argv[++i];
+  else if (i + 1 < argv.length && !argv[i + 1].startsWith("--") && !["ask", "clear", "wait", "json", "all", "remove", "blocking", "no-push", "quiet"].includes(k)) flags[k] = argv[++i];
   else flags[k] = true;
 }
 const verb = args.shift();
@@ -179,7 +180,7 @@ switch (verb) {
     if (patch.stage && !stageIds().includes(patch.stage)) fail(`no step "${patch.stage}"; steps: ${stageIds().join(", ")}`);
     Object.assign(c, patch);
     // Moving a card (its step, tags, order or blocking) isn't news; changing what it says is.
-    if (Object.keys(patch).some((k) => !["stage", "tags", "order", "blocking"].includes(k))) c.updated = now();
+    if (!flags.quiet && Object.keys(patch).some((k) => !["stage", "tags", "order", "blocking"].includes(k))) c.updated = now();
     if (typeof flags.changed === "string") { c.version = (c.version || 1) + 1; c.changed = flags.changed; log("Changed: " + plain(c.title) + " (v" + c.version + ")", id); }
     write(f, c);
     console.log(`updated ${id}${c.changed && flags.changed ? " to v" + c.version : ""}`);

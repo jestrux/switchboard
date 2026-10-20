@@ -55,6 +55,6 @@
   },
   "wide": true,
   "notePrompt": "Anything I've got wrong about how it works for you? (optional)",
-  "summary": "The loop is general; every example and every lesson below comes from <b>prod-app</b> (SetHero Horizon), the one project that has run it so far. Review is meant to carry the same loop to every project in Switchboard.",
+  "summary": "The loop is general; every example and every lesson below comes from <b>prod-app</b> (SetHero Horizon), the one project that has run it so far. The board is meant to carry the same loop to every project in Switchboard.",
   "order": 10
 }

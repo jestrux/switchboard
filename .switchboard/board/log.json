@@ -238,5 +238,40 @@
     "t": 1792497747119,
     "text": "Changed: An agent simulator, from day one (v2)",
     "item": "b-sim"
+  },
+  {
+    "t": 1792498006146,
+    "text": "Retired a-data: superseded by where the board lives (lc-commit)",
+    "item": null
+  },
+  {
+    "t": 1792498006234,
+    "text": "Retired b-order: superseded: the plan's steps are the order",
+    "item": null
+  },
+  {
+    "t": 1792498006372,
+    "text": "Retired v-open: superseded: the overview lives in the sidebar (v-sidebar)",
+    "item": null
+  },
+  {
+    "t": 1792498006446,
+    "text": "Retired b-design: built: A1 started from Flex's prototype",
+    "item": null
+  },
+  {
+    "t": 1792498006517,
+    "text": "Retired c-doors: built: the board has Going ahead unless you object",
+    "item": null
+  },
+  {
+    "t": 1792498043738,
+    "text": "Changed: What the overview adds under The plan (v2)",
+    "item": "v-overview"
+  },
+  {
+    "t": 1792498043803,
+    "text": "Audit: retired 5 superseded or built cards, moved 4 phone cards to B5/B6, the old name out of the cards, v-overview rewritten",
+    "item": null
   }
 ]

@@ -15,14 +15,14 @@
     "options": [
       {
         "o": "sb",
-        "label": "Switchboard Mobile, on Review's data contract; Fuchi's store client and pairing reused as a package",
+        "label": "Switchboard Mobile, on the board's data contract; Fuchi's store client and pairing reused as a package",
         "rec": 1,
-        "act": "New SwitchboardMobile target on the Review contract; extract Fuchi's store client/outbox (and pairing when built) into a shared package; Kazzi untouched",
-        "then": "Start Switchboard Mobile on Review's data contract, built on Fuchi's store client lifted into a shared package."
+        "act": "New SwitchboardMobile target on the the board contract; extract Fuchi's store client/outbox (and pairing when built) into a shared package; Kazzi untouched",
+        "then": "Start Switchboard Mobile on the board's data contract, built on Fuchi's store client lifted into a shared package."
       },
       {
         "o": "fuchi",
-        "label": "A Review extension inside Fuchi",
+        "label": "A the board extension inside Fuchi",
         "out": [
           [
             "Trade-off",
@@ -33,9 +33,9 @@
     ],
     "why": [
       [
-        "<b>The phone runs our Review workflow, not a new one.</b> It uses the same data contract the agent writes, the same cards, answers, Record and overview, and the same rules (my pick first, ↵ only when I'm sure, Handled with Undo). Only the layout changes for the phone. Anything we add on the Mac reaches the phone because it's the same model.",
+        "<b>The phone runs our the board workflow, not a new one.</b> It uses the same data contract the agent writes, the same cards, answers, Record and overview, and the same rules (my pick first, ↵ only when I'm sure, Handled with Undo). Only the layout changes for the phone. Anything we add on the Mac reaches the phone because it's the same model.",
         "<b>Why its own app rather than a Fuchi extension:</b> one project list (Switchboard's), no middleman on the Mac, notes sent from the phone land in the agent's own pane, and pairing and push belong to one app. It also leaves room for starting and stopping servers and reading their logs from the phone.",
-        "<b>What we reuse from Fuchi is engineering, not features</b>: the offline-first store client and its outbox, the pairing work, maybe the link. Fuchi and its Kazzi extension carry on as they are; whether Kazzi later reads Review's data is a separate call."
+        "<b>What we reuse from Fuchi is engineering, not features</b>: the offline-first store client and its outbox, the pairing work, maybe the link. Fuchi and its Kazzi extension carry on as they are; whether Kazzi later reads the board's data is a separate call."
       ]
     ],
     "basis": "evidence"

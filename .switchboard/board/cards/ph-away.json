@@ -1,6 +1,6 @@
 {
   "id": "ph-away",
-  "stage": "p",
+  "stage": "b6",
   "title": "Away from home: what carries a card to your phone?",
   "tags": [
     "Phone",
@@ -46,7 +46,7 @@
       }
     ],
     "why": [
-      "<b>Borrow the technique Kazzi proved: the store is where Mac and phone meet, and it can't read what's in it.</b> Review's cards and answers are rows in the worker's store, written cache-first with an offline queue (Fuchi's store client, which Kazzi already runs on). That already works anywhere, with no relay and no live link. Each row's content is sealed with a key the devices exchange when you pair them (CryptoKit), so the store holds blobs it can't read. Pairing also gives each device its own token, which is the authentication the worker lacks (B11).",
+      "<b>Borrow the technique Kazzi proved: the store is where Mac and phone meet, and it can't read what's in it.</b> The board's cards and answers are rows in the worker's store, written cache-first with an offline queue (Fuchi's store client, which Kazzi already runs on). That already works anywhere, with no relay and no live link. Each row's content is sealed with a key the devices exchange when you pair them (CryptoKit), so the store holds blobs it can't read. Pairing also gives each device its own token, which is the authentication the worker lacks (B11).",
       "<b>Waking you</b>: the push says only \"prod-app needs you (3)\", to that device's own token rather than a topic anyone could guess. A Notification Service Extension fetches the row and decrypts it on the phone, and the notification action writes your pick back as a row. <b>Waking the agent</b>: Switchboard checks the store every few seconds while any card is open, which is cheap and bounded. A Durable Object WebSocket can replace that polling later if seconds ever feel slow.",
       "On the home network the direct link is still used for what has to happen live (Send to the agent's pane). Precedent: GitHub Mobile's deployment approvals and Duo/Okta push approvals, where the server is only a mailbox."
     ],

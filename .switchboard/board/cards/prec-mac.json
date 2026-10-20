@@ -20,7 +20,7 @@
       },
       {
         "state": "ok",
-        "text": "<b>Xcode</b>: The Organizer window, the assistant editor beside your code, Open Quickly. We borrow: <b>the Review window, a pane beside the terminal, ⌘K</b> <span style=\"color:var(--ink-3)\">(One Review, three shapes, depend…; Review as a pane beside the agen…; Spotlight, Shortcuts and ⌘K find…)</span>"
+        "text": "<b>Xcode</b>: The Organizer window, the assistant editor beside your code, Open Quickly. We borrow: <b>the Boards window, a pane beside the terminal, ⌘K</b> <span style=\"color:var(--ink-3)\">(One board, three shapes, depend…; The board as a pane beside the agen…; Spotlight, Shortcuts and ⌘K find…)</span>"
       },
       {
         "state": "ok",
@@ -32,7 +32,7 @@
     "q": "Are these the right models?",
     "basis": "evidence",
     "why": [
-      "These are the native habits Review should feel like. Each one is a pattern people already know, not something we'd have to teach."
+      "These are the native habits the board should feel like. Each one is a pattern people already know, not something we'd have to teach."
     ],
     "options": [
       {
