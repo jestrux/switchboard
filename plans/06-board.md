@@ -395,6 +395,8 @@ reply field, like the phone's.
 - [ ] A notification on `ask --blocking`
 - [ ] Go with my pick and Reply
 
+**Open on the board:** `m-notify` (answer from the notification).
+
 **Verifiables**
 
 - A blocking card answered from a notification
