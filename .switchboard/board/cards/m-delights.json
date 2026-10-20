@@ -1,0 +1,84 @@
+{
+  "id": "m-delights",
+  "stage": "mac",
+  "title": "Small Mac touches",
+  "tags": [
+    "Delight"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>Quick Look.</b> Space on a screenshot or a film opens Quick Look, as in Finder; Markup lets you circle what's wrong and attach it as the note."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Drag and drop.</b> Drag a card into a terminal or a chat to paste its id and question; drop a screenshot on a card to attach it to your note."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Swipes on the list.</b> Two fingers right takes my pick, left means later, as in Mail."
+      },
+      {
+        "state": "ok",
+        "text": "<b>A real ⌘Z.</b> Undo an answer from the Edit menu, not just with U."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Every key in the menus.</b> A Review menu lists J/K, 1–9, L and S, so Help ▸ Search finds them, and a key you forget is one menu away."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Window tabs.</b> ⌘T puts several projects' Review in one window's tabs."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Inbox zero gets a moment.</b> A short sound and an empty screen that reads as done, like Things' checkmark sound."
+      },
+      {
+        "state": "ok",
+        "text": "<b>The Dock badge</b> carries the same count as the menu bar, so you see it in ⌘Tab."
+      },
+      {
+        "state": "ok",
+        "text": "<b>A Services item, \"Ask the agent about this\"</b>, turns selected text in any app into a note for the project's agent."
+      }
+    ]
+  },
+  "decision": {
+    "q": "Which make the first version?",
+    "multi": true,
+    "options": [
+      {
+        "o": "ql",
+        "label": "Quick Look and Markup",
+        "rec": 1,
+        "act": "QLPreviewPanel on media; Markup result attaches to note"
+      },
+      {
+        "o": "menus",
+        "label": "Keys in the menus, plus a real ⌘Z",
+        "rec": 1,
+        "act": "Review menu with every key; answers in the undo stack"
+      },
+      {
+        "o": "dnd",
+        "label": "Drag and drop",
+        "rec": 1,
+        "act": "Card ↔ terminal/chat; screenshot → note"
+      },
+      {
+        "o": "rest",
+        "label": "Swipes, tabs, the inbox-zero sound, the Dock badge, Services"
+      }
+    ],
+    "why": [
+      "None of these is a feature you'd sell, but together they make it feel like a Mac app rather than a web page in a frame. That's the reason for the Mail model in <i>Look closer</i>."
+    ],
+    "basis": "taste"
+  },
+  "wide": true,
+  "order": 60
+}

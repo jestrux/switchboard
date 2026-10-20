@@ -1,0 +1,43 @@
+{
+  "id": "m-notify",
+  "stage": "mac",
+  "title": "Answer from the notification",
+  "tags": [
+    "Notifications"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Notifications",
+    "options": [
+      {
+        "o": "act",
+        "label": "Blocked only, with my pick and a reply right in the notification",
+        "rec": 1,
+        "act": "UNNotification with actions [rec pick, Open] + text input; time-sensitive for blocked only",
+        "then": "Notify only when an agent is blocked, with my pick as a button and a reply field."
+      },
+      {
+        "o": "watch",
+        "label": "Blocked with actions, plus progress news for a project you're watching",
+        "act": "Per-project Watch toggle enables milestone notifications"
+      },
+      {
+        "o": "plain",
+        "label": "Blocked only, a plain notification"
+      },
+      {
+        "o": "none",
+        "label": "None"
+      }
+    ],
+    "why": [
+      "When an agent is <b>blocked</b> on you, and only then, the notification carries the question with my pick as a button (\"Go with: Detect types\"), <i>Open</i>, and a reply field for a note. That's Messages' inline reply and Calendar's Accept/Decline (<code>UNNotificationAction</code> plus a text-input action). It's marked time-sensitive, so it gets through a Focus only when it's blocking. Activity never notifies.",
+      "Flex's simulator separates <b>progress news</b> (\"Scene 7 is in\", with a thumbnail) from <b>Needs you</b> (the card plus my pick, which opens it). With several projects, progress news stays in the page, the menu bar and the Live Activity, and only Needs you reaches the notification centre, unless you're watching a project.",
+      "The agent gets the answer within seconds, and you never left what you were doing.",
+      "The same notification reaches your phone through Fuchi; see <i>Away from the Mac</i>."
+    ],
+    "basis": "taste"
+  },
+  "order": 20
+}

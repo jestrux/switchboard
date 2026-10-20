@@ -1,0 +1,33 @@
+{
+  "id": "w-pane",
+  "stage": "windows",
+  "title": "Review as a pane beside the agent's terminal",
+  "tags": [
+    "Windows",
+    "Zone"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Review in the pane tree",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes: a Review pane you can split beside any terminal",
+        "rec": 1,
+        "act": "PaneLeaf.ref → enum { command(CommandRef), review(scope) }; ⌘⇧↩ maximises it",
+        "then": "Let a pane hold Review as well as a terminal, so it splits beside the agent's terminal."
+      },
+      {
+        "o": "tab",
+        "label": "No: Review is a separate tab of the project window"
+      }
+    ],
+    "why": [
+      "Switchboard's windows are a tree of split panes, and each leaf holds one terminal (<code>PaneLeaf.ref: CommandRef?</code>). <b>Let a leaf hold Review instead.</b> Then Claude's terminal and its Review sit side by side: you answer on the right and watch the agent pick it up on the left. ⌘⇧↩ already maximises a pane, which is the zone with no new window at all.",
+      "Xcode's assistant editor and tmux work this way. The change is small: the leaf's <code>ref</code> becomes \"a command or Review\"."
+    ],
+    "basis": "evidence"
+  },
+  "order": 30
+}

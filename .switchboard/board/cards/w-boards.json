@@ -1,0 +1,37 @@
+{
+  "id": "w-boards",
+  "stage": "windows",
+  "title": "One Review window for every project",
+  "tags": [
+    "Windows",
+    "Switchboard"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Where the cross-project inbox lives",
+    "options": [
+      {
+        "o": "window",
+        "label": "Its own single Review window",
+        "rec": 1,
+        "act": "Singleton Window('Review'); opened from menu bar, notifications, widget, ⌘⇧R",
+        "then": "Make one Review window for every project, opened from the menu bar, notifications and the widget."
+      },
+      {
+        "o": "main",
+        "label": "A section of the main window"
+      },
+      {
+        "o": "both",
+        "label": "Both"
+      }
+    ],
+    "why": [
+      "This replaces round one's \"every project in one inbox\". It's a <b>single</b> window (<code>Window(\"Review\", id: \"review\")</code>), like Mail's All Inboxes or Xcode's Organizer, not a page inside the main window: the main window stays the place things run. The menu-bar count, the notifications and the widget all open here.",
+      "Inside it, every project's Needs you in one list, grouped by project and sorted by what blocks an agent first. Pick a project on the left to narrow it down. That's <a href=\"https://help.superhuman.com/article/441-splits\" target=\"_blank\" rel=\"noopener\">Superhuman's split inbox</a> across projects."
+    ],
+    "basis": "taste"
+  },
+  "order": 50
+}

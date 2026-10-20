@@ -1,0 +1,37 @@
+{
+  "id": "c-doors",
+  "stage": "cards",
+  "title": "Calls I'm sure of go ahead unless you object",
+  "tags": [
+    "Cards",
+    "Speed"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Calls the agent is sure of",
+    "options": [
+      {
+        "o": "object",
+        "label": "A Going-ahead list with Object (Flex's), replacing Settled",
+        "rec": 1,
+        "act": "Settled → 'Going ahead unless you object' with per-item Object; objections ride the next send",
+        "then": "Replace Settled with a Going-ahead list where each call has an Object button, and send objections with the next send."
+      },
+      {
+        "o": "deadline",
+        "label": "That, plus optional deadlines on two-way cards"
+      },
+      {
+        "o": "settled",
+        "label": "Keep a read-only Settled list"
+      }
+    ],
+    "why": [
+      "<b>Flex has built the light version, and it's better than my deadline.</b> Calls the agent is sure of never become cards. They sit in a <em>Going ahead unless you object</em> list at the end, each with an Object button, and an objection travels with the next send. That turns our Settled list into something you can answer, at no cost to you when you agree.",
+      "A deadline (\"going ahead Friday\") stays an option for two-way cards in projects where you want it (<a href=\"https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders\" target=\"_blank\" rel=\"noopener\">Amazon's 2016 letter</a>; Rust's final comment period)."
+    ],
+    "basis": "evidence"
+  },
+  "order": 40
+}

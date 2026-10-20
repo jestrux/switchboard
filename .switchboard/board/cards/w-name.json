@@ -1,0 +1,37 @@
+{
+  "id": "w-name",
+  "stage": "windows",
+  "title": "Switchboard already calls its main window \"the board\"",
+  "tags": [
+    "Windows",
+    "Naming"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Name",
+    "options": [
+      {
+        "o": "review",
+        "label": "Review (Needs you inside it)",
+        "rec": 1,
+        "act": "Feature named Review; CLI `switchboard review …`; folder `.review/`",
+        "then": "Call it Review everywhere: the menu, the window, `switchboard review`, and `.review/`."
+      },
+      {
+        "o": "desk",
+        "label": "Desk"
+      },
+      {
+        "o": "board",
+        "label": "Keep \"board\" and rename Switchboard's main window"
+      }
+    ],
+    "why": [
+      "In Switchboard's code the main window is <i>the board</i> (\"The board is clear. Every project is open in its own window.\" in <code>ContentView.swift</code>). Calling this the board as well would make two different boards. <b>Call it Review</b>, as Flex does (\"Flex Review\"): the menu item is Review, the window is Review, the inbox inside it is <i>Needs you</i>, the agent runs <code>switchboard review add</code>, and the cards live in <code>.review/</code>. I've used those names from here on."
+    ],
+    "basis": "evidence"
+  },
+  "order": 10,
+  "askedAt": 1792482204834
+}

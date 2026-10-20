@@ -418,7 +418,7 @@ struct ProjectMenu: View {
         if context.scope == .all {
             Button("Open in New Window") { openWindow(id: "project", value: project.slug) }
         } else {
-            Button("Move to Board") { dismissWindow(id: "project", value: project.slug) }
+            Button("Move to All Projects") { dismissWindow(id: "project", value: project.slug) }
         }
         Button("New Terminal") {
             if let ref = store.newTerminal(project: project.slug, group: nil) { context.selection = ref }

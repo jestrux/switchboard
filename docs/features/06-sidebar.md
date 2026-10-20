@@ -15,7 +15,7 @@ description: How the list of groups and commands behaves, and what it remembers.
 - **Reach it:** Click a group row to open or close it.
 - **State:** Open groups are remembered per Mac in the app's preferences, under
   `expandedGroups`. This is not written to the YAML.
-- **Limits:** The state is shared by the board and the project's own window.
+- **Limits:** The state is shared by All Projects and the project's own window.
 
 ## Truncated names
 
@@ -31,7 +31,7 @@ description: How the list of groups and commands behaves, and what it remembers.
 - **What:** The sidebar can be dragged wider or narrower, between 200 and 640 points.
 - **Reach it:** Drag the edge between the sidebar and the pane.
 - **State:** Saved per window in the app's preferences. A project window with no width of
-  its own follows the board's width, and one that has its own keeps it.
+  its own follows All Projects' width, and one that has its own keeps it.
 - **Limits:** The saved width of a deleted project is left behind in the preferences.
 
 ## Hover actions
@@ -61,7 +61,7 @@ description: How the list of groups and commands behaves, and what it remembers.
 ## Foot
 
 - **What:** The bottom of the sidebar shows how many commands are running, with Stop all
-  when any are. On the board it also says how many projects are in their own windows.
+  when any are. In All Projects it also says how many projects are in their own windows.
 - **Reach it:** Always visible.
 - **State:** None.
 - **Limits:** None known.

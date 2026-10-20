@@ -1,0 +1,33 @@
+{
+  "id": "c-thread",
+  "stage": "cards",
+  "title": "A note can be a question, and the answer comes back on the card",
+  "tags": [
+    "Cards",
+    "Loop"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Question threads on cards",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes: note → my answer under it → answered, never re-sent",
+        "rec": 1,
+        "act": "Per-note state (asked/answered), agent reply under the note; answered notes excluded from the next send",
+        "then": "Answer question notes under the note itself, mark them answered, and never send them again."
+      },
+      {
+        "o": "no",
+        "label": "No: keep notes one-way"
+      }
+    ],
+    "why": [
+      "<b>Fixes the notes that kept coming back.</b> When your note is a question, I answer it under the note, on the same card, and mark it answered; the card's recommendation updates if the answer changes it. Answered notes aren't sent again. It works like a resolved comment thread in <a href=\"https://vercel.com/docs/comments/managing-comments\" target=\"_blank\" rel=\"noopener\">Vercel</a> or Figma.",
+      "It also makes \"ask a question\" a first-class answer, beside picking an option: what you did on most cards this week."
+    ],
+    "basis": "taste"
+  },
+  "order": 20
+}

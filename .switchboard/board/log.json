@@ -1,0 +1,177 @@
+[
+  {
+    "t": 1792459044497,
+    "text": "Read our loop, the Flex handoff and Switchboard; researched ten products",
+    "item": "prec-agents"
+  },
+  {
+    "t": 1792462644497,
+    "text": "First look at Flex's prototype: 11 screens",
+    "item": "fx-tour"
+  },
+  {
+    "t": 1792464444497,
+    "text": "Switchboard's windows, and the joys of a Mac app",
+    "item": "w-modes"
+  },
+  {
+    "t": 1792469844497,
+    "text": "Read Fuchi and the crotchet worker: away from the Mac",
+    "item": "ph-found"
+  },
+  {
+    "t": 1792473444497,
+    "text": "Our workflow, phone-shaped; Kazzi's ideas, not its code",
+    "item": "ph-home"
+  },
+  {
+    "t": 1792478844497,
+    "text": "Second look at Flex's prototype: organisation, simulator, notifications",
+    "item": "fx-now"
+  },
+  {
+    "t": 1792480344497,
+    "text": "Moved this board onto Flex's design",
+    "item": "b-design"
+  },
+  {
+    "t": 1792481654217,
+    "text": "Moved this board into Switchboard: review/ serves it, .review/ holds the cards",
+    "item": "b-order"
+  },
+  {
+    "t": 1792481936053,
+    "text": "Posted two cards that shape step A2: the contract, and committing .review/",
+    "item": "a-contract"
+  },
+  {
+    "t": 1792482160269,
+    "text": "Asked you first: the name, which the CLI is named after",
+    "item": "w-name"
+  },
+  {
+    "t": 1792482254711,
+    "text": "Got your answer: keep \"board\" for this feature, rename the main window",
+    "item": "w-name"
+  },
+  {
+    "t": 1792482255711,
+    "text": "Asked: the main window's new name",
+    "item": "w-mainname"
+  },
+  {
+    "t": 1792482688713,
+    "text": "Renamed: the stand-in is board/ and .board/; the main window is All Projects in the app and docs (built, not yet installed)",
+    "item": "w-mainname"
+  },
+  {
+    "t": 1792482688746,
+    "text": "Built the board CLI (step A2): add, update, ask, remove, settle, working, log, list, answers --wait",
+    "item": "b-order"
+  },
+  {
+    "t": 1792482819435,
+    "text": "Live arrival: the board pushes changes to the page (step A4)",
+    "item": "b-order"
+  },
+  {
+    "t": 1792482828525,
+    "text": "Asked: Should .review/ be committed?",
+    "item": "lc-commit"
+  },
+  {
+    "t": 1792482828562,
+    "text": "Asked: Every card says why it's there",
+    "item": "c-reason"
+  },
+  {
+    "t": 1792484247734,
+    "text": "Blocked on you: Should .board/ be committed?",
+    "item": "lc-commit"
+  },
+  {
+    "t": 1792484247775,
+    "text": "Blocked on you: Every card says why it's there",
+    "item": "c-reason"
+  },
+  {
+    "t": 1792484267968,
+    "text": "Blocking cards and a New group at the top of Needs you",
+    "item": "c-reason"
+  },
+  {
+    "t": 1792492459104,
+    "text": "Blocked on you: Should .board/ be committed?",
+    "item": "lc-commit"
+  },
+  {
+    "t": 1792492626823,
+    "text": "Blocked on you: Every card says why it's there",
+    "item": "c-reason"
+  },
+  {
+    "t": 1792492630287,
+    "text": "Asked: Review's contract: Flex's as it is, or trimmed for software?",
+    "item": "a-contract"
+  },
+  {
+    "t": 1792492747338,
+    "text": "Corrected: three phone sends (lc-commit, c-reason, a-contract) were tests, not answers; they're open again",
+    "item": null
+  },
+  {
+    "t": 1792493075573,
+    "text": "The phone works: pushes reach the iPhone and iPad; answer inline or in a Fuchi page",
+    "item": "ph-home"
+  },
+  {
+    "t": 1792493509397,
+    "text": "One-tap answers from the notification: Go with my pick and Reply, on the iPhone and iPad",
+    "item": "ph-surfaces"
+  },
+  {
+    "t": 1792494180621,
+    "text": "Recorded: reason labels, six reasons, each a filter (A5)",
+    "item": "c-reason"
+  },
+  {
+    "t": 1792494180692,
+    "text": "Changed: Put the board in the project's .switchboard/ folder? (v2)",
+    "item": "lc-commit"
+  },
+  {
+    "t": 1792494180744,
+    "text": "Blocked on you: Put the board in the project's .switchboard/ folder?",
+    "item": "lc-commit"
+  },
+  {
+    "t": 1792494261902,
+    "text": "Changed: Where does the board live, home or no home? (v3)",
+    "item": "lc-commit"
+  },
+  {
+    "t": 1792494261947,
+    "text": "Blocked on you: Where does the board live, home or no home?",
+    "item": "lc-commit"
+  },
+  {
+    "t": 1792494417421,
+    "text": "Moved this board into .switchboard/board/ (decided: the board follows the project)",
+    "item": "lc-commit"
+  },
+  {
+    "t": 1792495004226,
+    "text": "Posted a card: The sidebar: the plan is the big picture, and a heading for the zone",
+    "item": "v-sidebar"
+  },
+  {
+    "t": 1792495081025,
+    "text": "Changed: The sidebar: keep it as it is, and fold the overview into the plan (v2)",
+    "item": "v-sidebar"
+  },
+  {
+    "t": 1792495490771,
+    "text": "Decided: the sidebar stays as it is; the overview folds under The plan (A5)",
+    "item": "v-sidebar"
+  }
+]

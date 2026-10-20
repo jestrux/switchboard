@@ -1,0 +1,34 @@
+{
+  "id": "s-state",
+  "stage": "switchboard",
+  "title": "Each project shows what its agent is doing",
+  "tags": [
+    "Switchboard",
+    "Agent"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Agent state per project",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes, set by the agent",
+        "rec": 1,
+        "act": "Agent state on rail tiles, set via CLI/skill",
+        "then": "Show each project's agent state and progress on its tile, set through the CLI."
+      },
+      {
+        "o": "no",
+        "label": "No"
+      }
+    ],
+    "why": [
+      "On each project's tile: <b>working</b> (and on what), <b>needs you</b>, <b>blocked</b>, <b>idle</b> or <b>done</b>, set by the agent through the skill (<code>switchboard review status working \"building pc-detect\"</code>). Those are <a href=\"https://linear.app/developers/agent-interaction\" target=\"_blank\" rel=\"noopener\">Linear's agent session states</a>. You see at a glance which project to look at.",
+      "Flex's footer already shows it (\"The agent is waiting on your answers. Last: …\"), set by <code>flex-review working</code>.",
+      "The second look adds a number: \"Building scene 9 · 20%\" in activity's Now row and in the footer. The agent reports progress with <code>switchboard review working \"building pc-detect\" --progress 0.6</code>."
+    ],
+    "basis": "taste"
+  },
+  "order": 20
+}

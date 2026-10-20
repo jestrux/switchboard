@@ -1,0 +1,72 @@
+{
+  "id": "ph-kazzi",
+  "stage": "phone",
+  "title": "What Kazzi's thinking adds to our workflow",
+  "tags": [
+    "Phone",
+    "Kazzi"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "summary": "Kazzi showed how you think about picking up work. These are the ideas I'd fold into Review, on the Mac first and therefore on the phone too, not a port of Kazzi.",
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>The project is the unit, not the task.</b> Kazzi's \"you pick up a project\" confirms Review's shape: the phone opens on projects, each showing whose move it is, and a project opens onto its cards."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Whose move is it?</b> Each project shows one of three answers: <b>yours</b> (cards waiting), <b>the agent's</b> (working on…), or <b>someone else's</b> (a question out with Luke). It's a sharper line than a count, and it fits the agent states we already have."
+      },
+      {
+        "state": "ok",
+        "text": "<b>The clock counts from your last move</b>, not from the start, so it answers \"is it my move again?\" That suits a question out with someone, and a card that's been waiting on you."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Queue notes while the agent works.</b> On the phone, \"Send to agent\" can hold notes and send them one at a time when the agent is free, rather than all at once mid-turn."
+      },
+      {
+        "state": "ok",
+        "text": "<b>A note to yourself on the way out</b>, shown with its age, next to the agent's \"since you last looked\"."
+      },
+      {
+        "state": "warn",
+        "text": "<b>What we don't take</b>: Kazzi's collections, its models and its single-player rule. The agent writes to the board, so things do arrive overnight. Review's data contract (cards, answers, the Record) stays the one model."
+      }
+    ]
+  },
+  "decision": {
+    "q": "Which ideas join Review?",
+    "multi": true,
+    "options": [
+      {
+        "o": "move",
+        "label": "Whose move: yours, the agent's, someone else's",
+        "rec": 1,
+        "act": "Per-project 'whose move' line (cards / agent state / questions out) on Mac and phone"
+      },
+      {
+        "o": "clock",
+        "label": "The clock counts from your last move",
+        "rec": 1,
+        "act": "Ages on questions-out and waiting cards measured from the user's last action"
+      },
+      {
+        "o": "queue",
+        "label": "Notes to the agent can queue until it's free",
+        "rec": 1,
+        "act": "Send-to-agent queue released at the agent's next idle"
+      },
+      {
+        "o": "pickup",
+        "label": "A note to yourself per project, with its age",
+        "act": "Per-project pickup note beside the since-last-look digest"
+      }
+    ],
+    "basis": "taste"
+  },
+  "wide": true,
+  "order": 20
+}

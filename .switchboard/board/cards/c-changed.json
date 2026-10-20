@@ -1,0 +1,32 @@
+{
+  "id": "c-changed",
+  "stage": "cards",
+  "title": "\"Changed since you decided\" flags itself",
+  "tags": [
+    "Cards"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Auto-return on change",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes",
+        "rec": 1,
+        "act": "Cards return as Changed when the agent edits their subject after a decision",
+        "then": "Bring a decided card back, marked Changed, whenever its subject changes."
+      },
+      {
+        "o": "no",
+        "label": "No"
+      }
+    ],
+    "why": [
+      "If I change something you already approved (a design you picked, a plan you agreed), its card comes back by itself, marked Changed, with what's different. Nobody has to remember to say so. That's <a href=\"https://github.blog/news-insights/product-news/mark-files-as-viewed\" target=\"_blank\" rel=\"noopener\">GitHub's</a> Viewed reset and <a href=\"https://help.figma.com/hc/en-us/articles/26781702258583\" target=\"_blank\" rel=\"noopener\">Figma's</a> Changed state.",
+      "Flex's CLI already has a <code>--changed</code> flag for exactly this."
+    ],
+    "basis": "evidence"
+  },
+  "order": 30
+}

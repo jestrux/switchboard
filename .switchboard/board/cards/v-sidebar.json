@@ -1,0 +1,50 @@
+{
+  "id": "v-sidebar",
+  "stage": "views",
+  "title": "The sidebar: keep it as it is, and fold the overview into the plan",
+  "tags": [
+    "Views"
+  ],
+  "summary": "You suggested no title at all: Needs you, Everything and Agent activity stay at the top as they are, and <b>The plan</b> heading groups everything below it as the high-level view. That's simpler, and it's the sidebar we have.",
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>Top, no heading:</b> Needs you, Everything, Agent activity, as now."
+      },
+      {
+        "state": "ok",
+        "text": "<b>The plan:</b> the high-level view, each stage with its open count, status dot and the agent's spinner, as now."
+      },
+      {
+        "state": "ok",
+        "text": "<b>The one change:</b> the overview's extras (since you last looked, health, what's owed) fold in under The plan, instead of a page of their own."
+      }
+    ]
+  },
+  "decision": {
+    "q": "The sidebar",
+    "basis": "taste",
+    "why": [
+      "No new heading keeps the sidebar quiet, and the plan's heading already says where the big picture starts."
+    ],
+    "options": [
+      {
+        "o": "asis",
+        "label": "Keep it as it is; fold the overview under The plan",
+        "rec": true,
+        "then": "Leave the sidebar's headings alone, and design the overview's extras as part of The plan's section (A5's overview step)."
+      },
+      {
+        "o": "heading",
+        "label": "Add a heading above Needs you after all",
+        "sub": "say the name in the note"
+      }
+    ]
+  },
+  "order": 40,
+  "updated": 1792495081025,
+  "version": 2,
+  "askedAt": 1792495004225,
+  "changed": "Your note: no title at all"
+}

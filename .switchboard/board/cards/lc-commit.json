@@ -1,0 +1,59 @@
+{
+  "id": "lc-commit",
+  "stage": "closer",
+  "title": "Where does the board live, home or no home?",
+  "tags": [
+    "Look closer",
+    "Data"
+  ],
+  "summary": "You asked what happens when a project has no home folder. Right: none has one by default. A project lives in Switchboard's app folder (<code>Projects/&lt;slug&gt;/</code>) until you click <b>Keep</b>, which makes a <code>.switchboard/</code> home in a repo.",
+  "decision": {
+    "q": "Where the board lives",
+    "basis": "taste",
+    "why": [
+      "<b>Follow the project.</b> With a home, the board is <code>.switchboard/board/</code> there, committed with the rest (<code>state/</code> and <code>private/</code> ignored). Without one, it lives in the app folder, <code>Projects/&lt;slug&gt;/board/</code>, beside <code>terminals.yaml</code>: it works the same, it just isn't in git or on your other Macs.",
+      "<b>And the board offers the home.</b> The first time an agent posts to a project with no home, the board's first card is \"Keep this project's board in the repo?\", which is Switchboard's own Keep, asked where you'll see it. Say yes and the board moves into the new home. Switchboard still never writes into a repo unasked.",
+      "The agent's CLI finds the board the same way either way: the nearest <code>.switchboard/board/</code> above where it runs, else it asks Switchboard which project that folder belongs to."
+    ],
+    "options": [
+      {
+        "o": "follow",
+        "label": "The home if there is one, else the app folder; the first card offers Keep",
+        "rec": true,
+        "then": "Make the board follow the project (home or app folder), have the first card in a project with no home offer Keep, and move this repo's board into a new .switchboard/ home.",
+        "out": [
+          [
+            "With a home",
+            ".switchboard/board/, cards committed"
+          ],
+          [
+            "Without",
+            "Projects/<slug>/board/, not in git, until Keep"
+          ]
+        ]
+      },
+      {
+        "o": "repo",
+        "label": "Always .switchboard/board/ in the repo the agent works in, home or not",
+        "then": "Write the board into the agent's repo even without a home.",
+        "out": [
+          [
+            "Trade-off",
+            "A project spanning repos gets a board per repo, and Switchboard writes into repos you haven't chosen",
+            true
+          ]
+        ]
+      },
+      {
+        "o": "app",
+        "label": "Always in Switchboard's app folder, never in a repo"
+      }
+    ]
+  },
+  "updated": 1792494261902,
+  "version": 3,
+  "order": 5,
+  "askedAt": 1792494261946,
+  "blocking": false,
+  "changed": "Your question answered: a project with no home"
+}

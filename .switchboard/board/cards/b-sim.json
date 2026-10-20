@@ -1,0 +1,33 @@
+{
+  "id": "b-sim",
+  "stage": "build",
+  "title": "An agent simulator, from day one",
+  "tags": [
+    "Build",
+    "Demo"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Simulator",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes, in step 1",
+        "rec": 1,
+        "act": "`switchboard review simulate` + an in-page dev panel; event scripts as fixtures; used by e2e and films",
+        "then": "Add `switchboard review simulate` and an in-page simulator, used by the tests and the films."
+      },
+      {
+        "o": "later",
+        "label": "Later"
+      }
+    ],
+    "why": [
+      "Flex builds live arrival against a <b>scripted agent</b>: Next event, Play the rest, Reset, and <code>#demo</code> to play by itself. The same for Review: a <code>switchboard review simulate &lt;script&gt;</code> that plays recorded events (a card arrives, a phase moves, the agent gets blocked) into a project.",
+      "It's what we design against, what the Claude Design handoffs and walkthrough films are filmed with, and what the tests use to check notifications, badges and the menu bar without a real agent."
+    ],
+    "basis": "evidence"
+  },
+  "order": 20
+}

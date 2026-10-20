@@ -113,11 +113,11 @@ struct SwitchboardApp: App {
             }
             .keyboardShortcut("n", modifiers: [.command, .shift])
             .disabled(selection == nil || focus?.context.scope != .all)
-            Button("Move to Board") {
+            Button("Move to All Projects") {
                 if case .project(let slug)? = focus?.context.scope { dismissWindow(id: "project", value: slug) }
             }
             .disabled(focus.map { if case .project = $0.context.scope { return false } else { return true } } ?? true)
-            Button("Show Board") { openWindow(id: "main") }
+            Button("Show All Projects") { openWindow(id: "main") }
                 .keyboardShortcut("0", modifiers: [.command])
             Divider()
             Button("Edit Config") { if let s = selection { store.editConfig(s.project) } }

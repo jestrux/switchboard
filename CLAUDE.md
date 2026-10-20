@@ -39,3 +39,9 @@ Other guides: [docs/projects.md](docs/projects.md), [docs/theming.md](docs/themi
 `docs-site/`; the Markdown files are the source).
 
 What is left to build: [PLAN.md](PLAN.md), with context in [plans/](plans).
+
+**The board.** This repo keeps its decisions on a board (`.switchboard/board/`, served on
+http://localhost:5198 by `switchboard start switchboard/board/board`). Post and update cards
+only with `scripts/board` (run it with no arguments for the verbs), and keep
+`scripts/board answers --wait` running in the background to hear the author's answers. See
+[plans/06-board.md](plans/06-board.md).

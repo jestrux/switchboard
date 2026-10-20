@@ -1,0 +1,33 @@
+{
+  "id": "s-menubar",
+  "stage": "mac",
+  "title": "Answer from the menu bar",
+  "tags": [
+    "Switchboard",
+    "Notifications"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Menu bar",
+    "options": [
+      {
+        "o": "pop",
+        "label": "A count, and a popover to answer the next card",
+        "rec": 1,
+        "act": "MenuBarExtra(.window): count / waiting dot; popover with next card, 1–3, note, Open in Review",
+        "then": "Add a menu-bar count and a popover that answers the next card."
+      },
+      {
+        "o": "count",
+        "label": "Just the count; clicking opens the Review window"
+      }
+    ],
+    "why": [
+      "<b>Most cards are two-way doors that take five seconds.</b> The menu bar (already planned: <code>plans/03-m5-remaining.md</code>) shows a number only when something waits, and a quiet dot when an agent is waiting. Click it and a popover (<code>MenuBarExtra</code>, window style) shows the next card: its question, my pick, 1–3 to answer, a line for a note, and <i>Open in Review</i>. Answer, and the next one slides in.",
+      "That's Fantastical's menu-bar calendar and Things' Quick Entry: a whole small app in a popover, gone again when you click away."
+    ],
+    "basis": "evidence"
+  },
+  "order": 10
+}

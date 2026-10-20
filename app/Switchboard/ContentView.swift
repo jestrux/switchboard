@@ -231,8 +231,8 @@ struct BoardClearView: View {
         let look = Look(theme: theme, scheme: scheme)
         let p = look.p
         VStack(alignment: .leading, spacing: 14) {
-            Text("The board is clear").font(.system(size: 17, weight: .semibold)).foregroundStyle(p.text)
-            Text("Every project is open in its own window. Close a project's window, or bring it back, to put it on the board again.")
+            Text("Every project has its own window").font(.system(size: 17, weight: .semibold)).foregroundStyle(p.text)
+            Text("Close a project's window, or bring it back, to list it in All Projects again.")
                 .font(SBType.secondary).foregroundStyle(p.text2).fixedSize(horizontal: false, vertical: true)
             VStack(spacing: 6) {
                 ForEach(store.openProjectWindows.sorted(), id: \.self) { slug in

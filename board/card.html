@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Card · Board</title>
+<!--
+  One card, phone-sized: what the custom notification view shows (Fuchi's NOTIFY_PLAN, kind
+  "web"), and what any browser can open. card.html?id=<card id>. The answer posts to /answers
+  like the board's Send, so `board answers --wait` hears it. Inside Fuchi's view, it tells the
+  view it's done through window.webkit.messageHandlers.fuchi.
+-->
+<style>
+  :root { --bg:#f4f4f1; --surface:#fff; --ink:#18181b; --ink-2:#52525b; --ink-3:#8a8a93; --line:#e4e4e0;
+    --accent:#18181b; --on-accent:#d5fc31; --soft:#f0f7d4; --soft-line:#cfe58a; --warn:#b45309; --warn-soft:#fdf3e2; --ok:#15803d;
+    color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0e0e10; --surface:#18181b; --ink:#f4f4f5; --ink-2:#c4c4cc; --ink-3:#8a8a93;
+    --line:#2a2a2e; --accent:#d5fc31; --on-accent:#111; --soft:#1f2410; --soft-line:#4a5a12; --warn:#f0b35a; --warn-soft:#2a2010; --ok:#5fcf80; color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; -webkit-text-size-adjust: 100%; }
+  main { padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; }
+  .stage { font-size: 12px; color: var(--ink-3); margin: 0 0 4px; }
+  h1 { font-size: 19px; line-height: 1.25; margin: 0 0 8px; font-weight: 650; }
+  .sum { color: var(--ink-2); margin: 0 0 12px; }
+  .box { border-radius: 10px; padding: 10px 12px; margin: 0 0 12px; border: 1px solid var(--soft-line); background: var(--soft); }
+  .box.unsure { border-color: color-mix(in oklab, var(--warn) 35%, var(--line)); background: var(--warn-soft); }
+  .box b.h { display: block; font-size: 13px; margin-bottom: 2px; }
+  .box p { margin: 4px 0 0; font-size: 14px; color: var(--ink-2); }
+  .q { font-weight: 600; margin: 14px 0 8px; }
+  .opts { display: flex; flex-direction: column; gap: 8px; }
+  button.opt { all: unset; display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  button.opt .n { font: 12px ui-monospace, Menlo, monospace; color: var(--ink-3); width: 14px; padding-top: 2px; }
+  button.opt .t { flex: 1; } button.opt .t b { font-weight: 600; } button.opt .t span { display: block; font-size: 13px; color: var(--ink-3); }
+  button.opt .rec { font-size: 11px; color: var(--ok); white-space: nowrap; padding-top: 2px; }
+  button.opt[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  button.opt[aria-pressed="true"] .t span, button.opt[aria-pressed="true"] .n, button.opt[aria-pressed="true"] .rec { color: inherit; opacity: .8; }
+  .then { font-size: 13px; color: var(--ink-2); margin: 8px 2px 0; }
+  textarea { width: 100%; min-height: 64px; margin-top: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink); font: inherit; font-size: 15px; resize: vertical; }
+  .send { all: unset; display: block; text-align: center; margin-top: 12px; padding: 13px; border-radius: 10px; background: var(--accent);
+    color: var(--on-accent); font-weight: 650; cursor: pointer; } .send[disabled] { opacity: .4; pointer-events: none; }
+  details { margin: 0 0 12px; } summary { color: var(--ink-3); font-size: 13px; cursor: pointer; }
+  .body { font-size: 14px; color: var(--ink-2); } .body ul { padding-left: 18px; margin: 6px 0; } .body li { margin: 4px 0; }
+  .done { text-align: center; padding: 28px 8px; } .done .tick { font-size: 34px; color: var(--ok); } .done p { color: var(--ink-2); }
+  .err { color: var(--warn); font-size: 13px; margin-top: 8px; }
+  .open { all: unset; display: block; text-align: center; margin-top: 10px; padding: 10px; color: var(--ink-2); font-size: 14px; cursor: pointer; }
+  code { font: 12.5px ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+<main id="app"><p class="sum">Loading the card…</p></main>
+<script src="data.js"></script>
+<script>
+(function () {
+  var D = window.FLEX_REVIEW || { items: [], stages: [], project: {} };
+  var params = new URLSearchParams(location.search), id = params.get("id");
+  // Where this is shown (Fuchi's NOTIFY_PLAN P9): "notification" is the inline view, compact with
+  // Open in Fuchi; "page" is Fuchi's modal, with the whole card open.
+  var where = params.get("in") || "";
+  var app = document.getElementById("app");
+  var it = (D.items || []).filter(function (x) { return x.id === id; })[0];
+  var esc = function (s) { var d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; };
+  var plain = function (h) { var d = document.createElement("div"); d.innerHTML = h || ""; return d.textContent; };
+  var fuchi = function (msg) { try { window.webkit.messageHandlers.fuchi.postMessage(msg); } catch (e) {} };
+  if (!it) { app.innerHTML = "<h1>That card isn't on the board</h1><p class='sum'>It may have been answered or taken off.</p>"; fuchi({ type: "height", h: document.body.scrollHeight }); return; }
+
+  var st = (D.stages || []).filter(function (s) { return s.id === it.stage; })[0];
+  var d = it.decision || null, opts = (d && d.options) || [];
+  var rec = opts.filter(function (o) { return o.rec; });
+  var picks = [];
+  var h = "<p class='stage'>" + esc(st ? st.title : it.stage) + "</p><h1>" + it.title + "</h1>";
+  if (it.summary) h += "<p class='sum'>" + it.summary + "</p>";
+  if (d && d.unsure) h += "<div class='box unsure'><b class='h'>I'm not sure. Look here:</b>" + (d.unsure.where ? "<p>" + d.unsure.where + "</p>" : "") + "<p>" + (d.unsure.why || "") + "</p></div>";
+  else if (rec.length) h += "<div class='box'><b class='h'>I'd go with “" + esc(plain(rec.map(function (o) { return o.label; }).join("”, “"))) + "”" + (d.basis ? " · " + (d.basis === "evidence" ? "Evidence" : "Taste") : "") + "</b>" + (d.why || []).map(function (p) { return "<p>" + p + "</p>"; }).join("") + "</div>";
+  var b = it.body || {};
+  var more = (b.html || "") + ((b.checks && b.checks.length) ? "<ul>" + b.checks.map(function (c) { return "<li>" + c.text + "</li>"; }).join("") + "</ul>" : "");
+  if (more) h += "<details" + (where === "page" ? " open" : "") + "><summary>The whole card</summary><div class='body'>" + more + "</div></details>";
+  if (d) {
+    h += "<p class='q'>" + esc(plain(d.q)) + (d.multi ? " <span style='font-weight:400;color:var(--ink-3)'>(pick any)</span>" : "") + "</p><div class='opts'>";
+    opts.forEach(function (o, i) { h += "<button class='opt' data-o='" + esc(o.o) + "' aria-pressed='false'><span class='n'>" + (i + 1) + "</span><span class='t'><b>" + o.label + "</b>" + (o.sub ? "<span>" + o.sub + "</span>" : "") + "</span>" + (o.rec ? "<span class='rec'>my pick</span>" : "") + "</button>"; });
+    h += "</div><p class='then' id='then'></p>";
+  }
+  h += "<textarea id='note' placeholder='" + esc(it.notePrompt || "A note for the agent (optional)") + "'></textarea><a class='send' id='send' role='button' disabled>Send to agent</a><p class='err' id='err'></p>" +
+    (where === "notification" ? "<a class='open' id='open' role='button'>Open in Fuchi</a>" : "");
+  app.innerHTML = h;
+
+  var send = document.getElementById("send"), note = document.getElementById("note");
+  var openBtn = document.getElementById("open");
+  if (openBtn) openBtn.addEventListener("click", function () { fuchi({ type: "open" }); });
+  function refresh() {
+    app.querySelectorAll("button.opt").forEach(function (bt) { bt.setAttribute("aria-pressed", picks.indexOf(bt.dataset.o) >= 0 ? "true" : "false"); });
+    var thenEl = document.getElementById("then");
+    if (thenEl) { var one = opts.filter(function (o) { return picks.indexOf(o.o) >= 0 && o.then; })[0]; thenEl.textContent = one ? "Then the agent will " + one.then.charAt(0).toLowerCase() + one.then.slice(1) : ""; }
+    var ok = picks.length || note.value.trim();
+    if (ok) send.removeAttribute("disabled"); else send.setAttribute("disabled", "");
+    fuchi({ type: "height", h: document.body.scrollHeight });
+  }
+  app.querySelectorAll("button.opt").forEach(function (bt) {
+    bt.addEventListener("click", function () {
+      var o = bt.dataset.o, i = picks.indexOf(o);
+      if (d.multi) { if (i >= 0) picks.splice(i, 1); else picks.push(o); } else picks = i >= 0 ? [] : [o];
+      refresh();
+    });
+  });
+  note.addEventListener("input", refresh);
+
+  send.addEventListener("click", function () {
+    var chosen = opts.filter(function (o) { return picks.indexOf(o.o) >= 0; });
+    var recIds = rec.map(function (o) { return o.o; });
+    var agreed = chosen.length && chosen.every(function (o) { return o.rec; }) && chosen.length === recIds.length;
+    var t = Date.now(), n = note.value.trim(), clock = new Date(t).toTimeString().slice(0, 5);
+    var lines = [(D.project.name || "Board") + ": from the phone · " + clock, st ? st.title : it.stage, "  " + plain(it.title) + " [" + it.id + "]"];
+    if (chosen.length) lines.push("    → " + chosen.map(function (o) { return plain(o.label); }).join(", ") + (agreed ? "  (recommended)" : rec.length ? "  (NOT the recommendation)" : ""));
+    if (n) lines.push("    note: " + n.replace(/\n/g, "\n          "));
+    var payload = { project: D.project.dir, sentAt: t, from: "card", text: lines.join("\n"), objections: [],
+      answers: [{ id: it.id, stage: it.stage, title: plain(it.title), version: it.version || 1, pick: chosen.length ? (d.multi ? chosen.map(function (o) { return o.o; }) : chosen[0].o) : null,
+                  labels: chosen.map(function (o) { return plain(o.label); }), rec: d && !d.multi && recIds[0] || recIds, way: chosen.length ? (agreed ? "agreed" : "way") : "note", notes: n ? [{ text: n }] : [] }] };
+    send.setAttribute("disabled", ""); send.textContent = "Sending…";
+    fetch("answers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        app.innerHTML = "<div class='done'><div class='tick'>✓</div><h1>The agent has your answer</h1><p>" + esc(plain(it.title)) + "</p></div>";
+        fuchi({ type: "height", h: document.body.scrollHeight }); setTimeout(function () { fuchi({ type: "done" }); }, 900);
+      })
+      .catch(function (e) { send.removeAttribute("disabled"); send.textContent = "Send to agent"; document.getElementById("err").textContent = "Couldn't reach the board (" + e.message + "). Is the Mac's board server running?"; });
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+{
+  "id": "prec-review",
+  "stage": "precedent",
+  "title": "Precedent: reviewing work",
+  "tags": [
+    "Precedent"
+  ],
+  "updated": 1792480644495,
+  "version": 2,
+  "summary": "Looking at the thing itself, and noticing when it changes. What each does, and what we'd borrow (the cards that borrow it are in brackets).",
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://github.blog/news-insights/product-news/mark-files-as-viewed\" target=\"_blank\" rel=\"noopener\">GitHub PR review</a></b>: A file marked Viewed resets when it changes. We borrow: <b>\"Changed since you decided\" comes back by itself</b> <span style=\"color:var(--ink-3)\">(\"Changed since you decided\" flag…)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://help.figma.com/hc/en-us/articles/26781702258583\" target=\"_blank\" rel=\"noopener\">Figma Dev Mode</a></b>: Ready-for-dev frames show what changed. We borrow: <b>the same, for designs and plans</b> <span style=\"color:var(--ink-3)\">(\"Changed since you decided\" flag…)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://vercel.com/docs/comments/managing-comments\" target=\"_blank\" rel=\"noopener\">Vercel comments</a></b>: Comment on the running preview, even on localhost. We borrow: <b>a card opens the running app Switchboard already serves</b> <span style=\"color:var(--ink-3)\">(Open the work from the card; Answers go straight to the agent)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://frame.io\" target=\"_blank\" rel=\"noopener\">Frame.io</a></b>: The media is the hero; notes point at a moment. We borrow: <b>timecoded notes on walkthrough films</b> <span style=\"color:var(--ink-3)\">(What I'd take from it, and what…)</span>"
+      }
+    ]
+  },
+  "decision": {
+    "q": "Are these the right models?",
+    "basis": "evidence",
+    "why": [
+      "All four put the work itself in front of you and notice when it changes after you've looked, which is what our notes and \"is X updated?\" kept asking for."
+    ],
+    "options": [
+      {
+        "o": "right",
+        "label": "Looks right",
+        "rec": 1,
+        "then": "Keep these as the models the cards cite, and build to them."
+      },
+      {
+        "o": "missing",
+        "label": "One's missing",
+        "sub": "say which in the note"
+      },
+      {
+        "o": "wrong",
+        "label": "One's wrong for us",
+        "sub": "say which, and why, in the note"
+      }
+    ]
+  },
+  "order": 20
+}

@@ -1,0 +1,59 @@
+{
+  "id": "today-loop",
+  "stage": "today",
+  "title": "How a project hands itself to you today",
+  "tags": [
+    "The loop"
+  ],
+  "updated": 1792480644495,
+  "version": 2,
+  "body": {
+    "html": "\n<ol style=\"margin:4px 0 12px;padding-left:20px\">\n<li><b>Context pass.</b> Before each phase, the agent reads the project's prior art on that topic and writes down what it found. <span style=\"color:var(--ink-3)\">On prod-app: the build plan, SetHero V2, studio and byod-reference.</span></li>\n<li><b>The plan.</b> One plan file plus one file per phase: what's committed, how it's checked, and its gate.</li>\n<li><b>The wishlist.</b> Everything not yet committed (ideas, call notes, paper cuts, design suggestions) in one untidy file, read at each phase's start and gate.</li>\n<li><b>The board.</b> Each decision is a card with the agent's recommendation and why. Where it's unsure, a look-closer card says where to look. Obvious calls skip the card and go on a list you can object to.</li>\n<li><b>You answer</b>, and the answers go back to the agent. <span style=\"color:var(--ink-3)\">Today that's copy and paste.</span></li>\n<li><b>The agent builds</b>, writes the outcome into the phase's \"As built\", and takes the card off.</li>\n<li><b>The story</b> is told in a sprint review every two weeks, and design handoffs go to Claude Design at phase starts and gates.</li>\n</ol>\n",
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>What follows is prod-app's experience</b>, roughly two weeks and about 60 decisions. A second project would test which parts are general and which are Horizon's."
+      },
+      {
+        "text": "Recommendations with a reason let you decide in seconds: almost every answer you sent was my recommendation, and the ones that weren't came with a reason.",
+        "state": "ok"
+      },
+      {
+        "text": "\"Look closer\" and the settled list kept no-brainers off your plate.",
+        "state": "ok"
+      },
+      {
+        "text": "On prod-app, the context pass caught three would-be mistakes: the storage design was already documented, V2 had the empty-table problem, and studio (not byod) was where the AI work lived.",
+        "state": "ok"
+      },
+      {
+        "text": "<b>Copy-paste both ways, and old notes came back.</b> \"How do V2, studio and the docs handle this?\" arrived three times: your notes outlived the cards they were written on.",
+        "state": "warn"
+      },
+      {
+        "text": "<b>Your notes were often questions.</b> The answer came back as a rewritten card, with no thread linking question and answer.",
+        "state": "warn"
+      },
+      {
+        "text": "<b>I edit the board's HTML by hand, and broke it twice</b>: once losing a card, once leaving a shape the next edit didn't expect.",
+        "state": "warn"
+      },
+      {
+        "text": "<b>The high-level view is scattered.</b> You asked \"sprint review updated?\", \"anything not committed?\", \"memory updated?\", \"did we film all of it?\": status the board couldn't answer.",
+        "state": "warn"
+      },
+      {
+        "text": "<b>Nothing tracked what I'd committed to.</b> An approved settled item (the \"Stopped\" toast) went unbuilt for a day until I noticed.",
+        "state": "warn"
+      },
+      {
+        "text": "<b>Questions for other people had no home</b>: the one for Luke lived in the sprint review.",
+        "state": "warn"
+      }
+    ]
+  },
+  "wide": true,
+  "notePrompt": "Anything I've got wrong about how it works for you? (optional)",
+  "summary": "The loop is general; every example and every lesson below comes from <b>prod-app</b> (SetHero Horizon), the one project that has run it so far. Review is meant to carry the same loop to every project in Switchboard.",
+  "order": 10
+}

@@ -1,0 +1,32 @@
+{
+  "id": "a-sprint",
+  "stage": "loop",
+  "title": "The sprint review drafts itself",
+  "tags": [
+    "Loop",
+    "Overview"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Generated draft",
+    "options": [
+      {
+        "o": "draft",
+        "label": "Yes: a drafted review, curated",
+        "rec": 1,
+        "act": "Sprint review draft generated from the record + digest",
+        "then": "Draft each sprint review from the Record and the since-you-last-looked digest, for me to curate."
+      },
+      {
+        "o": "hand",
+        "label": "Keep writing it by hand"
+      }
+    ],
+    "why": [
+      "The Record plus \"since you last looked\" already know what landed, what was decided and what's carried. At a sprint's end the board drafts the review from them, and I curate the story. It stops being a document I rebuild from memory."
+    ],
+    "basis": "taste"
+  },
+  "order": 30
+}

@@ -1,0 +1,49 @@
+{
+  "id": "w-mainname",
+  "stage": "windows",
+  "order": 5,
+  "updated": 1792482255711,
+  "version": 1,
+  "askedAt": 1792482255711,
+  "title": "What should Switchboard's main window be called now?",
+  "tags": [
+    "Windows",
+    "Naming"
+  ],
+  "summary": "You kept \"board\" for this feature, so the main window needs another name. Today it says <b>Move to Board</b> (the Window menu and a project's context menu) and <b>The board is clear</b> (when every project has its own window). Its window title is already \"Switchboard\".",
+  "decision": {
+    "q": "The main window's name",
+    "basis": "taste",
+    "why": [
+      "<b>\"All Projects\"</b> says what it is, and it pairs with the project windows it competes with: <i>Move to All Projects</i>, <i>All projects are in their own windows</i>. It's also what Xcode and Finder-style apps call the window that lists everything."
+    ],
+    "options": [
+      {
+        "o": "all",
+        "label": "All Projects",
+        "rec": true,
+        "then": "Rename Move to Board to Move to All Projects, and The board is clear to Every project has its own window, in the app and the docs.",
+        "out": [
+          [
+            "Menu",
+            "Window ▸ Move to All Projects"
+          ]
+        ]
+      },
+      {
+        "o": "main",
+        "label": "Main window",
+        "then": "Use Move to Main Window and say main window in the docs."
+      },
+      {
+        "o": "home",
+        "label": "Home"
+      },
+      {
+        "o": "sb",
+        "label": "Switchboard (its title already)",
+        "then": "Use Move to Switchboard Window."
+      }
+    ]
+  }
+}

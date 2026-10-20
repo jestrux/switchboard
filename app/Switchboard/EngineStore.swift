@@ -330,8 +330,8 @@ final class EngineStore: ObservableObject {
                 kind: .deleteProject,
                 title: "Delete “\(p.name)”?",
                 subtitle: live.isEmpty
-                    ? "Its folder moves to the Trash. Put it back from the Trash and it returns to the board."
-                    : "Its \(live.count) running command\(live.count == 1 ? "" : "s") stop and its folder moves to the Trash. Put it back from the Trash and it returns to the board.",
+                    ? "Its folder moves to the Trash. Put it back from the Trash and it returns to All Projects."
+                    : "Its \(live.count) running command\(live.count == 1 ? "" : "s") stop and its folder moves to the Trash. Put it back from the Trash and it returns to All Projects.",
                 facts: facts,
                 buttons: [DialogButton(label: "Cancel", kbd: "↩", style: .defaultSecondary, value: 0),
                           DialogButton(label: "Delete Project", style: .danger, value: 1)],

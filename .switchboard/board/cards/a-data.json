@@ -1,0 +1,34 @@
+{
+  "id": "a-data",
+  "stage": "loop",
+  "title": "The agent writes data, never the page",
+  "tags": [
+    "Loop",
+    "Data"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Where the cards live",
+    "options": [
+      {
+        "o": "repo",
+        "label": "In the repo (.review/), answers local",
+        "rec": 1,
+        "act": "Cards in <repo>/.review/ via CLI; answers in Projects/<slug>/",
+        "then": "Keep cards in the repo's .review/ folder, written only through the CLI, with your answers in Switchboard's per-project folder."
+      },
+      {
+        "o": "app",
+        "label": "All in Switchboard's app folder, nothing in the repo"
+      }
+    ],
+    "why": [
+      "<b>The fix for the board I broke twice.</b> The page is a fixed app; the agent only adds and updates cards through the CLI (<code>switchboard review add</code>, the way Flex's <code>flex-review add</code> works). The cards live <b>in the project's repo</b> (a <code>.review/</code> folder), so they're versioned with the work and travel with it. Your answers stay local, in Switchboard's per-project folder beside <code>terminals.yaml</code>.",
+      "The CLI's shape is already proven by Flex: <code>flex-review add --rec --why --basis --unsure --unsure-at --changed</code>, <code>settle</code>, <code>working</code>, <code>log</code>. These become <code>switchboard review add | settle | working | log</code>.",
+      "Switchboard already keeps unknown config keys and watches project folders, so it can index every project's board."
+    ],
+    "basis": "evidence"
+  },
+  "order": 20
+}

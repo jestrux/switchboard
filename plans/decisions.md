@@ -7,9 +7,10 @@ a new session should not reopen them without a reason.
 
 - **A project is a logical group, not a directory.** Every command carries its own folder.
   This is the difference from Solo and the reason for most of the design.
-- **Windows use extraction.** The main window is the board. Opening a project in its own
-  window pulls it off the board until that window closes or Move to Board is chosen. A
-  project is on the board or in its own window, never both. A project window has no project
+- **Windows use extraction.** The main window is **All Projects** (it was called "the board" until 2026-10-20, when that
+  name went to the [agent's board](06-board.md)). Opening a project in its own window pulls it
+  out of All Projects until that window closes or Move to All Projects is chosen. A project
+  is in All Projects or in its own window, never both. A project window has no project
   row: its sidebar is a header plus the groups at the top level. Project windows reopen on
   launch.
 - **One terminal view per command, app-wide.** Showing a command in a pane moves its
@@ -47,7 +48,7 @@ a new session should not reopen them without a reason.
 
 - **Every theme is system-aware by default.** Each has a light and a dark palette, and
   Appearance defaults to System. A custom theme should define both `dark:` and `light:`.
-- A project's `theme:` and `appearance:` apply **only in its own window**. The board keeps
+- A project's `theme:` and `appearance:` apply **only in its own window**. All Projects keeps
   the app-wide setting.
 - Custom themes inherit layout style from a `base` built-in and override colours only.
 

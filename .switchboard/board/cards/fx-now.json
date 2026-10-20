@@ -1,0 +1,63 @@
+{
+  "id": "fx-now",
+  "stage": "flex",
+  "title": "Second look: Flex's prototype has grown",
+  "tags": [
+    "Flex",
+    "Prototype"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "summary": "Since the first walk-through, the organisation has changed (a film card at the top, stage views, two-pane activity, a Going-ahead list), and there's an agent simulator with notifications. I fired every simulated event and opened each new view. The photos are of a real person, so these stay on your Mac.",
+  "body": {
+    "gallery": [
+      {
+        "src": "media/fy-01.jpg",
+        "at": "First load",
+        "caption": "A welcome that explains the loop in three steps: the agent puts things here, answer each card, Send. Then \"Start with what needs me (R)\" or \"Look around\". The simulator sits at the bottom right."
+      },
+      {
+        "src": "media/fy-03-film.jpg",
+        "at": "The film so far",
+        "caption": "The film card at the top of the sidebar opens it: scenes in film order (built, building at 60%, or still a storyboard panel), and a player that runs the whole film end to end, with built scenes as they are and the rest as storyboard panels on the music. The timeline shows built, building and panel."
+      },
+      {
+        "src": "media/fy-06-ev3.jpg",
+        "at": "Progress news",
+        "caption": "A simulated event: scene 7 lands. A notification (\"Scene 7 is in · the film so far is 7 of 10\", with a thumbnail), a New mark on the scene, the next one starts building, and the sidebar's progress moves."
+      },
+      {
+        "src": "media/fy-08-newcard.jpg",
+        "at": "Needs you, live",
+        "caption": "A new card arrives: the notification says \"Needs you · Labs\" and gives the agent's pick (\"I'd go with Ease the break\"). Needs you goes to 15, and Labs gets a New mark."
+      },
+      {
+        "src": "media/fy-09-opened.jpg",
+        "at": "Drawn by the agent",
+        "caption": "Clicking the notification opens the card. It's a chart the agent drew (cuts per bar, the busy bars in amber); click a bar to watch that moment. The footer says \"updated just now, since your last visit\"."
+      },
+      {
+        "src": "media/fy-10-ahead.jpg",
+        "at": "Going ahead unless you object",
+        "caption": "Calls the agent is sure of are not cards. They're listed with an Object button, and an objection goes with the next send. It sits at the end of the list, like our Settled list, except here you can push back."
+      },
+      {
+        "src": "media/fy-12-activity.jpg",
+        "at": "Activity, in two panes",
+        "caption": "Grouped by day, with a Now row (\"Building scene 9 · 20%\"); a dot marks the events that made a card. Selecting one shows that card beside it, with \"Open in its stage\"."
+      },
+      {
+        "src": "media/fy-13-scenes.jpg",
+        "at": "A stage view",
+        "caption": "\"Stage 5 of 7\" with previous and next arrows. A stage that's still being built shows a spinner instead of a count."
+      },
+      {
+        "src": "media/fy-14-film-dark.jpg",
+        "at": "Dark",
+        "caption": "The same film view in dark. Lime marks progress and your move."
+      }
+    ]
+  },
+  "wide": true,
+  "order": 10
+}

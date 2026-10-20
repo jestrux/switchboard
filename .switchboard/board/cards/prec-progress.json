@@ -1,0 +1,49 @@
+{
+  "id": "prec-progress",
+  "stage": "precedent",
+  "title": "Precedent: progress",
+  "tags": [
+    "Precedent"
+  ],
+  "updated": 1792480644495,
+  "version": 2,
+  "summary": "The big picture without a status meeting. What each does, and what we'd borrow (the cards that borrow it are in brackets).",
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://basecamp.com/shapeup/3.4-chapter-13\" target=\"_blank\" rel=\"noopener\">Basecamp Hill Charts</a></b>: Dots move uphill (unknowns) and downhill (execution); a dot that stalls is a raised hand. We borrow: <b>movement since you last looked</b> <span style=\"color:var(--ink-3)\">(What the overview shows)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://linear.app/docs/initiative-and-project-updates\" target=\"_blank\" rel=\"noopener\">Linear project updates and Pulse</a></b>: On track, at risk or off track, plus a note; Pulse digests what changed. We borrow: <b>the health note and since-you-last-looked</b> <span style=\"color:var(--ink-3)\">(What the overview shows)</span>"
+      }
+    ]
+  },
+  "decision": {
+    "q": "Are these the right models?",
+    "basis": "evidence",
+    "why": [
+      "Both show movement rather than status, and both are written for the person who wasn't there, which is you between sessions."
+    ],
+    "options": [
+      {
+        "o": "right",
+        "label": "Looks right",
+        "rec": 1,
+        "then": "Keep these as the models the cards cite, and build to them."
+      },
+      {
+        "o": "missing",
+        "label": "One's missing",
+        "sub": "say which in the note"
+      },
+      {
+        "o": "wrong",
+        "label": "One's wrong for us",
+        "sub": "say which, and why, in the note"
+      }
+    ]
+  },
+  "order": 30
+}

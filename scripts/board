@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# The board CLI (Track A stand-in for `switchboard board`). See plans/06-board.md.
+exec node "$(dirname "$0")/../board/bin/board.mjs" "$@"

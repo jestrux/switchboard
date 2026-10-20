@@ -1,0 +1,62 @@
+{
+  "id": "ph-found",
+  "stage": "phone",
+  "title": "What Fuchi and the crotchet worker already give us",
+  "tags": [
+    "Phone",
+    "Fuchi"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "summary": "I read Fuchi (Mac, iPhone and iPad, and their shared package) and the crotchet worker it uses for AI, storage and push. In short: Fuchi already has the phone apps, the shared code, and a way to answer a question on the Mac. What's missing is reaching you when you aren't home, and any security.",
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>Fuchi's action round trip is almost a Review answer already.</b> The phone sends <code>actionRun(id, choice, text)</code> and the Mac replies with <code>actionResult</code>. An action can offer choices and a typed-text prompt (<code>ActionDescriptor</code>, <code>FuchiWire/Surfaces.swift:128</code>). A card is an action with options and a note. Built 2026-10-17."
+      },
+      {
+        "state": "ok",
+        "text": "<b>One shared Swift package and an extension system.</b> FuchiWire (the protocol), FuchiSync (the backend client) and FuchiTheme are shared by Mac, iPhone and iPad. A feature is <code>Extensions/&lt;id&gt;/{Core,Mac,Mobile}</code> plus an <code>extension.json</code>. Review would be one more extension, not a new app."
+      },
+      {
+        "state": "ok",
+        "text": "<b>The wire format is plain JSON lines</b> (<code>{\"v\":1,\"channel\":…}</code>, <code>FuchiWire/Frames.swift</code>), so it doesn't care what carries it."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Fuchi's Mac app is already a menu-bar app</b>, linked to the phone over Wi-Fi or USB, and it reconnects to known devices by itself."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Kazzi already syncs Mac and phone with no link at all.</b> Both read and write the same four collections in the worker's store, cache-first, with offline writes queued and a pending count shown (<code>WorkerLibrary</code>). It works on a plane and away from home. The link only carries the last inch: pasting a prompt onto the Mac."
+      },
+      {
+        "state": "ok",
+        "text": "<b>The crotchet worker can already push to a phone</b>: <code>/firebase/notify</code> sends through FCM to APNs. Fuchi has a client for it (<code>FuchiBackend.notify</code>) but never calls it."
+      },
+      {
+        "state": "warn",
+        "text": "<b>The link only works on the local network, and only while the phone app is open.</b> The phone is the server (it listens on port 8765 and advertises over Bonjour) and the Mac connects to it; the app's only background mode is audio."
+      },
+      {
+        "state": "warn",
+        "text": "<b>Nothing is secured.</b> The link is plaintext TCP with no pairing (\"anything on the LAN can drive ActionExecutor\", <code>SHELL_PLAN.md:29</code>). Every worker endpoint is open with <code>CORS *</code>, and push goes to topics, which can be guessed. Authentication is Fuchi's open item B11."
+      },
+      {
+        "state": "warn",
+        "text": "<b>The worker's relay is a polling mailbox in KV</b>: a 5 s poll, 20 messages for 10 minutes, and two sends at once can lose one. Its own comment: \"not for a live stream.\" <code>/socket</code> isn't a socket; it returns a stored LAN address."
+      },
+      {
+        "state": "warn",
+        "text": "<b>On the phone, no notification has actions, and there are no widgets or Live Activities yet.</b> There are only local Pomodoro notifications; widgets, Watch, Live Activities and Shortcuts are in <code>IDEAS.md</code>."
+      },
+      {
+        "state": "warn",
+        "text": "<b>The worker's AI is single-turn Sonnet</b> (<code>POST /prompt</code>): no streaming, no tools, and it turns \"I don't know\" answers into nothing."
+      }
+    ]
+  },
+  "wide": true,
+  "order": 10
+}

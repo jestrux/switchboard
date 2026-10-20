@@ -1,0 +1,43 @@
+{
+  "id": "ph-home",
+  "stage": "phone",
+  "title": "A Switchboard app on the phone: the same workflow, phone-shaped",
+  "tags": [
+    "Phone",
+    "Switchboard",
+    "Fuchi"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Where our workflow lives on the phone",
+    "options": [
+      {
+        "o": "sb",
+        "label": "Switchboard Mobile, on Review's data contract; Fuchi's store client and pairing reused as a package",
+        "rec": 1,
+        "act": "New SwitchboardMobile target on the Review contract; extract Fuchi's store client/outbox (and pairing when built) into a shared package; Kazzi untouched",
+        "then": "Start Switchboard Mobile on Review's data contract, built on Fuchi's store client lifted into a shared package."
+      },
+      {
+        "o": "fuchi",
+        "label": "A Review extension inside Fuchi",
+        "out": [
+          [
+            "Trade-off",
+            "It reaches the phone fastest, but it's two apps on the Mac and a second project list."
+          ]
+        ]
+      }
+    ],
+    "why": [
+      [
+        "<b>The phone runs our Review workflow, not a new one.</b> It uses the same data contract the agent writes, the same cards, answers, Record and overview, and the same rules (my pick first, ↵ only when I'm sure, Handled with Undo). Only the layout changes for the phone. Anything we add on the Mac reaches the phone because it's the same model.",
+        "<b>Why its own app rather than a Fuchi extension:</b> one project list (Switchboard's), no middleman on the Mac, notes sent from the phone land in the agent's own pane, and pairing and push belong to one app. It also leaves room for starting and stopping servers and reading their logs from the phone.",
+        "<b>What we reuse from Fuchi is engineering, not features</b>: the offline-first store client and its outbox, the pairing work, maybe the link. Fuchi and its Kazzi extension carry on as they are; whether Kazzi later reads Review's data is a separate call."
+      ]
+    ],
+    "basis": "evidence"
+  },
+  "order": 30
+}

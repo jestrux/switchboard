@@ -1,0 +1,51 @@
+{
+  "id": "a-contract",
+  "stage": "loop",
+  "title": "Review's contract: Flex's as it is, or trimmed for software?",
+  "tags": [
+    "Loop",
+    "Data"
+  ],
+  "summary": "Flex's contract carries film-only fields (song, film, scenes, playheads). Review needs phases, commits, URLs and the owed list instead.",
+  "decision": {
+    "q": "The contract",
+    "basis": "evidence",
+    "why": [
+      "<b>Keep Flex's core and add software's fields beside it.</b> Items, stages, decisions, basis, unsure, then, settled, working, log and demo carry over unchanged, so Flex's page and Review read the same core. Film fields stay optional; Review adds <code>phase</code>, <code>commit</code>, <code>open</code> (URL, logs, file:line), <code>owed</code> and <code>short</code>."
+    ],
+    "options": [
+      {
+        "o": "core",
+        "label": "Flex's core, unchanged, plus optional software fields",
+        "rec": true,
+        "then": "Write the shared core as a schema both Flex and Switchboard validate against, and add Review's fields as optional.",
+        "out": [
+          [
+            "Flex",
+            "Keeps working with no change"
+          ],
+          [
+            "Review",
+            "Adds phase, commit, open, owed, short"
+          ]
+        ]
+      },
+      {
+        "o": "fork",
+        "label": "Fork it: a separate contract for Review",
+        "then": "Write a separate Review schema.",
+        "out": [
+          [
+            "Flex",
+            "Drifts away from Review",
+            true
+          ]
+        ]
+      }
+    ]
+  },
+  "updated": 1792481936053,
+  "version": 1,
+  "order": 5,
+  "askedAt": 1792492630286
+}

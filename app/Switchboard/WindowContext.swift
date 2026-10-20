@@ -31,15 +31,15 @@ final class WindowContext: ObservableObject, Identifiable {
     @Published var railProject: String? {
         didSet { if let railProject { UserDefaults.standard.set(railProject, forKey: "rail.\(scope.persistenceKey)") } }
     }
-    /// Sidebar width the user dragged this window to. App state, not config: the board has
+    /// Sidebar width the user dragged this window to. App state, not config: All Projects has
     /// one, and each project window has its own. nil means "not set here".
     @Published private(set) var sidebarWidth: CGFloat?
     static let sidebarWidthRange: ClosedRange<CGFloat> = 200...640
 
     private var sidebarWidthKey: String { "sidebarWidth.\(scope.persistenceKey)" }
 
-    /// Width to draw: this window's own, else (for a project window) the board's, else
-    /// the design default. A project window's own width is never overridden by the board's.
+    /// Width to draw: this window's own, else (for a project window) All Projects', else
+    /// the design default. A project window's own width is never overridden by All Projects'.
     func effectiveSidebarWidth(default fallback: CGFloat) -> CGFloat {
         if let w = sidebarWidth { return w }
         if scope != .all {

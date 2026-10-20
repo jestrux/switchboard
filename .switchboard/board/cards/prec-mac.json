@@ -1,0 +1,57 @@
+{
+  "id": "prec-mac",
+  "stage": "precedent",
+  "title": "Precedent: on the Mac",
+  "tags": [
+    "Precedent"
+  ],
+  "updated": 1792480644495,
+  "version": 2,
+  "summary": "Native habits people already have. What each does, and what we'd borrow (the cards that borrow it are in brackets).",
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>Mail</b>: Native mailbox list, keys and windows; each message in a web view. We borrow: <b>native chrome, card bodies in a web view</b> <span style=\"color:var(--ink-3)\">(Native SwiftUI, a web page, or b…)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b>Fantastical and Things</b>: A whole small app in a menu-bar popover; Quick Entry from anywhere. We borrow: <b>answer the next card from the menu bar</b> <span style=\"color:var(--ink-3)\">(Answer from the menu bar)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b>Xcode</b>: The Organizer window, the assistant editor beside your code, Open Quickly. We borrow: <b>the Review window, a pane beside the terminal, ⌘K</b> <span style=\"color:var(--ink-3)\">(One Review, three shapes, depend…; Review as a pane beside the agen…; Spotlight, Shortcuts and ⌘K find…)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://raycast.com/blog/making-our-api-more-powerful\" target=\"_blank\" rel=\"noopener\">Raycast</a></b>: Menu-bar commands that show a live count. We borrow: <b>one number in the menu bar</b> <span style=\"color:var(--ink-3)\">(Answer from the menu bar)</span>"
+      }
+    ]
+  },
+  "decision": {
+    "q": "Are these the right models?",
+    "basis": "evidence",
+    "why": [
+      "These are the native habits Review should feel like. Each one is a pattern people already know, not something we'd have to teach."
+    ],
+    "options": [
+      {
+        "o": "right",
+        "label": "Looks right",
+        "rec": 1,
+        "then": "Keep these as the models the cards cite, and build to them."
+      },
+      {
+        "o": "missing",
+        "label": "One's missing",
+        "sub": "say which in the note"
+      },
+      {
+        "o": "wrong",
+        "label": "One's wrong for us",
+        "sub": "say which, and why, in the note"
+      }
+    ]
+  },
+  "order": 50
+}

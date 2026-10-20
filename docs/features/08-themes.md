@@ -31,7 +31,7 @@ is the summary.
 - **What:** A project can name a theme and an appearance for its own window.
 - **Reach it:** `theme:` and `appearance:` in the project's config.
 - **State:** In the config, so it travels with the project.
-- **Limits:** It applies only while the project is in its own window, not on the board.
+- **Limits:** It applies only while the project is in its own window, not in All Projects.
 
 ## Custom themes
 

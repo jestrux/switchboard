@@ -1,0 +1,50 @@
+{
+  "id": "ph-surfaces",
+  "stage": "phone",
+  "title": "What the phone does, from the Mac's workflow",
+  "tags": [
+    "Phone",
+    "Notifications"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "First version on the phone",
+    "multi": true,
+    "options": [
+      {
+        "o": "review",
+        "label": "Needs you and review mode",
+        "rec": 1,
+        "act": "Phone review mode on the shared contract"
+      },
+      {
+        "o": "notif",
+        "label": "Notifications you can answer",
+        "rec": 1,
+        "act": "Blocked-only, rec pick + reply field"
+      },
+      {
+        "o": "glance",
+        "label": "The overview glance, with whose move per project",
+        "rec": 1,
+        "act": "Phone overview: phase strip, since-last, health, whose move"
+      },
+      {
+        "o": "live",
+        "label": "A Live Activity while an agent works"
+      },
+      {
+        "o": "servers",
+        "label": "Start and stop servers, read logs"
+      }
+    ],
+    "why": [
+      "Each part of the Mac workflow, as it works on the phone:",
+      "<b>Needs you and review mode</b>: one card at a time; swipe for next and previous, tap an option, my pick takes one tap only when I'm sure, and a note can be typed or dictated. <b>The overview</b> as a glance: the phase strip, since you last looked, health, and whose move it is per project. <b>Send to agent</b> with the queue. <b>Notifications</b> only when an agent is blocked, with my pick and a reply field. A <b>Live Activity</b> while an agent works. The Record is searchable. Media (screenshots, films with timecoded notes) open full screen.",
+      "Left on the Mac: the split panes, the terminals, anything that edits code."
+    ],
+    "basis": "taste"
+  },
+  "order": 50
+}

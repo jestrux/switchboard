@@ -1,0 +1,33 @@
+{
+  "id": "c-owed",
+  "stage": "cards",
+  "title": "An owed list: what I've committed to and haven't built",
+  "tags": [
+    "Cards",
+    "Trust"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Track commitments",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes, on the overview",
+        "rec": 1,
+        "act": "Commitments ledger from picks + settled; closed by commit",
+        "then": "Keep a ledger of what your picks commit me to, closed by commits, on the overview."
+      },
+      {
+        "o": "no",
+        "label": "No"
+      }
+    ],
+    "why": [
+      "Every option you pick carries what it commits me to, and so does every settled item. Those become a list that stays <b>owed</b> until a commit closes them, shown on the overview. The \"Stopped\" toast would have shown up as owed for a day.",
+      "Flex's send drawer already lists \"What this commits the agent to, in order\". The owed list is that list, kept after you send it until a commit closes each line."
+    ],
+    "basis": "taste"
+  },
+  "order": 60
+}

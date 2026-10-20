@@ -1,0 +1,39 @@
+{
+  "id": "lc-lifecycle",
+  "stage": "closer",
+  "title": "Decided cards: take them off, or keep them as the record?",
+  "tags": [
+    "Look closer",
+    "Record"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "What happens to a decided card?",
+    "options": [
+      {
+        "o": "record",
+        "label": "Off the board, into a searchable Record (decision records linked to commits)",
+        "rec": 1,
+        "act": "Record view of closed cards as ADR-style entries; phase As built links to them",
+        "then": "Take decided cards off the board and keep each as a decision record, linked to the commit that did it, in a searchable Record."
+      },
+      {
+        "o": "keep",
+        "label": "Stay on the board, collapsed as Handled (the Flex way)"
+      },
+      {
+        "o": "plan",
+        "label": "Off the board, recorded in the plan files only (today)"
+      }
+    ],
+    "why": [
+      "<b>Off the board, into a Record view.</b> The board shows only what's open, so it stays a to-do list you can get to zero. A decided card becomes a short decision record (what was asked, what you picked, why, what it committed, the commit that did it) in a searchable Record tab. That's an <a href=\"https://docs.arc42.org/tips/9-5/\" target=\"_blank\" rel=\"noopener\">ADR</a> in shape, and <a href=\"https://docs.github.com/en/subscriptions-and-notifications/concepts/about-notifications\" target=\"_blank\" rel=\"noopener\">GitHub's</a> \"Done but findable\" in spirit. The phase file links to it instead of copying it."
+    ],
+    "unsure": {
+      "why": "Our board removes a card once it's decided and writes the outcome into the phase's As built. The Flex board keeps every card as \"the record of how it was made\". A general product has to pick one, and both have a cost: removal scatters the history across plan files, keeping makes the board grow forever.",
+      "where": "<code>flex-review-handoff/context/review-board-template.html</code> (removes) against the Flex DESIGN.md's \"Handled\" state (keeps)."
+    }
+  },
+  "order": 20
+}

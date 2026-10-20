@@ -23,7 +23,7 @@ source, so reading them directly works just as well.
 | [Running commands](02-running-commands.md) | Start, stop, restart, statuses, crash restarts, restart to apply, quitting, starting again at launch |
 | [Terminals](03-terminals.md) | Shells on demand in a group's folder, kept per Mac |
 | [Panes](04-panes.md) | The terminal pane, its bar and footer, splits up to four |
-| [Board and project windows](05-windows.md) | The main board, the rail, a window per project |
+| [All Projects and project windows](05-windows.md) | The main window, the rail, a window per project |
 | [Sidebar](06-sidebar.md) | Collapsed groups, resizing, reordering, hover actions, truncated names |
 | [Links and ports](07-links-and-ports.md) | ⌘-click links in output, image previews, the port a server is listening on |
 | [Themes](08-themes.md) | Built-in themes, per-project themes, custom palettes |

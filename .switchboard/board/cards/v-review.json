@@ -1,0 +1,33 @@
+{
+  "id": "v-review",
+  "stage": "views",
+  "title": "Review mode: one card at a time, from the keyboard",
+  "tags": [
+    "Views",
+    "Zone"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Review mode",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes, in the first version",
+        "rec": 1,
+        "act": "Review mode with the Flex key map",
+        "then": "Build review mode with Flex's key map."
+      },
+      {
+        "o": "later",
+        "label": "Later; scrolling the cards is enough for now"
+      }
+    ],
+    "why": [
+      "<b>The zone, literally.</b> One card fills the window: J and K to move, 1–4 to pick, Enter to take my recommendation (only when I'm sure, never on a look-closer card), N for a note, E for done, Esc out. \"5 of 7\" at the top. That's <a href=\"https://linear.app/docs/triage\" target=\"_blank\" rel=\"noopener\">Linear Triage</a>'s number keys and Superhuman's flow, and the Flex design already has the screen (<code>design/ReviewMode.dc.html</code>).",
+      "Flex has built it. See <i>Review mode</i> and <i>Picked</i> in the walkthrough above: the segmented progress bar, media on the right, the key strip, and \"Handled · next card\"."
+    ],
+    "basis": "evidence"
+  },
+  "order": 30
+}

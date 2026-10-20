@@ -1,0 +1,58 @@
+{
+  "id": "ph-away",
+  "stage": "phone",
+  "title": "Away from home: what carries a card to your phone?",
+  "tags": [
+    "Phone",
+    "Look closer",
+    "Security"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Off the local network",
+    "options": [
+      {
+        "o": "store",
+        "label": "Sealed rows in the store (Kazzi's sync technique), per-device auth, and a push that says almost nothing",
+        "rec": 1,
+        "act": "Cards/answers as rows in the worker store via WorkerLibrary (offline outbox); per-field CryptoKit sealing keyed at pairing; per-device tokens (closes B11); APNs via FCM device tokens; NSE decrypts; Mac polls while cards are open",
+        "then": "Store cards and answers as sealed rows, give each device its own token, and push only a count that a service extension decrypts."
+      },
+      {
+        "o": "relay",
+        "label": "A live WebSocket relay (a Durable Object) from the start",
+        "out": [
+          [
+            "Trade-off",
+            "Answers arrive instantly, but it's new server code to write and run, and Kazzi's store already works."
+          ]
+        ]
+      },
+      {
+        "o": "tail",
+        "label": "Tailscale and the direct link",
+        "out": [
+          [
+            "Trade-off",
+            "Nothing to host, but the phone only listens with the app open, and you still need a push to wake you."
+          ]
+        ]
+      },
+      {
+        "o": "home",
+        "label": "Home network only, for now"
+      }
+    ],
+    "why": [
+      "<b>Borrow the technique Kazzi proved: the store is where Mac and phone meet, and it can't read what's in it.</b> Review's cards and answers are rows in the worker's store, written cache-first with an offline queue (Fuchi's store client, which Kazzi already runs on). That already works anywhere, with no relay and no live link. Each row's content is sealed with a key the devices exchange when you pair them (CryptoKit), so the store holds blobs it can't read. Pairing also gives each device its own token, which is the authentication the worker lacks (B11).",
+      "<b>Waking you</b>: the push says only \"prod-app needs you (3)\", to that device's own token rather than a topic anyone could guess. A Notification Service Extension fetches the row and decrypts it on the phone, and the notification action writes your pick back as a row. <b>Waking the agent</b>: Switchboard checks the store every few seconds while any card is open, which is cheap and bounded. A Durable Object WebSocket can replace that polling later if seconds ever feel slow.",
+      "On the home network the direct link is still used for what has to happen live (Send to the agent's pane). Precedent: GitHub Mobile's deployment approvals and Duo/Okta push approvals, where the server is only a mailbox."
+    ],
+    "unsure": {
+      "why": "This is the first thing in the whole design that leaves your Mac, which undoes a settled call (\"nothing is hosted\"). Cards hold code decisions, file paths and screenshots, and the only server on hand, the crotchet worker, has no authentication at all. There are also two separate problems: <b>waking you</b> (a push) and <b>carrying the answer back</b> (a channel the phone can reach while the Mac is asleep or behind NAT).",
+      "where": "<code>crotchet/backend/src/worker.tsx:209-266</code> (push), <code>:1038</code> (KV); <code>Fuchi/FuchiShared/Sources/FuchiSync/FuchiBackendRelay.swift</code> (the mailbox); <code>SHELL_CONTRACT_PLAN.md:40-41</code> (B10, the relay; B11, authentication)."
+    }
+  },
+  "order": 40
+}

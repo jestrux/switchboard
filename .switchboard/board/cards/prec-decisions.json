@@ -1,0 +1,49 @@
+{
+  "id": "prec-decisions",
+  "stage": "precedent",
+  "title": "Precedent: decisions",
+  "tags": [
+    "Precedent"
+  ],
+  "updated": 1792480644495,
+  "version": 2,
+  "summary": "Which calls need you, and where they go afterwards. What each does, and what we'd borrow (the cards that borrow it are in brackets).",
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders\" target=\"_blank\" rel=\"noopener\">Amazon's doors</a></b>: One-way doors get care; two-way doors should be fast. Rust's final comment period works the same way. We borrow: <b>going ahead unless you object</b> <span style=\"color:var(--ink-3)\">(Calls I'm sure of go ahead unles…)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://docs.arc42.org/tips/9-5/\" target=\"_blank\" rel=\"noopener\">Architecture decision records</a></b>: A short record of what was decided, why, and what it commits to. We borrow: <b>decided cards become the Record</b> <span style=\"color:var(--ink-3)\">(Decided cards: take them off, or…)</span>"
+      }
+    ]
+  },
+  "decision": {
+    "q": "Are these the right models?",
+    "basis": "evidence",
+    "why": [
+      "These are how other teams decide what needs a person and what can go ahead. They match what the board already does by habit: obvious calls get no card, and decided ones get recorded."
+    ],
+    "options": [
+      {
+        "o": "right",
+        "label": "Looks right",
+        "rec": 1,
+        "then": "Keep these as the models the cards cite, and build to them."
+      },
+      {
+        "o": "missing",
+        "label": "One's missing",
+        "sub": "say which in the note"
+      },
+      {
+        "o": "wrong",
+        "label": "One's wrong for us",
+        "sub": "say which, and why, in the note"
+      }
+    ]
+  },
+  "order": 40
+}

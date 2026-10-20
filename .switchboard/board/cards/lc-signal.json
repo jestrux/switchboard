@@ -1,0 +1,41 @@
+{
+  "id": "lc-signal",
+  "stage": "closer",
+  "title": "Can Switchboard tell when the agent is waiting on you?",
+  "tags": [
+    "Look closer",
+    "Switchboard",
+    "Agent"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "What tells Switchboard the agent needs you?",
+    "options": [
+      {
+        "o": "both",
+        "label": "Cards drive the badge; Claude Code's hooks add a quiet \"waiting\" dot",
+        "rec": 1,
+        "act": "Badge = open cards; hook-driven 'agent waiting' dot per project",
+        "then": "Drive the badge from open cards only, and add a quiet \"agent waiting\" dot from Claude Code's notification hooks."
+      },
+      {
+        "o": "cards",
+        "label": "Cards only"
+      },
+      {
+        "o": "hooks",
+        "label": "Hooks too: a waiting agent raises the badge"
+      }
+    ],
+    "why": [
+      "<b>Two signals, and only one drives the badge.</b> The badge counts <em>explicit</em> cards the agent posted (<code>switchboard review add</code>): real decisions, never chatter. The hook becomes a quiet second signal: a dot on the project's tile saying \"the agent is waiting\", without raising the count. That follows <a href=\"https://linear.app/developers/agent-interaction\" target=\"_blank\" rel=\"noopener\">Linear's agent states</a>, where \"awaiting input\" is something the agent declares.",
+      "It also avoids the anti-pattern every precedent warns about: notification fatigue."
+    ],
+    "unsure": {
+      "why": "Claude Code has notification hooks for exactly this (<code>permission_prompt</code> when a tool needs approval, <code>idle_prompt</code> after 60 s waiting), and Switchboard already finds Claude sessions by process id. But \"idle\" isn't \"needs you\": an agent idles when it has finished too. And other agents won't have the same hooks.",
+      "where": "<a href=\"https://code.claude.com/docs/en/hooks-guide\" target=\"_blank\" rel=\"noopener\">Claude Code hooks guide</a>; <code>switchboard/app/Switchboard/ImageLinks.swift:231-300</code> (finding a Claude session)."
+    }
+  },
+  "order": 30
+}

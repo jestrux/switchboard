@@ -1,0 +1,49 @@
+{
+  "id": "fx-now-lift",
+  "stage": "flex",
+  "title": "What the second look adds for us",
+  "tags": [
+    "Flex",
+    "Prototype"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>A view of the work so far</b>, not just a list of cards. It runs end to end however much is built: finished parts as they are, the rest as placeholders, and it keeps updating while work lands. For a project, that's <b>the app so far</b>: phases and sub-phases as built, building or planned, the running dev server (Switchboard knows its URL), and the latest walkthrough film."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Two kinds of news, kept apart.</b> <em>Progress</em> (\"Scene 7 is in\", with a thumbnail) and <em>Needs you</em> (the card plus my pick). They look different, and only the second asks for anything."
+      },
+      {
+        "state": "ok",
+        "text": "<b>\"Going ahead unless you object.\"</b> Calls the agent is sure of skip the card altogether and sit in a list with an Object button. That's our Settled list made answerable, and a lighter version of two-way doors with no deadline."
+      },
+      {
+        "state": "ok",
+        "text": "<b>The agent draws its own evidence.</b> A chart it made from the work, which you can click to jump to that moment. For us that's eval pass rates per case, test times, bundle size, or which tables an edit touched."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Progress has a number.</b> \"Building scene 9 · 20%\" in activity, in the sidebar's segments and in the footer. That's the agent state on Switchboard's tiles, with a percentage."
+      },
+      {
+        "state": "ok",
+        "text": "<b>Activity is somewhere to work from, not a log.</b> Grouped by day, with a Now row on top, the events that made cards marked, and the card shown beside each event."
+      },
+      {
+        "state": "ok",
+        "text": "<b>An agent simulator built into the page.</b> Scripted events (Next event, Play the rest, Reset, and <code>#demo</code> to play by itself) let you design, demo and test live arrival without a real agent running."
+      },
+      {
+        "state": "warn",
+        "text": "<b>What changes for us:</b> Flex has one film at a time. With several projects, progress news can't all be system notifications, so it belongs in the page, the menu bar and the Live Activity. Only Needs you reaches the notification centre."
+      }
+    ]
+  },
+  "wide": true,
+  "order": 20
+}

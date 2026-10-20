@@ -1,0 +1,33 @@
+{
+  "id": "c-others",
+  "stage": "cards",
+  "title": "Questions for other people",
+  "tags": [
+    "Cards",
+    "People"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "A \"for someone else\" lane",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes, with the person's name",
+        "rec": 1,
+        "act": "Card reason 'for someone else' with an assignee; answered in the meeting",
+        "then": "Add a \"for someone else\" lane with the person's name, answered in the meeting."
+      },
+      {
+        "o": "no",
+        "label": "No"
+      }
+    ],
+    "why": [
+      "A lane for questions to take to someone else (\"For Luke\"), carried into a call and answered there; the answer is recorded on the card. Today it lived in the sprint review's last bullet.",
+      "Kazzi's \"outs\" suggest the clock: count the days since <b>your</b> last move, which answers \"is it my move again?\" See <i>Away from the Mac</i>."
+    ],
+    "basis": "taste"
+  },
+  "order": 50
+}

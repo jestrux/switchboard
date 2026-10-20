@@ -1,0 +1,114 @@
+{
+  "project": {
+    "name": "The board: the plan",
+    "meta": "Switchboard · plans/06-board.md",
+    "intro": "You asked for a way to open a project and get both the big picture and what needs you, working with an agent and paired with Switchboard. <b>Round two</b> adds three things: a walk through <b>Flex's prototype</b> (it has built much of what I proposed), <b>Switchboard's windows</b> (main, project, and a Review window you can tear off), <b>the joys of a Mac app</b> (answering from the menu bar and from notifications, full screen, Spotlight, Quick Look), and <b>Away from the Mac</b>: our Switchboard workflow extended to a Switchboard app on your phone, with ideas from Kazzi and engineering from Fuchi. Start with <b>What Flex built</b>, then <b>Look closer</b>, where the native-or-web question now sits.",
+    "dir": "switchboard-review",
+    "stagesLabel": "The plan",
+    "settled": [
+      {
+        "id": "settled-per-project",
+        "stage": "switchboard",
+        "text": "One board per project; Switchboard knows which projects have one."
+      },
+      {
+        "id": "settled-recs",
+        "stage": "cards",
+        "text": "Every card carries my recommendation and why; obvious calls never get a card; they go on this list, where you can object."
+      },
+      {
+        "id": "settled-context",
+        "stage": "cards",
+        "text": "Cards cite their prior art (the context pass), or say plainly there is none."
+      },
+      {
+        "id": "settled-themes",
+        "stage": "build",
+        "text": "Dark and light, both real; every action reachable from the keyboard."
+      },
+      {
+        "id": "settled-offline",
+        "stage": "loop",
+        "text": "The board works from disk with no server, and the copy-to-chat path always works."
+      },
+      {
+        "id": "settled-private",
+        "stage": "phone",
+        "text": "Boards, answers and screenshots stay on your Mac and in your repos. Away from the Mac they travel only as sealed rows the store can't read (see Away from the Mac)."
+      },
+      {
+        "id": "settled-markdown",
+        "stage": "loop",
+        "text": "<code>PLAN.md</code>, the phase files and <code>WISHLIST.md</code> stay plain files in the repo; the board reads them, it doesn't replace them."
+      },
+      {
+        "id": "settled-needs-you",
+        "stage": "windows",
+        "text": "The inbox inside the board stays <b>Needs you</b>."
+      }
+    ],
+    "working": null
+  },
+  "stages": [
+    {
+      "id": "today",
+      "title": "The loop today",
+      "blurb": "What we have, as I see it"
+    },
+    {
+      "id": "precedent",
+      "title": "Precedent",
+      "blurb": "Who already solved a piece of this"
+    },
+    {
+      "id": "flex",
+      "title": "What Flex built",
+      "blurb": "The prototype, looked at twice"
+    },
+    {
+      "id": "closer",
+      "title": "Look closer",
+      "blurb": "Where I'm least sure"
+    },
+    {
+      "id": "views",
+      "title": "Two ways in",
+      "blurb": "The big picture, and the zone"
+    },
+    {
+      "id": "cards",
+      "title": "What a card can be",
+      "blurb": "Beyond pick-an-option"
+    },
+    {
+      "id": "loop",
+      "title": "Back to the agent",
+      "blurb": "Answers, data, the record"
+    },
+    {
+      "id": "windows",
+      "title": "Switchboard's windows",
+      "blurb": "Main, project, Review"
+    },
+    {
+      "id": "mac",
+      "title": "The joys of a Mac app",
+      "blurb": "Menu bar, notifications, the zone"
+    },
+    {
+      "id": "phone",
+      "title": "Away from the Mac",
+      "blurb": "Fuchi, the worker, your phone"
+    },
+    {
+      "id": "switchboard",
+      "title": "Switchboard",
+      "blurb": "Opening the work, agent state"
+    },
+    {
+      "id": "build",
+      "title": "Look and build",
+      "blurb": "Starting point and order"
+    }
+  ]
+}

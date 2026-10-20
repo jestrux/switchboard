@@ -1,0 +1,65 @@
+{
+  "id": "v-overview",
+  "stage": "views",
+  "title": "What the overview shows",
+  "tags": [
+    "Views",
+    "Overview"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>The project so far</b>, at the top: a card like Flex's film card, showing each phase as built, building (with a percentage) or planned. Clicking it opens what's built: the running app through Switchboard, and the latest walkthrough film. It keeps updating while the agent works."
+      },
+      {
+        "text": "<b>The phase strip</b>: done, now, next, one segment per phase, like a status page. It shows movement since you last looked, and a phase that hasn't moved in days shows as a raised hand (<a href=\"https://basecamp.com/shapeup/3.4-chapter-13\" target=\"_blank\" rel=\"noopener\">Hill Charts</a>).",
+        "state": "ok"
+      },
+      {
+        "text": "<b>Since you last looked</b>, in one line: \"3 new decisions · 2 answered by the agent · Phase 6 → 7 · 9 commits\" (<a href=\"https://linear.app/docs/pulse\" target=\"_blank\" rel=\"noopener\">Linear Pulse</a>).",
+        "state": "ok"
+      },
+      {
+        "text": "<b>The health strip</b>, which answers what you kept asking: tests green, anything uncommitted or unpushed, plan, sprint review and memory up to date, dev servers running (Switchboard knows), the last film and design review.",
+        "state": "ok"
+      },
+      {
+        "text": "<b>The agent's health note</b>, rewritten at each gate: on track, at risk or off track, plus two sentences (<a href=\"https://linear.app/docs/initiative-and-project-updates\" target=\"_blank\" rel=\"noopener\">Linear project updates</a>).",
+        "state": "ok"
+      },
+      {
+        "text": "<b>What's owed</b>: every commitment from your picks and the settled list, built or still to do.",
+        "state": "ok"
+      }
+    ]
+  },
+  "decision": {
+    "q": "The overview",
+    "options": [
+      {
+        "o": "full",
+        "label": "All of it: the project so far, the phase strip, since you last looked, health, the health note, what's owed",
+        "rec": 1,
+        "act": "Overview: phase strip, since-last digest, health strip, agent health note, owed list",
+        "then": "Build the overview: the project so far, the phase strip, since you last looked, health, the health note, and what's owed."
+      },
+      {
+        "o": "lean",
+        "label": "Phase strip and since-last-look only, to start"
+      },
+      {
+        "o": "hill",
+        "label": "A hill chart instead of a phase strip"
+      }
+    ],
+    "why": [
+      "Today these answers live in a chat, in <code>PLAN.md</code>'s status line, and in the sprint review. One screen ends the \"is X updated?\" round trips."
+    ],
+    "basis": "taste"
+  },
+  "wide": true,
+  "order": 20
+}

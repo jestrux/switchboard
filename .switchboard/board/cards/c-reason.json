@@ -1,0 +1,62 @@
+{
+  "id": "c-reason",
+  "stage": "cards",
+  "title": "Every card says why it's there",
+  "tags": [
+    "Cards"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "body": {
+    "checks": [
+      {
+        "text": "<b>Decision</b>: something to pick, with my recommendation.",
+        "state": "ok"
+      },
+      {
+        "text": "<b>Look closer</b>: where I'm unsure, with where to look.",
+        "state": "warn"
+      },
+      {
+        "text": "<b>Your question, answered</b>: a note you asked, and what I found.",
+        "state": "ok"
+      },
+      {
+        "text": "<b>Changed since you decided</b>: I changed something you'd already approved.",
+        "state": "warn"
+      },
+      {
+        "text": "<b>From the wishlist</b>: ready to promote into a phase, or drop.",
+        "state": "ok"
+      },
+      {
+        "text": "<b>For someone else</b>: a question to take to Luke or the team.",
+        "state": "ok"
+      }
+    ]
+  },
+  "decision": {
+    "q": "Reason labels",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes: six reasons, each a filter",
+        "rec": 1,
+        "act": "Typed card reasons with filters",
+        "then": "Give every card a reason (decision, look closer, your question, changed, wishlist, for someone else), each one a filter."
+      },
+      {
+        "o": "tags",
+        "label": "Free tags are enough"
+      }
+    ],
+    "why": [
+      "Filterable by reason, like <a href=\"https://docs.github.com/en/subscriptions-and-notifications/concepts/about-notifications\" target=\"_blank\" rel=\"noopener\">GitHub's notification reasons</a>. It's the cure for one undifferentiated pile, and it lets a busy day mean \"just the decisions\".",
+      "Another kind of body, from Flex's second look: <b>a chart the agent drew</b> as its evidence (cuts per bar there; eval pass rates, test times or bundle size for us), which you can click to jump to that moment."
+    ],
+    "basis": "taste"
+  },
+  "order": 10,
+  "askedAt": 1792492626821,
+  "blocking": false
+}

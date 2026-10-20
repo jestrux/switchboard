@@ -1,0 +1,66 @@
+{
+  "id": "fx-lift",
+  "stage": "flex",
+  "title": "What I'd take from it, and what changes for software",
+  "tags": [
+    "Flex",
+    "Prototype"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>The stance chip on every row.</b> You see my recommendation (\"Looks right\", \"Use B\", \"Unsure\") without opening the card. On our board you open each one to find it."
+      },
+      {
+        "state": "ok",
+        "text": "<b>\"I'd go with X\" with its basis.</b> A tag says what the pick rests on: <em>Evidence</em> (tested, measured) or <em>Unsure</em>. We should add <em>Judgement</em> for taste calls."
+      },
+      {
+        "state": "ok",
+        "text": "<b>\"Then the agent will…\" under each option</b>, shown before you pick. Our <code>act</code> line is written for me; this one is written for you."
+      },
+      {
+        "state": "ok",
+        "text": "<b>One Handled state, with Undo.</b> This replaces our decided/done split, as the Flex brief asked."
+      },
+      {
+        "state": "ok",
+        "text": "<b>↵ takes my pick only when I'm sure.</b> On an Unsure card it does nothing, so you have to look. That's our look-closer rule, enforced by the keyboard."
+      },
+      {
+        "state": "ok",
+        "text": "<b>L: look where I'm unsure.</b> One key takes you to the evidence. For software, that's the file and line, or the before/after pair."
+      },
+      {
+        "state": "ok",
+        "text": "<b>The send drawer lists what the agent has committed to, in order.</b> That's where the owed list (below) begins."
+      },
+      {
+        "state": "ok",
+        "text": "<b>The footer shows what the agent is doing</b>: \"Live · read 09:01\", \"Flex isn't open\", \"The agent is waiting on your answers. Last: …\". This is the per-project agent state I suggest, already designed."
+      },
+      {
+        "state": "warn",
+        "text": "<b>Media becomes software media.</b> Waveforms and storyboards become before/after screenshots (Flip suits a UI change), diffs, test runs, and our walkthrough films, where Flex's timecoded notes fit as they are."
+      },
+      {
+        "state": "warn",
+        "text": "<b>\"Open in Flex\" and \"note at Flex's playhead\" become \"Open in the running app\"</b> through Switchboard, with the note pinned to the URL or screen you're on."
+      },
+      {
+        "state": "warn",
+        "text": "<b>A film's seven stages become a project's phases</b>, and the journey rail becomes the phase strip."
+      },
+      {
+        "state": "warn",
+        "text": "<b>Flex has no overview and no record</b>, because a film is about fourteen cards over a day. A project runs for months, so those two are ours to add."
+      }
+    ],
+    "html": "<p>Most of what I proposed in round one is already in the prototype, built and working: review mode, one Handled state, answers sent straight to the agent, a commitment list, agent status, live arrival. That moves the question from \"what should it be\" to \"what does a project need that a film doesn't\": the overview, the Record, several projects at once, and Switchboard.</p>"
+  },
+  "wide": true,
+  "order": 40
+}

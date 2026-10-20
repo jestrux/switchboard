@@ -1,0 +1,73 @@
+{
+  "id": "fx-tour",
+  "stage": "flex",
+  "title": "First look: I walked through Flex's prototype",
+  "tags": [
+    "Flex",
+    "Prototype"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "summary": "It's a working build of the Screening-room design, not a mock-up: one HTML file, a data contract, a CLI the agent writes with (<code>flex-review add --rec --why --basis --unsure --unsure-at --changed</code>, <code>settle</code>, <code>working</code>, <code>log</code>), and <code>serve</code>, which receives your answers. I went through every view, review mode, the keys, the send drawer and both themes. Click a frame to see it full size. The photos are of a real person, so these stay on your Mac.",
+  "body": {
+    "gallery": [
+      {
+        "src": "media/fx-02.jpg",
+        "at": "Landing",
+        "caption": "Needs you, three panes: the journey rail (stages with open counts, live status, \"the agent is waiting on your answers\"), the list with each card's stance chip (\"Looks right\", \"Unsure\"), and the card with I'd go with… · Evidence."
+      },
+      {
+        "src": "media/fx-04-music.jpg",
+        "at": "A track",
+        "caption": "A waveform with the song's sections and the chosen window shaded; options numbered for the keys."
+      },
+      {
+        "src": "media/fx-05-storyboard.jpg",
+        "at": "Storyboard",
+        "caption": "Panels as a strip on the song's bars; a panel opens with its bar.beat, and N pins a note to it."
+      },
+      {
+        "src": "media/fx-07-compare.jpg",
+        "at": "Compare",
+        "caption": "A/B as Side by side, Swipe or Flip (Tab)."
+      },
+      {
+        "src": "media/fx-15-unsure-look.jpg",
+        "at": "Unsure",
+        "caption": "On an Unsure card, L (\"look where I'm unsure\") jumps straight to Flip, so you see the difference the agent couldn't call."
+      },
+      {
+        "src": "media/fx-10-review.jpg",
+        "at": "Review mode",
+        "caption": "One card, a segmented progress bar (\"14 of 14\"), the media takes the right half, and every key is listed along the bottom."
+      },
+      {
+        "src": "media/fx-11-review-picked.jpg",
+        "at": "Picked",
+        "caption": "\"my pick\" on the option, Then the agent will… spelled out, Handled with Undo (U), and \"Handled · next card\" (J)."
+      },
+      {
+        "src": "media/fx-12-shortcuts.jpg",
+        "at": "Every key",
+        "caption": "J/K, 1–9, ↵ for my pick when I'm sure, ⇧↵ to take it and move on, L, N, E, U, O to open in Flex, P for a note at Flex's playhead, V to open what just arrived, S to send."
+      },
+      {
+        "src": "media/fx-13-send.jpg",
+        "at": "Send",
+        "caption": "What each answer commits the agent to, in order; \"Still open: 13, they'll wait\"; \"Served by Flex: this goes straight to the agent\", with Show as text as the fallback."
+      },
+      {
+        "src": "media/fx-09-activity.jpg",
+        "at": "Activity",
+        "caption": "What the agent did, newest first, each line linked to its card."
+      },
+      {
+        "src": "media/fx-14-dark.jpg",
+        "at": "Dark",
+        "caption": "Lime means \"your move\": the send button and a picked option. Nothing else is lime."
+      }
+    ]
+  },
+  "wide": true,
+  "order": 30
+}

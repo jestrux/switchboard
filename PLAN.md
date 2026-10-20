@@ -32,6 +32,7 @@ Status key: **Next** is the item to pick up now, **Ready** can start any time,
 | 3 | Remaining M5 features | Find bar and menu bar extra are Ready; quick add waits on item 1; export needs a yes from the author |
 | 4 | Design handoff gaps | Ready, independent of the rest |
 | 5 | Release | Signed, notarized builds work via `scripts/release.sh`; updates and versioning undecided |
+| 6 | The board: where an agent hands a project to its author | **In progress**: stand-in A1–A4 done, A5 next |
 
 Update this table and the "Next step" line in each plan file as work lands.
 
@@ -49,6 +50,10 @@ Update this table and the "Next step" line in each plan file as work lands.
    divider readout, and smaller polish from the design spec.
 5. **[Release](plans/05-release.md)**: Developer ID signing, notarization, a release build,
    and the checks before making the repo public.
+6. **[The board](plans/06-board.md)**: where a coding agent hands a project to its author:
+   cards with a recommendation, answers straight back to the agent, the big picture and a
+   one-card-at-a-time review mode. Built in two tracks: a stand-in board on Vite that we use
+   while building, and the real thing in the engine, CLI and app.
 
 ## Not scheduled
 

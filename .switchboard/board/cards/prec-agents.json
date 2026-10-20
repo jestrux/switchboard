@@ -1,0 +1,65 @@
+{
+  "id": "prec-agents",
+  "stage": "precedent",
+  "title": "Precedent: agents and inboxes",
+  "tags": [
+    "Precedent"
+  ],
+  "updated": 1792480644495,
+  "version": 2,
+  "summary": "How an agent asks, and how you clear what it asked. What each does, and what we'd borrow (the cards that borrow it are in brackets).",
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://linear.app/developers/agent-interaction\" target=\"_blank\" rel=\"noopener\">Linear agents</a></b>: A session is pending, active, awaiting input, errored or complete; asking you something is an elicitation. We borrow: <b>a card is an elicitation, and the agent's state drives every badge</b> <span style=\"color:var(--ink-3)\">(Can Switchboard tell when the ag…; Each project shows what its agen…)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://linear.app/docs/triage\" target=\"_blank\" rel=\"noopener\">Linear Inbox and Triage</a></b>: J and K to move, number keys for outcomes, snooze that wakes early. We borrow: <b>review mode's keys</b> <span style=\"color:var(--ink-3)\">(Review mode: one card at a time,…)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://help.superhuman.com/article/441-splits\" target=\"_blank\" rel=\"noopener\">Superhuman</a></b>: One inbox split by what matters, worked through in one sitting. We borrow: <b>one Review window across every project</b> <span style=\"color:var(--ink-3)\">(One Review window for every proj…)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://docs.github.com/en/subscriptions-and-notifications/concepts/about-notifications\" target=\"_blank\" rel=\"noopener\">GitHub notifications</a></b>: Every notification says why it's there; Done keeps it findable. We borrow: <b>reason labels, and the Record</b> <span style=\"color:var(--ink-3)\">(Every card says why it's there; Decided cards: take them off, or…)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://help.hey.com/article/722-the-screener\" target=\"_blank\" rel=\"noopener\">HEY Screener</a></b>: New senders wait once; your choice sticks. We borrow: <b>the wishlist as a screener</b> <span style=\"color:var(--ink-3)\">(The wishlist as a screener)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b><a href=\"https://code.claude.com/docs/en/hooks-guide\" target=\"_blank\" rel=\"noopener\">Claude Code hooks</a></b>: permission_prompt and idle_prompt fire when the agent waits. We borrow: <b>the quiet \"waiting\" dot</b> <span style=\"color:var(--ink-3)\">(Can Switchboard tell when the ag…)</span>"
+      }
+    ]
+  },
+  "decision": {
+    "q": "Are these the right models?",
+    "basis": "evidence",
+    "why": [
+      "Each is a shipped product solving the same problem we have: something asks you, and you clear it fast. Linear's agent states are the closest match to an agent that waits on you."
+    ],
+    "options": [
+      {
+        "o": "right",
+        "label": "Looks right",
+        "rec": 1,
+        "then": "Keep these as the models the cards cite, and build to them."
+      },
+      {
+        "o": "missing",
+        "label": "One's missing",
+        "sub": "say which in the note"
+      },
+      {
+        "o": "wrong",
+        "label": "One's wrong for us",
+        "sub": "say which, and why, in the note"
+      }
+    ]
+  },
+  "order": 10
+}

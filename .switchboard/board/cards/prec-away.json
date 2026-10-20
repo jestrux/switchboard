@@ -1,0 +1,49 @@
+{
+  "id": "prec-away",
+  "stage": "precedent",
+  "title": "Precedent: away from the desk",
+  "tags": [
+    "Precedent"
+  ],
+  "updated": 1792480644495,
+  "version": 2,
+  "summary": "Answering safely from your phone. What each does, and what we'd borrow (the cards that borrow it are in brackets).",
+  "body": {
+    "checks": [
+      {
+        "state": "ok",
+        "text": "<b>GitHub Mobile and Duo push</b>: Approve a deployment or a sign-in from the lock screen; the server only passes the message along. We borrow: <b>lock-screen answers</b> <span style=\"color:var(--ink-3)\">(Away from home: what carries a c…; Answer from the notification)</span>"
+      },
+      {
+        "state": "ok",
+        "text": "<b>Signal</b>: A push says almost nothing; the phone fetches and decrypts the message itself. We borrow: <b>sealed rows and a push that only gives a count</b> <span style=\"color:var(--ink-3)\">(Away from home: what carries a c…)</span>"
+      }
+    ]
+  },
+  "decision": {
+    "q": "Are these the right models?",
+    "basis": "evidence",
+    "why": [
+      "Both answer the question of how to approve something from your phone without trusting the server in the middle, which is the hard part of Away from the Mac."
+    ],
+    "options": [
+      {
+        "o": "right",
+        "label": "Looks right",
+        "rec": 1,
+        "then": "Keep these as the models the cards cite, and build to them."
+      },
+      {
+        "o": "missing",
+        "label": "One's missing",
+        "sub": "say which in the note"
+      },
+      {
+        "o": "wrong",
+        "label": "One's wrong for us",
+        "sub": "say which, and why, in the note"
+      }
+    ]
+  },
+  "order": 60
+}

@@ -1,0 +1,32 @@
+{
+  "id": "ph-ai",
+  "stage": "phone",
+  "title": "Leave the worker's AI out of Review",
+  "tags": [
+    "Phone",
+    "AI"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "AI on the phone",
+    "options": [
+      {
+        "o": "agent",
+        "label": "The agent writes a short line; questions go back to it",
+        "rec": 1,
+        "act": "Contract: `short` (≤80 chars) per card; no worker AI in Review",
+        "then": "Ask the agent for a short line on every card, and send phone questions back to it."
+      },
+      {
+        "o": "worker",
+        "label": "Summarise cards on the phone with the worker's /prompt"
+      }
+    ],
+    "why": [
+      "The worker's <code>/prompt</code> runs one Sonnet call with no tools, and it hides \"I don't know\" answers. It's good for Fuchi's Ask AI, but wrong for Review: the agent that wrote the card already knows its context, and a second model summarising it could lose the very nuance you're deciding on. Instead, <b>the agent writes a <code>short</code> line on every card</b> for small screens (the lock screen, the Watch, the menu bar), and <i>Ask the agent</i> on the phone sends your question back to the agent in your note, as on the Mac."
+    ],
+    "basis": "taste"
+  },
+  "order": 60
+}

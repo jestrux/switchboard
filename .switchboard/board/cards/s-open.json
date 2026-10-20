@@ -1,0 +1,31 @@
+{
+  "id": "s-open",
+  "stage": "switchboard",
+  "title": "Open the work from the card",
+  "tags": [
+    "Switchboard"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Card links into the running project",
+    "options": [
+      {
+        "o": "yes",
+        "label": "Yes",
+        "rec": 1,
+        "act": "Card 'open' targets: url/path, logs, file:line, media",
+        "then": "Let a card open what it's about: a URL, logs, a file at a line, or a film."
+      },
+      {
+        "o": "no",
+        "label": "No"
+      }
+    ],
+    "why": [
+      "A card can open what it's about, in the thing that runs it: the dev server at the right page, a command's logs, a file at a line, a film, a screenshot. Switchboard already knows each server's port and URL. That's <a href=\"https://vercel.com/docs/comments/managing-comments\" target=\"_blank\" rel=\"noopener\">Vercel comments</a>' \"review on the running thing\", and the Flex design's \"Open in Flex\"."
+    ],
+    "basis": "taste"
+  },
+  "order": 10
+}

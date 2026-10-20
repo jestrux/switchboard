@@ -1,0 +1,32 @@
+{
+  "id": "c-wish",
+  "stage": "cards",
+  "title": "The wishlist as a screener",
+  "tags": [
+    "Cards",
+    "Wishlist"
+  ],
+  "updated": 1792468800000,
+  "version": 1,
+  "decision": {
+    "q": "Wishlist on the board",
+    "options": [
+      {
+        "o": "lane",
+        "label": "A Later lane with promote / drop",
+        "rec": 1,
+        "act": "Wishlist rendered as a Later lane; promote/drop recorded",
+        "then": "Show the wishlist as a Later lane, where promote and drop stick."
+      },
+      {
+        "o": "file",
+        "label": "Keep it a file only"
+      }
+    ],
+    "why": [
+      "The wishlist shows as a <b>Later</b> lane: at a phase's start or gate I mark what fits; you promote or drop, and the choice sticks, so dropped ideas don't come back (<a href=\"https://help.hey.com/article/722-the-screener\" target=\"_blank\" rel=\"noopener\">HEY Screener</a>). <code>WISHLIST.md</code> stays the file it's written in; the board shows it."
+    ],
+    "basis": "taste"
+  },
+  "order": 70
+}
