@@ -395,11 +395,75 @@ impl Board {
     /// cards (in step order), log, Record and kept.
     pub fn snapshot(&self) -> Value {
         let b = self.board();
+        let stages: Vec<Value> = b["stages"].as_array().cloned().unwrap_or_default().into_iter().map(|mut st| {
+            if let Some(md) = st["doc"].as_str().and_then(|d| self.doc_section(d)) {
+                obj(&mut st).insert("docMd".into(), json!(md));
+            }
+            st
+        }).collect();
         json!({
-            "project": b["project"].clone(), "stages": b["stages"].clone(), "items": self.cards(),
+            "project": b["project"].clone(), "stages": stages, "items": self.cards(), "health": self.health(),
             "log": read(&self.p("log.json"), json!([])), "record": read(&self.p("record.json"), json!([])),
             "kept": read(&self.p("kept.json"), json!({})),
         })
+    }
+
+    /// The repo the board lives in (two folders above `.switchboard/board/`), if it is one.
+    fn repo(&self) -> Option<PathBuf> {
+        let r = self.dir.parent()?.parent()?.to_path_buf();
+        r.join(".git").exists().then_some(r)
+    }
+
+    /// A step's `doc` ("plans/06-board.md#B1"): that file's section whose heading starts with the
+    /// label, up to the next heading of the same level or higher, as markdown.
+    pub fn doc_section(&self, doc: &str) -> Option<String> {
+        let (file, anchor) = doc.split_once('#').map(|(f, a)| (f, Some(a))).unwrap_or((doc, None));
+        let path = if Path::new(file).is_absolute() { PathBuf::from(file) } else { self.dir.parent()?.parent()?.join(file) };
+        let md = std::fs::read_to_string(path).ok()?;
+        let Some(anchor) = anchor else { return Some(md) };
+        let lines: Vec<&str> = md.lines().collect();
+        let level = |l: &str| l.chars().take_while(|c| *c == '#').count();
+        let start = lines.iter().position(|l| {
+            let n = level(l);
+            (2..=4).contains(&n) && l[n..].trim_start().split_whitespace().next() == Some(anchor)
+        })?;
+        let lv = level(lines[start]);
+        let end = lines.iter().enumerate().skip(start + 1).find(|(_, l)| { let n = level(l); n > 0 && n <= lv && l[n..].starts_with(' ') }).map(|(i, _)| i).unwrap_or(lines.len());
+        Some(lines[start + 1..end].join("\n"))
+    }
+
+    /// Uncommitted, unpushed and recent commits in the board's repo (the overview's health),
+    /// cached for 15 s: git is too slow to run on every read.
+    pub fn health(&self) -> Value {
+        use std::sync::Mutex;
+        static CACHE: Mutex<Vec<(PathBuf, i64, Value)>> = Mutex::new(Vec::new());
+        if let Some((_, at, v)) = CACHE.lock().unwrap().iter().find(|(d, _, _)| *d == self.dir) {
+            if now() - at < 15_000 {
+                return v.clone();
+            }
+        }
+        let v = match self.repo() {
+            None => json!({ "repo": false, "commits": [] }),
+            Some(repo) => {
+                let git = |args: &[&str]| std::process::Command::new("git").args(args).current_dir(&repo).output().ok()
+                    .filter(|o| o.status.success()).map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
+                let status = git(&["status", "--porcelain"]);
+                let ahead = git(&["rev-list", "--count", "@{u}..HEAD"]);
+                let log = git(&["log", "--since=14.days", "--format=%ct%x09%h%x09%s"]).unwrap_or_default();
+                let commits: Vec<Value> = log.lines().filter_map(|l| {
+                    let mut p = l.splitn(3, '\t');
+                    Some(json!({ "t": p.next()?.parse::<i64>().ok()? * 1000, "hash": p.next()?, "subject": p.next().unwrap_or("") }))
+                }).collect();
+                json!({ "repo": true,
+                        "uncommitted": status.map(|s| if s.is_empty() { 0 } else { s.lines().count() }),
+                        "unpushed": ahead.and_then(|a| a.parse::<i64>().ok()),
+                        "commits": commits })
+            }
+        };
+        let mut c = CACHE.lock().unwrap();
+        c.retain(|(d, _, _)| *d != self.dir);
+        c.push((self.dir.clone(), now(), v.clone()));
+        v
     }
 
     /// Record a send from the author (the page, the phone, a notification, the app): keep it in
@@ -482,6 +546,17 @@ mod tests {
         assert_eq!(v2["version"], 2);
         assert_eq!(v2["changed"], "added a summary");
         assert!(b.update("x", json!({ "stage": "zz" }), None, false).is_err());
+    }
+
+    #[test]
+    fn a_steps_doc_is_its_plan_section() {
+        let t = tempfile::tempdir().unwrap();
+        let b = Board { dir: t.path().join(".switchboard/board"), app_slug: None };
+        std::fs::create_dir_all(t.path().join("plans")).unwrap();
+        std::fs::write(t.path().join("plans/p.md"), "# Plan\n\n### A1 · One\n\n- [x] done\n\n### A2 · Two\n\ntwo\n").unwrap();
+        assert_eq!(b.doc_section("plans/p.md#A1").unwrap().trim(), "- [x] done");
+        assert_eq!(b.doc_section("plans/p.md#A2").unwrap().trim(), "two");
+        assert!(b.doc_section("plans/p.md#A9").is_none());
     }
 
     #[test]

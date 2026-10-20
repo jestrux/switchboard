@@ -1,6 +1,7 @@
 {
   "askedAt": 1792499722282,
   "blocking": false,
+  "changed": "Revised in chat: the whole board page in the pane, not just card bodies",
   "decision": {
     "options": [
       {
@@ -48,6 +49,7 @@
       "why": "Two pulls. A Mac app's pleasures (real lists, menus that list every key, ⌘Z, window tabs, tearing off windows, Quick Look, the menu bar, widgets, Spotlight) argue for native SwiftUI. But Flex's card bodies (waveforms, storyboards, Swipe and Flip compares, timecoded players) are rich HTML that already works, and rebuilding each in SwiftUI is a lot of work for little gain. Switchboard's PRD also lists \"AI-agent orchestration\" as a non-goal, so any version of this changes what Switchboard is."
     },
     "why": [
+      "<b>Revised 2026-10-20, in chat:</b> the Mac's native board had drifted from the board page (one card at a time instead of a batch Send, no plan panels, overview, filters or activity). So the pane shows <b>the board page itself</b>, bundled, with Send going through Switchboard's engine; native stays for what only a Mac app does (the sidebar row, the pane, the menu bar, notifications, windows). The same page in the browser and the app means they never drift.",
       "<b>Mail's model: native chrome, web bodies.</b> Mail draws its mailbox list, toolbar, keys and windows natively and shows each message in a web view. Do the same here: the rail, the list, review mode, windows, the menu bar and notifications in SwiftUI; each card's body (checks, beats, gallery, compare, video, fields) in a WKWebView, from the same data contract. Flex's bodies are reused, and everything you touch feels like a Mac app.",
       "It lives in Switchboard, because Switchboard already knows the projects, the agents' sessions and the servers, and its skill is already in every agent."
     ]
@@ -60,6 +62,6 @@
     "Switchboard"
   ],
   "title": "Native SwiftUI, a web page, or both?",
-  "updated": 1792468800000,
-  "version": 1
+  "updated": 1792504582035,
+  "version": 2
 }

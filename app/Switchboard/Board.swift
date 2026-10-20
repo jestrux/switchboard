@@ -184,240 +184,82 @@ struct BoardRow: View {
 
 // MARK: - The pane
 
+/// The board pane: the board page itself (`board/index.html`, bundled), the same page the
+/// browser shows, so the Mac and the page never drift (lc-home, revised 2026-10-20). The app hands
+/// it the board and its updates, and records its Send through the engine.
 struct BoardPane: View {
     @EnvironmentObject var store: EngineStore
     @ObservedObject private var cache = BoardCache.shared
-    @Environment(\.sbPalette) private var p
     let project: String
-    @State private var tab: Tab = .needs
-    @State private var selected: String?
-    @State private var picks: [String] = []
-    @State private var note = ""
-    @FocusState private var focused: Bool
-    /// Review mode: one card at a time, blocking first, the queue fixed when it starts.
-    @State private var queue: [String]? = nil
-
-    enum Tab: String, CaseIterable { case needs = "Needs you", all = "Everything", record = "Record" }
 
     var body: some View {
-        let data = cache.data(project) ?? BoardData()
-        Group {
-            if let queue { review(data, queue) } else { browse(data) }
-        }
-        .background(p.pane)
-        .focusable().focused($focused).focusEffectDisabled()
-        .onKeyPress { key in handleKey(key, data) }
-        .onChange(of: selected) { _, _ in picks = []; note = "" }
-        .onAppear { cache.watch(project, engine: store.engine); focused = true }
-        .onDisappear { cache.unwatch(project) }
-    }
-
-    private func startReview(_ data: BoardData) {
-        let needs = visible(data).filter(\.needsYou)
-        let q = (needs.filter(\.blocking) + needs.filter { !$0.blocking }).map(\.id)
-        guard !q.isEmpty else { return }
-        queue = q; selected = q.first; focused = true
-    }
-
-    @ViewBuilder private func review(_ data: BoardData, _ q: [String]) -> some View {
-        let i = q.firstIndex(of: selected ?? "") ?? 0
-        let card = data.cards.first { $0.id == q[min(i, q.count - 1)] }
-        VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                Button { queue = nil } label: { Label("Exit review", systemImage: "chevron.left") }
-                    .buttonStyle(.plain).foregroundStyle(p.text2).keyboardShortcut(.escape, modifiers: [])
-                Spacer()
-                // One segment per card: done, here, to come.
-                HStack(spacing: 3) {
-                    ForEach(Array(q.enumerated()), id: \.offset) { j, id in
-                        let done = data.cards.first { $0.id == id }?.decided != nil
-                        Capsule().fill(j == i ? p.accent : (done ? p.running : p.line)).frame(width: j == i ? 14 : 6, height: 4)
-                    }
-                }
-                .frame(maxWidth: 360)
-                Text("\(i + 1) of \(q.count)").font(.system(size: 12, design: .monospaced)).foregroundStyle(p.text3)
-                Spacer()
-            }
-            .padding(.horizontal, 14).frame(height: 40)
-            Divider()
-            if let card {
-                CardBodyView(json: data.json, cardId: card.id).frame(maxWidth: .infinity, maxHeight: .infinity)
-                if card.question != nil {
-                    Divider()
-                    AnswerBar(project: project, card: card, projectDir: data.projectDir, projectName: data.projectName,
-                              picks: $picks, note: $note, onSent: { stepReview(1, q) })
-                }
-                Divider()
-                HStack {
-                    Button("Previous  K") { stepReview(-1, q) }.disabled(i == 0)
-                    Spacer()
-                    Text(card.sure ? "1–\(card.options.count) pick · ↵ my pick · ⌘↵ send" : "1–\(card.options.count) pick · ⌘↵ send")
-                        .font(.system(size: 11)).foregroundStyle(p.text3)
-                    Spacer()
-                    Button(i + 1 < q.count ? "Skip  J" : "Done") { if i + 1 < q.count { stepReview(1, q) } else { queue = nil } }
-                }
-                .buttonStyle(.borderless).padding(.horizontal, 14).frame(height: 36)
-            }
-        }
-    }
-
-    private func stepReview(_ n: Int, _ q: [String]) {
-        let i = q.firstIndex(of: selected ?? "") ?? 0
-        let j = i + n
-        if j >= q.count { queue = nil; cache.refresh(project); return }
-        selected = q[max(0, j)]; picks = []; note = ""
-        cache.refresh(project)
-    }
-
-    @ViewBuilder private func browse(_ data: BoardData) -> some View {
-        HStack(spacing: 0) {
-            VStack(spacing: 0) {
-                Picker("", selection: $tab) {
-                    ForEach(Tab.allCases, id: \.self) { t in
-                        Text(t == .needs ? "Needs you \(data.needsYou)" : t.rawValue).tag(t)
-                    }
-                }
-                .pickerStyle(.segmented).labelsHidden().padding(.horizontal, 10).padding(.top, 10)
-                Button { startReview(data) } label: {
-                    Label("Review one by one", systemImage: "play.fill").frame(maxWidth: .infinity)
-                }
-                .disabled(data.needsYou == 0).padding(10)
-                Divider()
-                if tab == .record { recordList(data) } else { cardList(data) }
-            }
-            .frame(width: 300)
-            Divider()
-            detail(data)
-        }
-    }
-
-    /// J/K move, 1–9 pick, ↵ takes my pick when I'm sure (never on an unsure card), ⌘↵ sends.
-    private func handleKey(_ key: KeyPress, _ data: BoardData) -> KeyPress.Result {
-        let cards = visible(data)
-        let i = cards.firstIndex { $0.id == selected }
-        let card = i.map { cards[$0] }
-        if let q = queue {
-            switch key.characters {
-            case "j": stepReview(1, q); return .handled
-            case "k": stepReview(-1, q); return .handled
-            default: break
-            }
-        } else if key.characters == "r" { startReview(data); return .handled }
-        switch key.characters {
-        case "j": if let i, i + 1 < cards.count { selected = cards[i + 1].id } else if i == nil { selected = cards.first?.id }; return .handled
-        case "k": if let i, i > 0 { selected = cards[i - 1].id }; return .handled
-        default: break
-        }
-        if let card, let n = Int(key.characters), n >= 1, n <= card.options.count {
-            let o = card.options[n - 1].o
-            if card.multi { if let j = picks.firstIndex(of: o) { picks.remove(at: j) } else { picks.append(o) } }
-            else { picks = picks == [o] ? [] : [o] }
-            return .handled
-        }
-        if key.key == .return, let card {
-            if key.modifiers.contains(.command) || !picks.isEmpty {
-                send(card, data); return .handled
-            }
-            if card.sure, let rec = card.options.first(where: \.rec) { picks = [rec.o]; return .handled }
-        }
-        return .ignored
-    }
-
-    private func visible(_ data: BoardData) -> [BoardCard] {
-        let cards = tab == .needs ? data.cards.filter(\.needsYou) : data.cards
-        return data.steps.flatMap { s in cards.filter { $0.stage == s.id } }
-    }
-
-    private func send(_ card: BoardCard, _ data: BoardData) {
-        guard BoardSend.send(store: store, project: project, card: card, picks: picks, note: note,
-                             projectDir: data.projectDir, projectName: data.projectName) else { return }
-        if let q = queue { stepReview(1, q) } else { advance(after: card.id, in: data) }
-    }
-
-    /// After a send: the next card that needs you, or stay.
-    private func advance(after id: String, in data: BoardData) {
-        picks = []; note = ""
-        let cards = visible(data).filter { $0.id != id }
-        let order = visible(data).map(\.id)
-        let from = order.firstIndex(of: id) ?? 0
-        selected = cards.first { (order.firstIndex(of: $0.id) ?? 0) > from && $0.needsYou }?.id ?? cards.first(where: \.needsYou)?.id ?? id
-        cache.refresh(project)
-    }
-
-    private func cardList(_ data: BoardData) -> some View {
-        let cards = tab == .needs ? data.cards.filter(\.needsYou) : data.cards
-        let stepsWith = data.steps.filter { s in cards.contains { $0.stage == s.id } }
-        return List(selection: $selected) {
-            ForEach(stepsWith) { s in
-                Section {
-                    ForEach(cards.filter { $0.stage == s.id }) { c in cardRow(c).tag(c.id) }
-                } header: {
-                    HStack(spacing: 6) {
-                        if !s.label.isEmpty { Text(s.label).font(.system(size: 11, design: .monospaced)).foregroundStyle(p.text3) }
-                        Text(s.title).font(.system(size: 11, weight: .semibold)).foregroundStyle(p.text2)
-                        if s.state == "now" { Text("now").font(.system(size: 10)).foregroundStyle(p.accentSoftText) }
-                    }
-                }
-            }
-            if cards.isEmpty {
-                Text(tab == .needs ? "Nothing needs you." : "No cards yet.").foregroundStyle(p.text3).frame(maxWidth: .infinity).padding(.top, 24)
-            }
-        }
-        .listStyle(.sidebar)
-        .scrollContentBackground(.hidden)
-        .onAppear { if selected == nil { selected = cards.first?.id } }
-    }
-
-    private func cardRow(_ c: BoardCard) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            Circle().strokeBorder(c.needsYou ? p.accent : p.text3, lineWidth: 1.5).frame(width: 10, height: 10).padding(.top, 3)
-                .overlay { if c.decided != nil { Image(systemName: "checkmark").font(.system(size: 7, weight: .bold)).foregroundStyle(p.text3) } }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(c.title).font(.system(size: 13, weight: .medium)).foregroundStyle(p.text).lineLimit(2)
-                Text(c.decided.map { "→ " + $0.joined(separator: ", ") } ?? c.question ?? "For you to see")
-                    .font(.system(size: 11)).foregroundStyle(p.text3).lineLimit(1)
-            }
-            Spacer(minLength: 0)
-            if c.blocking && c.needsYou { pill("Blocking", fg: p.crashed) }
-            else if c.unsure && c.needsYou { pill("Unsure", fg: p.starting) }
-        }
-        .padding(.vertical, 2)
-    }
-
-    private func pill(_ t: String, fg: Color) -> some View {
-        Text(t).font(.system(size: 10, weight: .semibold)).foregroundStyle(fg)
-            .padding(.horizontal, 6).frame(height: 16).background(fg.opacity(0.12), in: Capsule())
-    }
-
-    private func recordList(_ data: BoardData) -> some View {
-        List(data.record) { r in
-            VStack(alignment: .leading, spacing: 2) {
-                Text(r.title).font(.system(size: 13, weight: .medium)).foregroundStyle(p.text).lineLimit(2)
-                Text(r.labels.isEmpty ? (r.notes.first ?? "A note") : "→ " + r.labels.joined(separator: ", "))
-                    .font(.system(size: 11)).foregroundStyle(p.text3).lineLimit(2)
-                Text(Date(timeIntervalSince1970: r.at).formatted(date: .abbreviated, time: .shortened)).font(.system(size: 10)).foregroundStyle(p.text3)
-            }
-            .padding(.vertical, 2)
-        }
-        .listStyle(.sidebar).scrollContentBackground(.hidden)
-    }
-
-    @ViewBuilder private func detail(_ data: BoardData) -> some View {
-        if tab != .record, let id = selected, data.cards.contains(where: { $0.id == id }) {
-            VStack(spacing: 0) {
-                CardBodyView(json: data.json, cardId: id).frame(maxWidth: .infinity, maxHeight: .infinity)
-                if let card = data.cards.first(where: { $0.id == id }), card.question != nil {
-                    Divider()
-                    AnswerBar(project: project, card: card, projectDir: data.projectDir, projectName: data.projectName,
-                              picks: $picks, note: $note, onSent: { advance(after: id, in: data) })
-                }
-            }
-        } else {
-            VStack(spacing: 8) {
-                Image(systemName: "checklist").font(.system(size: 26)).foregroundStyle(p.text3)
-                Text(tab == .record ? "What you decided, newest first." : "Pick a card.").foregroundStyle(p.text3)
-            }
+        BoardPageView(project: project, json: cache.data(project)?.json ?? "", engine: store.engine)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .onAppear { cache.watch(project, engine: store.engine) }
+            .onDisappear { cache.unwatch(project) }
+    }
+}
+
+struct BoardPageView: NSViewRepresentable {
+    let project: String
+    let json: String
+    let engine: Engine
+
+    func makeCoordinator() -> Coordinator { Coordinator(project: project, engine: engine) }
+
+    func makeNSView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        config.userContentController.add(context.coordinator, name: "board")
+        config.userContentController.addUserScript(WKUserScript(source: "window.BOARD = \(json.isEmpty ? "null" : json);",
+                                                                injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        let web = WKWebView(frame: .zero, configuration: config)
+        web.setValue(false, forKey: "drawsBackground")
+        web.navigationDelegate = context.coordinator
+        context.coordinator.web = web
+        context.coordinator.pushed = json
+        if let page = Bundle.main.url(forResource: "index", withExtension: "html") {
+            web.loadFileURL(page, allowingReadAccessTo: page.deletingLastPathComponent())
+        }
+        return web
+    }
+
+    func updateNSView(_ web: WKWebView, context: Context) {
+        context.coordinator.push(json)
+    }
+
+    static func dismantleNSView(_ web: WKWebView, coordinator: Coordinator) {
+        web.configuration.userContentController.removeScriptMessageHandler(forName: "board")
+    }
+
+    final class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
+        let project: String
+        let engine: Engine
+        weak var web: WKWebView?
+        var pushed = ""
+        var loaded = false
+        init(project: String, engine: Engine) { self.project = project; self.engine = engine }
+
+        /// A changed board reaches the open page (the page's own `ingest`, as when it polls).
+        func push(_ json: String) {
+            guard !json.isEmpty, json != pushed else { return }
+            pushed = json
+            if loaded { web?.evaluateJavaScript("window.__boardIngest && window.__boardIngest(\(json));") }
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            loaded = true
+            webView.evaluateJavaScript("window.__boardIngest && window.__boardIngest(\(pushed.isEmpty ? "null" : pushed));")
+        }
+
+        /// The page's Send: record it through the engine and tell the page how it went.
+        func userContentController(_ c: WKUserContentController, didReceive message: WKScriptMessage) {
+            guard let body = message.body as? [String: Any], body["type"] as? String == "send", let send = body["send"],
+                  let data = try? JSONSerialization.data(withJSONObject: send), let json = String(data: data, encoding: .utf8) else { return }
+            let ok: Bool
+            do { try engine.boardRecordSend(slug: project, sendJson: json); ok = true }
+            catch { NSLog("board send failed: \(error)"); ok = false }
+            web?.evaluateJavaScript("window.__boardSent && window.__boardSent(\(ok));")
+            Task { @MainActor in BoardCache.shared.refresh(self.project) }
         }
     }
 }

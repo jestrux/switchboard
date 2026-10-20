@@ -408,5 +408,20 @@
     "item": null,
     "t": 1792504057369,
     "text": "Done: B3 · Menu bar"
+  },
+  {
+    "item": "lc-home",
+    "t": 1792504582036,
+    "text": "Changed: Native SwiftUI, a web page, or both? (v2)"
+  },
+  {
+    "item": "lc-home",
+    "t": 1792504582058,
+    "text": "lc-home revised in chat: the board page itself in the Mac pane"
+  },
+  {
+    "item": null,
+    "t": 1792504582083,
+    "text": "Now: B2 · The board in a project window"
   }
 ]

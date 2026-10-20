@@ -32,6 +32,12 @@ targets:
       # The board's card page, shown in a web view in the board pane (plans/06-board.md, B2).
       - path: ../board/card.html
         buildPhase: resources
+      # The board page itself, shown in the board pane (lc-home revised), and the markdown
+      # renderer it uses for each step's plan section.
+      - path: ../board/index.html
+        buildPhase: resources
+      - path: ../board/marked.min.js
+        buildPhase: resources
       # The agent skill, linked into ~/.claude/skills by Install switchboard Command.
       - path: ../skills
         type: folder

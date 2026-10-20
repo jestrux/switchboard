@@ -538,6 +538,7 @@ pre.sendtxt{margin:0;padding:14px;border-radius:10px;background:var(--surface);b
 <body>
 <div id="app"></div>
 <div id="layer"></div>
+<script src="marked.min.js"></script>
 <script src="data.js"></script>
 <script>
 (function () {
@@ -708,7 +709,7 @@ function norm(raw) {
   raw = raw || {};
   var p = raw.project || {};
   // A stage can be a plan step: `state` done | now | next, and a `label` ("A1") shown in place of its number.
-  var stages = toArr(raw.stages).map(function (s, i) { return { id: String(s.id), title: s.title || s.id, blurb: s.blurb || '', n: s.label || i + 1, state: s.state || '', docHtml: s.docHtml || '', docError: s.docError || '', parts: s.parts || null }; });
+  var stages = toArr(raw.stages).map(function (s, i) { return { id: String(s.id), title: s.title || s.id, blurb: s.blurb || '', n: s.label || i + 1, state: s.state || '', docHtml: s.docHtml || (s.docMd != null && window.marked ? marked.parse(s.docMd) : ''), docError: s.docError || '', parts: s.parts || (s.docMd != null ? { done: (s.docMd.match(/^\s*- \[x\]/gim) || []).length, total: (s.docMd.match(/^\s*- \[[ x]\]/gim) || []).length } : null) }; });
   var items = toArr(raw.items).map(normItem);
   items.forEach(function (it) {
     if (!stages.some(function (s) { return s.id === it.stage; })) stages.push({ id: String(it.stage || 'other'), title: it.stage || 'Other', blurb: '', n: stages.length + 1 });
@@ -1930,6 +1931,10 @@ var UI = {
   offline: false, offlineSince: 0, readAt: 0, pending: null, pendingN: 0, toast: null, activePlayer: null, sentFlash: null, sendError: ''
 };
 var SERVED = /^https?:$/.test(location.protocol);
+// Inside Switchboard's board pane (plans/06-board.md, B2; lc-home revised): the app hands over
+// the board (window.BOARD) and its updates (__boardIngest), and Send goes through the engine.
+var APP = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.board);
+window.__boardIngest = function (raw) { ingest(raw); };
 
 function setView(v, stage, sel) {
   UI.review = null;
@@ -2607,6 +2612,15 @@ function markSent(dl, how, text) {
 function doSend() {
   var dl = delta(); if (!dl.rows.length && !dl.objections.length) return;
   var t = now(), text = sendText(dl, t);
+  if (APP) {
+    UI.sendError = '';
+    window.__boardSent = function (ok) {
+      if (ok) markSent(dl, 'served', text);
+      else { copyText(text); UI.sendError = 'Switchboard couldn\'t record it, so it\'s copied for chat instead.'; UI.showText = true; render(); }
+    };
+    window.webkit.messageHandlers.board.postMessage({ type: 'send', send: { project: D.project.dir, sentAt: t, from: 'app', answers: structured(dl), objections: dl.objections.map(function (o) { return { id: o.s.id, text: o.text }; }), text: text } });
+    return;
+  }
   if (SERVED) {
     UI.sendError = '';
     fetch('answers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ project: D.project.dir, sentAt: t, answers: structured(dl), objections: dl.objections.map(function (o) { return { id: o.s.id, text: o.text }; }), text: text }) })
@@ -2933,6 +2947,7 @@ function refreshLive() {
   var live = document.querySelector('.live .mono'); if (live) live.textContent = 'read ' + clock(UI.readAt, true);
 }
 function poll() {
+  if (APP) return;  // the app pushes updates
   if (UI.demo) return;  // a simulated session owns the data until Reset
   var s = document.createElement('script');
   s.src = 'data.js?t=' + now();

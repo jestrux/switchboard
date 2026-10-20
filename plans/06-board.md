@@ -324,7 +324,14 @@ first real `ask` through the new CLI checks its push on the phone.
 
 ### B2 · The board in a project window
 
-**Decided 2026-10-20 on the board:** native SwiftUI chrome with card bodies in a web view (the
+**Revised 2026-10-20 in chat (`lc-home` v2):** the pane shows **the board page itself** (`board/index.html`,
+bundled, with `marked` for the steps' plan sections), the same page the browser shows, so the Mac
+and the page never drift; the app hands it the board (`window.BOARD`, then `__boardIngest`) and
+records its Send through the engine (`board_record_send`). The engine's snapshot adds each step's
+plan section (`docMd`) and the repo's health. Native: the sidebar row, the pane, the menu bar.
+The native list built first (steps 2–4) is replaced; its send code serves the menu bar.
+
+**Decided earlier 2026-10-20 on the board:** native SwiftUI chrome with card bodies in a web view (the
 Mail model, `lc-home`), and three shapes by window: a count in All Projects, the full board in a
 project window, review mode in the Boards window (`w-modes`). The PRD's non-goal is amended.
 
