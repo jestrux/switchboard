@@ -48,10 +48,10 @@
     ],
     "stagesLabel": "The plan",
     "working": {
-      "item": "lc-home",
-      "since": 1792499726209,
+      "item": "w-pane",
+      "since": 1792500105459,
       "stage": "b2",
-      "text": "B2: waiting on lc-home and w-modes"
+      "text": "B2 step 1: the engine reads a board and records sends"
     }
   },
   "stages": [

@@ -363,5 +363,10 @@
     "item": "w-modes",
     "t": 1792499724680,
     "text": "Blocked on you: One board, three shapes, depending on the window"
+  },
+  {
+    "item": "w-pane",
+    "t": 1792500103836,
+    "text": "Blocked on you: The board as a pane beside the agent's terminal"
   }
 ]

@@ -391,6 +391,54 @@ impl Board {
         write(&self.p("state/read.json"), &json!({ "count": count, "at": now() }))
     }
 
+    /// The whole board, as the page and the app read it (docs/board-contract.md): project, steps,
+    /// cards (in step order), log, Record and kept.
+    pub fn snapshot(&self) -> Value {
+        let b = self.board();
+        json!({
+            "project": b["project"].clone(), "stages": b["stages"].clone(), "items": self.cards(),
+            "log": read(&self.p("log.json"), json!([])), "record": read(&self.p("record.json"), json!([])),
+            "kept": read(&self.p("kept.json"), json!({})),
+        })
+    }
+
+    /// Record a send from the author (the page, the phone, a notification, the app): keep it in
+    /// `state/answers.json` for the agent, write each decision to the Record, and clear Blocking
+    /// on every card with a pick (a note alone doesn't unblock).
+    pub fn record_send(&self, send: Value) -> Result<(), String> {
+        let mut send = send;
+        obj(&mut send).insert("receivedAt".into(), json!(now()));
+        let path = self.p("state/answers.json");
+        let mut sends = read(&path, json!([]));
+        sends.as_array_mut().ok_or("answers.json isn't a list")?.push(send.clone());
+        write(&path, &sends)?;
+        let mut record = read(&self.p("record.json"), json!([]));
+        let rec = record.as_array_mut().ok_or("record.json isn't a list")?;
+        let at = send["sentAt"].as_i64().unwrap_or_else(now);
+        let from = send["from"].as_str().unwrap_or("board").to_string();
+        for a in send["answers"].as_array().into_iter().flatten() {
+            let Some(id) = a["id"].as_str() else { continue };
+            let notes: Vec<Value> = a["notes"].as_array().into_iter().flatten().filter_map(|n| n["text"].as_str()).filter(|t| !t.is_empty()).map(|t| json!(t)).collect();
+            let picked = !(a["pick"].is_null() || a["pick"].as_array().is_some_and(|p| p.is_empty()));
+            if !picked && notes.is_empty() {
+                continue;
+            }
+            rec.push(json!({ "id": id, "title": a["title"].as_str().unwrap_or(id), "step": a["stage"].as_str().unwrap_or(""),
+                             "version": a["version"].as_i64().unwrap_or(1), "pick": if picked { a["pick"].clone() } else { Value::Null },
+                             "labels": a["labels"].clone(), "rec": a["rec"].clone(), "way": a["way"].as_str().unwrap_or(""),
+                             "notes": notes, "at": at, "from": from }));
+            if picked {
+                if let Some(mut c) = self.card(id) {
+                    if c["blocking"] == true {
+                        obj(&mut c).insert("blocking".into(), json!(false));
+                        self.save_card(&c)?;
+                    }
+                }
+            }
+        }
+        write(&self.p("record.json"), &record)
+    }
+
     /// Has the author sent a pick for this card (any version)?
     pub fn answered(&self) -> std::collections::HashSet<String> {
         let rec = read(&self.p("record.json"), json!([]));
@@ -434,6 +482,21 @@ mod tests {
         assert_eq!(v2["version"], 2);
         assert_eq!(v2["changed"], "added a summary");
         assert!(b.update("x", json!({ "stage": "zz" }), None, false).is_err());
+    }
+
+    #[test]
+    fn a_send_is_recorded_and_unblocks() {
+        let (_t, b) = board();
+        b.add(json!({ "id": "x", "stage": "a1", "title": "X" }), true, true).unwrap();
+        b.record_send(json!({ "from": "app", "sentAt": 5, "answers": [{ "id": "x", "title": "X", "pick": null, "notes": [{ "text": "hm" }] }] })).unwrap();
+        assert_eq!(b.card("x").unwrap()["blocking"], true);
+        b.record_send(json!({ "from": "app", "answers": [{ "id": "x", "title": "X", "pick": "yes", "labels": ["Yes"] }] })).unwrap();
+        assert_eq!(b.card("x").unwrap()["blocking"], false);
+        let snap = b.snapshot();
+        assert_eq!(snap["record"].as_array().unwrap().len(), 2);
+        assert_eq!(snap["record"][0]["notes"][0], "hm");
+        assert_eq!(b.sends(false).0.len(), 2);
+        assert!(b.answered().contains("x"));
     }
 
     #[test]

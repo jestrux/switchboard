@@ -1,34 +1,36 @@
 {
+  "askedAt": 1792500103836,
+  "blocking": false,
+  "decision": {
+    "basis": "evidence",
+    "options": [
+      {
+        "act": "PaneLeaf.ref → enum { command(CommandRef), review(scope) }; ⌘⇧↩ maximises it",
+        "label": "Yes: a board pane you can split beside any terminal",
+        "o": "yes",
+        "rec": 1,
+        "then": "Let a pane hold the board as well as a terminal, so it splits beside the agent's terminal."
+      },
+      {
+        "label": "No: The board is a separate tab of the project window",
+        "o": "tab"
+      }
+    ],
+    "q": "The board in the pane tree",
+    "why": [
+      "Switchboard's windows are a tree of split panes, and each leaf holds one terminal (<code>PaneLeaf.ref: CommandRef?</code>). <b>Let a leaf hold the board instead.</b> Then Claude's terminal and its the board sit side by side: you answer on the right and watch the agent pick it up on the left. ⌘⇧↩ already maximises a pane, which is the zone with no new window at all.",
+      "Xcode's assistant editor and tmux work this way. The change is small: the leaf's <code>ref</code> becomes \"a command or the board\"."
+    ]
+  },
   "id": "w-pane",
+  "order": 30,
   "stage": "b2",
-  "title": "The board as a pane beside the agent's terminal",
   "tags": [
     "Windows",
     "Zone",
     "Switchboard's windows"
   ],
+  "title": "The board as a pane beside the agent's terminal",
   "updated": 1792468800000,
-  "version": 1,
-  "decision": {
-    "q": "The board in the pane tree",
-    "options": [
-      {
-        "o": "yes",
-        "label": "Yes: a board pane you can split beside any terminal",
-        "rec": 1,
-        "act": "PaneLeaf.ref → enum { command(CommandRef), review(scope) }; ⌘⇧↩ maximises it",
-        "then": "Let a pane hold the board as well as a terminal, so it splits beside the agent's terminal."
-      },
-      {
-        "o": "tab",
-        "label": "No: The board is a separate tab of the project window"
-      }
-    ],
-    "why": [
-      "Switchboard's windows are a tree of split panes, and each leaf holds one terminal (<code>PaneLeaf.ref: CommandRef?</code>). <b>Let a leaf hold the board instead.</b> Then Claude's terminal and its the board sit side by side: you answer on the right and watch the agent pick it up on the left. ⌘⇧↩ already maximises a pane, which is the zone with no new window at all.",
-      "Xcode's assistant editor and tmux work this way. The change is small: the leaf's <code>ref</code> becomes \"a command or the board\"."
-    ],
-    "basis": "evidence"
-  },
-  "order": 30
+  "version": 1
 }

@@ -331,11 +331,15 @@ project window, review mode in the Boards window (`w-modes`). The PRD's non-goal
 **Brief.** The board in SwiftUI in a project's window: list, rail and review mode, with card
 bodies in a web view built from Track A's page, and the board as a pane beside a terminal.
 
-**Parts**
+**Parts** (the order agreed 2026-10-20; `w-pane` decided: a board pane you can split beside any terminal)
 
-- [ ] The board as a pane kind beside terminals
-- [ ] List, rail and review mode in SwiftUI
-- [ ] Card bodies in a `WKWebView`
+- [x] 1 · The engine and bridge: `Board::snapshot` and `record_send` in `sb-core` (the send, the
+  Record, unblocking), and `board_snapshot`, `board_dir`, `board_record_send` in `sb-ffi`
+- [ ] 2 · The pane: a Board row at the top of a project's sidebar opens the board as a pane;
+  native steps and Needs you / Everything / Record on the left, the card's body in a web view
+- [ ] 3 · Answering: native option buttons, a note, Send; J/K, 1–9, ↵ for my pick when sure
+- [ ] 4 · Review mode: one card at a time, taking the pane over
+- [ ] 5 · The count in All Projects: a badge on each project's tile
 
 **Verifiables**
 

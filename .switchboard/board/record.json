@@ -208,5 +208,20 @@
     "notes": [],
     "at": 1792499870304,
     "from": "board"
+  },
+  {
+    "id": "w-pane",
+    "title": "The board as a pane beside the agent's terminal",
+    "step": "b2",
+    "version": 1,
+    "pick": "yes",
+    "labels": [
+      "Yes: a board pane you can split beside any terminal"
+    ],
+    "rec": "yes",
+    "way": "agreed",
+    "notes": [],
+    "at": 1792500143446,
+    "from": "board"
   }
 ]

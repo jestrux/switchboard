@@ -567,6 +567,28 @@ impl Engine {
         Ok(dest.file_name().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default())
     }
 
+    /// The project's board (plans/06-board.md) as JSON in its contract (docs/board-contract.md),
+    /// or None when it has no board yet.
+    pub fn board_snapshot(&self, slug: String) -> Option<String> {
+        let p = self.inner.project(&slug)?;
+        let b = sb_core::board::for_project(&p);
+        b.dir.join("board.json").is_file().then(|| b.snapshot().to_string())
+    }
+
+    /// The project's board folder (it may not exist yet).
+    pub fn board_dir(&self, slug: String) -> Option<String> {
+        let p = self.inner.project(&slug)?;
+        Some(sb_core::board::for_project(&p).dir.to_string_lossy().into_owned())
+    }
+
+    /// Record the author's answers (a send, JSON) on the project's board: the agent hears it with
+    /// `switchboard board answers --wait`, and the Record keeps the decisions.
+    pub fn board_record_send(&self, slug: String, send_json: String) -> Result<(), SbError> {
+        let p = self.inner.project(&slug).ok_or_else(|| SbError::Message(format!("no project {slug}")))?;
+        let send: serde_json::Value = serde_json::from_str(&send_json).map_err(|e| SbError::Message(e.to_string()))?;
+        sb_core::board::for_project(&p).record_send(send).map_err(SbError::Message)
+    }
+
     /// The folder to propose as this project's home (`sb_core::home`), if the rule finds one.
     pub fn suggest_home(&self, slug: String) -> Option<String> {
         let p = self.inner.project(&slug)?;
