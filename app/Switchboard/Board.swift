@@ -195,6 +195,7 @@ struct BoardPane: View {
     var body: some View {
         BoardPageView(project: project, json: cache.data(project)?.json ?? "", engine: store.engine)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(WindowGrower(minWidth: 1360, minHeight: 820))
             .onAppear { cache.watch(project, engine: store.engine) }
             .onDisappear { cache.unwatch(project) }
     }
@@ -401,5 +402,27 @@ struct FlowOptions: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+}
+
+/// The board page needs room: when it opens in a narrower window, the window grows to fit, up to
+/// the screen's visible size. A window already that big is left alone.
+struct WindowGrower: NSViewRepresentable {
+    let minWidth: CGFloat, minHeight: CGFloat
+    func makeNSView(context: Context) -> NSView {
+        let v = NSView()
+        DispatchQueue.main.async { grow(v.window) }
+        return v
+    }
+    func updateNSView(_ v: NSView, context: Context) {}
+    private func grow(_ window: NSWindow?) {
+        guard let window, let screen = window.screen?.visibleFrame else { return }
+        var f = window.frame
+        let w = min(max(f.width, minWidth), screen.width), h = min(max(f.height, minHeight), screen.height)
+        guard w > f.width || h > f.height else { return }
+        f.origin.x = min(max(screen.minX, f.midX - w / 2), screen.maxX - w)
+        f.origin.y = min(max(screen.minY, f.maxY - h), screen.maxY - h)
+        f.size = CGSize(width: w, height: h)
+        window.setFrame(f, display: true, animate: true)
     }
 }

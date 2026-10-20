@@ -18,7 +18,7 @@ struct SwitchboardApp: App {
                 .environmentObject(store)
         }
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 1180, height: 720)
+        .defaultSize(width: 1440, height: 900)  // room for the board pane (plans/06-board.md)
         .commands { appCommands }
 
         // One window per project; opening the same project again focuses its window.
@@ -29,7 +29,7 @@ struct SwitchboardApp: App {
             }
         }
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 980, height: 680)
+        .defaultSize(width: 1320, height: 860)
 
         Settings {
             SettingsView()
