@@ -45,7 +45,7 @@ function boardApi(): Plugin {
         if (req.method === "GET" && url === "/data.js") {
           res.setHeader("Content-Type", "text/javascript; charset=utf-8");
           res.setHeader("Cache-Control", "no-store");
-          res.end("window.FLEX_REVIEW = " + JSON.stringify(loadBoard(BOARD_DIR)) + ";\n");
+          res.end("window.BOARD = " + JSON.stringify(loadBoard(BOARD_DIR)) + ";\n");
           return;
         }
         if (req.method === "POST" && url === "/answers") {

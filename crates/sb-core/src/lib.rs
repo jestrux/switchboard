@@ -5,6 +5,7 @@
 pub mod config;
 pub mod control;
 pub mod engine;
+pub mod board;
 pub mod fragment;
 pub mod home;
 pub mod icons;

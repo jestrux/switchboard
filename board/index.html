@@ -6,7 +6,7 @@
 <title>Board</title>
 <!--
   Flex Review: the board an agent sends the author to whenever there's something to look at or decide.
-  One static file. It renders window.FLEX_REVIEW from data.js (written by `flex review`), re-reads it every 3 s,
+  One static file. It renders window.BOARD from data.js (docs/board-contract.md; Flex's window.FLEX_REVIEW is still read), re-reads it on change,
   and keeps the author's answers in localStorage, keyed by project.dir. The design is in DESIGN.md next to it.
 -->
 <style>
@@ -2936,7 +2936,7 @@ function poll() {
   if (UI.demo) return;  // a simulated session owns the data until Reset
   var s = document.createElement('script');
   s.src = 'data.js?t=' + now();
-  s.onload = function () { s.remove(); ingest(window.FLEX_REVIEW); };
+  s.onload = function () { s.remove(); ingest(window.BOARD || window.FLEX_REVIEW); };
   s.onerror = function () { s.remove(); if (!UI.offline) { UI.offline = true; UI.offlineSince = UI.readAt || now(); if (!isTyping()) render(); } };
   document.head.appendChild(s);
 }
@@ -3236,7 +3236,7 @@ function demoInit() {
 
 /* ───────────────────────── boot ───────────────────────── */
 function boot() {
-  RAW = window.FLEX_REVIEW || null;
+  RAW = window.BOARD || window.FLEX_REVIEW || null;  // the board's own contract (docs/board-contract.md); Flex's name still read
   D = norm(RAW || { project: { name: 'No review yet', dir: 'flex-review-empty' }, stages: [], items: [], log: [] });
   SIG = RAW ? JSON.stringify(RAW) : '';
   loadState(); applyTheme();

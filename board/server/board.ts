@@ -81,7 +81,7 @@ function health(dir: string) {
   return value;
 }
 
-/** The board as the page's data contract (`window.FLEX_REVIEW`). */
+/** The board as the page's data contract (`window.BOARD`, docs/board-contract.md). */
 export function loadBoard(dir: string) {
   const board = readJson<{ project?: object; stages?: Step[] }>(path.join(dir, "board.json"), {});
   const stages = (board.stages ?? []).map((s) => withDoc(dir, s));

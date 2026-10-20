@@ -1,10 +1,10 @@
 # 6. The board: where an agent hands a project to its author
 
-**Status: In progress.** A1–A4, P, B0 and A5 are done: `switchboard start switchboard/board/board`
+**Status: In progress.** A1–A4, P, B0, A5 and B1 are done: `switchboard start switchboard/board/board`
 serves this repo's board on http://localhost:5198, the agent writes it with `scripts/board`,
 answers come straight back from the Mac or the phone, and `switchboard keep` suggests and adopts
-a project's home (this repo is the Switchboard project's home since 2026-10-20). Next: B1, the
-engine and CLI. Each step's brief, parts, verifiables and gate are under **The steps**.
+a project's home (this repo is the Switchboard project's home since 2026-10-20). Next: B2, the
+board in a project window. Each step's brief, parts, verifiables and gate are under **The steps**.
 
 ## What it is
 
@@ -295,20 +295,32 @@ design), like everything else on the board; screenshots for the author before th
 
 ### B1 · Engine and CLI
 
-**Brief.** The board moves into Switchboard: a board store in `sb-core`, socket operations, and
-`switchboard board …` in `sb-cli`. The stand-in's CLI and API switch over to it.
+**Brief.** The board moves into Switchboard: a board store in `sb-core` and `switchboard board …`
+in `sb-cli`, with the stand-in's verbs. The board is files, so the CLI writes them directly, the
+way `add-command` writes configs; the app doesn't need to run. (Socket operations come with B2,
+when the app shows the board.)
 
 **Parts**
 
-- [ ] A board store in `sb-core`: cards, answers, steps, agent state
-- [ ] Socket operations and `switchboard board …`, with the stand-in's verbs
-- [ ] The board verbs join the skill, now that every project can have a board
+- [x] The board's own contract (decided on the board, `a-contract`: a fork of Flex's), written
+  down in `docs/board-contract.md`; the page reads it as `window.BOARD`
+- [x] A board store in `sb-core` (`board.rs`): locate (the nearest `.switchboard/board/`, else the
+  project whose commands run here: its home's board or its app folder's), cards, steps,
+  going-ahead calls, working, the log, kept, sends and the read marker, with the stand-in's
+  rules (atomic writes, safe ids, known steps, versions, quiet moves)
+- [x] `switchboard board add | update | ask | remove | settle | working | log | step | kept |
+  list | answers | where`; `ask` pushes to the phone as before
+- [x] `scripts/board` runs `switchboard board`; the Node CLI is retired
+- [x] The skill's "The board" section: write it only with these commands, `--blocking` only when
+  you truly can't go on, keep `answers --wait` running
 
 **Verifiables**
 
-- `cargo test -p sb-core` covers the store and the socket operations
+- `cargo test -p sb-core board::` covers the store
+- Every verb tried on a throwaway copy of this board, refusals included
 
-**Gate.** `scripts/board` retires; the stand-in page reads from Switchboard.
+**Gate.** `scripts/board` retires; the page reads what Switchboard writes. Done 2026-10-20; the
+first real `ask` through the new CLI checks its push on the phone.
 
 ### B2 · The board in a project window
 
@@ -389,6 +401,27 @@ answering until then.
 - The same board on the phone as on the Mac
 
 **Gate.** A day's decisions made away from the desk.
+
+### PF · Profiling Switchboard
+
+**Brief.** Switchboard idled at 22–38% CPU on 2026-10-20 (someone saw "60%"). Its memory is fine:
+about 43 MB, and about 1 GB with the 14 commands it runs. Two causes found: the installed app was
+a **Debug** build (`scripts/package.sh` defaults to Debug; every reinstall that day used it), and
+each pane's once-a-second "up 0:02" clock makes SwiftUI re-lay-out the whole window, window size
+limits included.
+
+**Parts**
+
+- [ ] Reinstall as Release (`scripts/package.sh Release`), and use Release for every reinstall
+  that isn't debugging
+- [ ] Stop the uptime clock from re-laying-out the window (isolate it, or tick only the label)
+- [ ] Profile idle and busy (many terminals printing) with Instruments; fix what shows up
+
+**Verifiables**
+
+- Idle CPU under 2% with 14 commands running, measured with `top` and a `sample`
+
+**Gate.** Switchboard is quiet when nothing is happening.
 
 ## Open on the board
 

@@ -1,3 +1,9 @@
 #!/usr/bin/env bash
-# The board CLI (Track A stand-in for `switchboard board`). See plans/06-board.md.
-exec node "$(dirname "$0")/../board/bin/board.mjs" "$@"
+# The board CLI is `switchboard board …` (plans/06-board.md, B1). This wrapper runs it, falling
+# back to this repo's own build when the installed switchboard predates it.
+here="$(cd "$(dirname "$0")/.." && pwd)"
+if switchboard board --help >/dev/null 2>&1; then exec switchboard board "$@"; fi
+for b in "$here/target/release/switchboard" "$here/target/debug/switchboard"; do
+  [ -x "$b" ] && exec "$b" board "$@"
+done
+echo "board: no switchboard with the board command; run cargo build -p sb-cli" >&2; exit 1

@@ -120,6 +120,34 @@ own repo, the `e2e` folder, since it exercises the whole product.
 - It refuses to move a home that already exists; the author does that in the app
   (Project › Keep Settings in Repo…).
 
+## The board (decisions for the author)
+
+A project's **board** is where you hand the project to its author: each decision is a card
+with your recommendation and why, and the author's answers come straight back. It lives in the
+project's home (`.switchboard/board/`) or, with no home yet, in Switchboard's app folder, where
+its first card offers to keep it in a repo. The format is in `docs/board-contract.md` of the
+Switchboard repo. Write it **only** with these commands, never by editing its files:
+
+```sh
+switchboard board add card.json [--ask] [--blocking]   # post a card (or - for stdin)
+switchboard board ask <id> [--blocking]                # "I need this one now": pushes to the phone
+switchboard board update <id> patch.json [--changed "what changed"]
+switchboard board working "what you're doing" [--stage <step>]
+switchboard board step <id> done|now|next|later        # the plan's steps, in the sidebar
+switchboard board kept <id> [--commit <sha>]           # a decision's work is done
+switchboard board answers --wait                       # keep this running in the background
+```
+
+- **A card needs** `id`, `stage` (a step's id) and `title`; a decision has `q`, `options` (one
+  with `rec: true` and a `then`), `why`, and `basis` (`evidence` or `taste`). When you're unsure,
+  say so with `unsure: { why, where }` instead of recommending.
+- **Obvious calls don't get a card:** `switchboard board settle <id> "the call"` lists it as
+  going ahead unless the author objects.
+- **`--blocking` only when you truly can't go on** without the answer.
+- **Read answers as they come** (`answers --wait` returns when the author sends); never read them
+  with the output hidden, which marks them read unseen. While the author is testing the board,
+  ask whether what arrived is a real answer before acting on it.
+
 ## Setting a product up as a project
 
 When asked to add a product to Switchboard ("set up X in Switchboard", "add its dev

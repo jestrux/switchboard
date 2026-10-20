@@ -1,6 +1,7 @@
 //! `switchboard`: the Switchboard command-line front end.
 
 mod app;
+mod board;
 mod paint;
 
 use anyhow::{anyhow, bail, Result};
@@ -78,6 +79,14 @@ enum Cmd {
     },
     /// Bring the app forward, showing a project
     Open { project: Option<String> },
+    /// Write the project's board (plans/06-board.md): cards, asks, the plan's steps, answers
+    Board {
+        /// The board's folder (default: this folder's project's board; or BOARD_DIR)
+        #[arg(long)]
+        dir: Option<PathBuf>,
+        #[command(subcommand)]
+        cmd: board::BoardCmd,
+    },
     /// A project's home folder: with no folder, show it or suggest one; with a folder, keep
     /// the project's settings (and its board) in that repo. Only on the author's say-so.
     Keep {
@@ -182,6 +191,7 @@ fn main() {
         Cmd::Logs { command, target, tail } => app::logs(&command, target, tail),
         Cmd::Wait { command, target, until, timeout } => app::wait(&command, target, until, timeout),
         Cmd::Open { project } => app::open(project),
+        Cmd::Board { dir, cmd } => board::run(&projects_dir, dir, cmd),
         Cmd::Keep { project, folder, json } => app::keep(&projects_dir, &project, folder, json),
         Cmd::AddCommand { project, id, run, name, cwd, no_autostart, restart_on_crash, env, group_name, group_cwd } => {
             add_command(&projects_dir, &project, AddArgs { id, run, name, cwd, no_autostart, restart_on_crash, env, group_name, group_cwd })

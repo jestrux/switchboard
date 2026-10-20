@@ -42,6 +42,7 @@ What is left to build: [PLAN.md](PLAN.md), with context in [plans/](plans).
 
 **The board.** This repo keeps its decisions on a board (`.switchboard/board/`, served on
 http://localhost:5198 by `switchboard start switchboard/board/board`). Post and update cards
-only with `scripts/board` (run it with no arguments for the verbs), and keep
-`scripts/board answers --wait` running in the background to hear the author's answers. See
-[plans/06-board.md](plans/06-board.md).
+only with `switchboard board …` (`scripts/board` runs it from this repo's build when the installed
+app predates it), and keep `switchboard board answers --wait` running in the background to hear
+the author's answers. The format is [docs/board-contract.md](docs/board-contract.md); the plan
+is [plans/06-board.md](plans/06-board.md).

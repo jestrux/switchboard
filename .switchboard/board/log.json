@@ -1,332 +1,352 @@
 [
   {
+    "item": "prec-agents",
     "t": 1792459044497,
-    "text": "Read our loop, the Flex handoff and Switchboard; researched ten products",
-    "item": "prec-agents"
+    "text": "Read our loop, the Flex handoff and Switchboard; researched ten products"
   },
   {
+    "item": "fx-tour",
     "t": 1792462644497,
-    "text": "First look at Flex's prototype: 11 screens",
-    "item": "fx-tour"
+    "text": "First look at Flex's prototype: 11 screens"
   },
   {
+    "item": "w-modes",
     "t": 1792464444497,
-    "text": "Switchboard's windows, and the joys of a Mac app",
-    "item": "w-modes"
+    "text": "Switchboard's windows, and the joys of a Mac app"
   },
   {
+    "item": "ph-found",
     "t": 1792469844497,
-    "text": "Read Fuchi and the crotchet worker: away from the Mac",
-    "item": "ph-found"
+    "text": "Read Fuchi and the crotchet worker: away from the Mac"
   },
   {
+    "item": "ph-home",
     "t": 1792473444497,
-    "text": "Our workflow, phone-shaped; Kazzi's ideas, not its code",
-    "item": "ph-home"
+    "text": "Our workflow, phone-shaped; Kazzi's ideas, not its code"
   },
   {
+    "item": "fx-now",
     "t": 1792478844497,
-    "text": "Second look at Flex's prototype: organisation, simulator, notifications",
-    "item": "fx-now"
+    "text": "Second look at Flex's prototype: organisation, simulator, notifications"
   },
   {
+    "item": "b-design",
     "t": 1792480344497,
-    "text": "Moved this board onto Flex's design",
-    "item": "b-design"
+    "text": "Moved this board onto Flex's design"
   },
   {
+    "item": "b-order",
     "t": 1792481654217,
-    "text": "Moved this board into Switchboard: review/ serves it, .review/ holds the cards",
-    "item": "b-order"
+    "text": "Moved this board into Switchboard: review/ serves it, .review/ holds the cards"
   },
   {
+    "item": "a-contract",
     "t": 1792481936053,
-    "text": "Posted two cards that shape step A2: the contract, and committing .review/",
-    "item": "a-contract"
+    "text": "Posted two cards that shape step A2: the contract, and committing .review/"
   },
   {
+    "item": "w-name",
     "t": 1792482160269,
-    "text": "Asked you first: the name, which the CLI is named after",
-    "item": "w-name"
+    "text": "Asked you first: the name, which the CLI is named after"
   },
   {
+    "item": "w-name",
     "t": 1792482254711,
-    "text": "Got your answer: keep \"board\" for this feature, rename the main window",
-    "item": "w-name"
+    "text": "Got your answer: keep \"board\" for this feature, rename the main window"
   },
   {
+    "item": "w-mainname",
     "t": 1792482255711,
-    "text": "Asked: the main window's new name",
-    "item": "w-mainname"
+    "text": "Asked: the main window's new name"
   },
   {
+    "item": "w-mainname",
     "t": 1792482688713,
-    "text": "Renamed: the stand-in is board/ and .board/; the main window is All Projects in the app and docs (built, not yet installed)",
-    "item": "w-mainname"
+    "text": "Renamed: the stand-in is board/ and .board/; the main window is All Projects in the app and docs (built, not yet installed)"
   },
   {
+    "item": "b-order",
     "t": 1792482688746,
-    "text": "Built the board CLI (step A2): add, update, ask, remove, settle, working, log, list, answers --wait",
-    "item": "b-order"
+    "text": "Built the board CLI (step A2): add, update, ask, remove, settle, working, log, list, answers --wait"
   },
   {
+    "item": "b-order",
     "t": 1792482819435,
-    "text": "Live arrival: the board pushes changes to the page (step A4)",
-    "item": "b-order"
+    "text": "Live arrival: the board pushes changes to the page (step A4)"
   },
   {
+    "item": "lc-commit",
     "t": 1792482828525,
-    "text": "Asked: Should .review/ be committed?",
-    "item": "lc-commit"
+    "text": "Asked: Should .review/ be committed?"
   },
   {
+    "item": "c-reason",
     "t": 1792482828562,
-    "text": "Asked: Every card says why it's there",
-    "item": "c-reason"
+    "text": "Asked: Every card says why it's there"
   },
   {
+    "item": "lc-commit",
     "t": 1792484247734,
-    "text": "Blocked on you: Should .board/ be committed?",
-    "item": "lc-commit"
+    "text": "Blocked on you: Should .board/ be committed?"
   },
   {
+    "item": "c-reason",
     "t": 1792484247775,
-    "text": "Blocked on you: Every card says why it's there",
-    "item": "c-reason"
+    "text": "Blocked on you: Every card says why it's there"
   },
   {
+    "item": "c-reason",
     "t": 1792484267968,
-    "text": "Blocking cards and a New group at the top of Needs you",
-    "item": "c-reason"
+    "text": "Blocking cards and a New group at the top of Needs you"
   },
   {
+    "item": "lc-commit",
     "t": 1792492459104,
-    "text": "Blocked on you: Should .board/ be committed?",
-    "item": "lc-commit"
+    "text": "Blocked on you: Should .board/ be committed?"
   },
   {
+    "item": "c-reason",
     "t": 1792492626823,
-    "text": "Blocked on you: Every card says why it's there",
-    "item": "c-reason"
+    "text": "Blocked on you: Every card says why it's there"
   },
   {
+    "item": "a-contract",
     "t": 1792492630287,
-    "text": "Asked: Review's contract: Flex's as it is, or trimmed for software?",
-    "item": "a-contract"
+    "text": "Asked: Review's contract: Flex's as it is, or trimmed for software?"
   },
   {
+    "item": null,
     "t": 1792492747338,
-    "text": "Corrected: three phone sends (lc-commit, c-reason, a-contract) were tests, not answers; they're open again",
-    "item": null
+    "text": "Corrected: three phone sends (lc-commit, c-reason, a-contract) were tests, not answers; they're open again"
   },
   {
+    "item": "ph-home",
     "t": 1792493075573,
-    "text": "The phone works: pushes reach the iPhone and iPad; answer inline or in a Fuchi page",
-    "item": "ph-home"
+    "text": "The phone works: pushes reach the iPhone and iPad; answer inline or in a Fuchi page"
   },
   {
+    "item": "ph-surfaces",
     "t": 1792493509397,
-    "text": "One-tap answers from the notification: Go with my pick and Reply, on the iPhone and iPad",
-    "item": "ph-surfaces"
+    "text": "One-tap answers from the notification: Go with my pick and Reply, on the iPhone and iPad"
   },
   {
+    "item": "c-reason",
     "t": 1792494180621,
-    "text": "Recorded: reason labels, six reasons, each a filter (A5)",
-    "item": "c-reason"
+    "text": "Recorded: reason labels, six reasons, each a filter (A5)"
   },
   {
+    "item": "lc-commit",
     "t": 1792494180692,
-    "text": "Changed: Put the board in the project's .switchboard/ folder? (v2)",
-    "item": "lc-commit"
+    "text": "Changed: Put the board in the project's .switchboard/ folder? (v2)"
   },
   {
+    "item": "lc-commit",
     "t": 1792494180744,
-    "text": "Blocked on you: Put the board in the project's .switchboard/ folder?",
-    "item": "lc-commit"
+    "text": "Blocked on you: Put the board in the project's .switchboard/ folder?"
   },
   {
+    "item": "lc-commit",
     "t": 1792494261902,
-    "text": "Changed: Where does the board live, home or no home? (v3)",
-    "item": "lc-commit"
+    "text": "Changed: Where does the board live, home or no home? (v3)"
   },
   {
+    "item": "lc-commit",
     "t": 1792494261947,
-    "text": "Blocked on you: Where does the board live, home or no home?",
-    "item": "lc-commit"
+    "text": "Blocked on you: Where does the board live, home or no home?"
   },
   {
+    "item": "lc-commit",
     "t": 1792494417421,
-    "text": "Moved this board into .switchboard/board/ (decided: the board follows the project)",
-    "item": "lc-commit"
+    "text": "Moved this board into .switchboard/board/ (decided: the board follows the project)"
   },
   {
+    "item": "v-sidebar",
     "t": 1792495004226,
-    "text": "Posted a card: The sidebar: the plan is the big picture, and a heading for the zone",
-    "item": "v-sidebar"
+    "text": "Posted a card: The sidebar: the plan is the big picture, and a heading for the zone"
   },
   {
+    "item": "v-sidebar",
     "t": 1792495081025,
-    "text": "Changed: The sidebar: keep it as it is, and fold the overview into the plan (v2)",
-    "item": "v-sidebar"
+    "text": "Changed: The sidebar: keep it as it is, and fold the overview into the plan (v2)"
   },
   {
+    "item": "v-sidebar",
     "t": 1792495490771,
-    "text": "Decided: the sidebar stays as it is; the overview folds under The plan (A5)",
-    "item": "v-sidebar"
+    "text": "Decided: the sidebar stays as it is; the overview folds under The plan (A5)"
   },
   {
+    "item": null,
     "t": 1792496369046,
-    "text": "Done: A1 · Serve the board",
-    "item": null
+    "text": "Done: A1 · Serve the board"
   },
   {
+    "item": null,
     "t": 1792496369083,
-    "text": "Done: A2 · The board CLI",
-    "item": null
+    "text": "Done: A2 · The board CLI"
   },
   {
+    "item": null,
     "t": 1792496369119,
-    "text": "Done: A3 · Answers come straight back",
-    "item": null
+    "text": "Done: A3 · Answers come straight back"
   },
   {
+    "item": null,
     "t": 1792496369154,
-    "text": "Done: A4 · Live arrival",
-    "item": null
+    "text": "Done: A4 · Live arrival"
   },
   {
+    "item": null,
     "t": 1792496369188,
-    "text": "Done: P · The phone",
-    "item": null
+    "text": "Done: P · The phone"
   },
   {
+    "item": null,
     "t": 1792496369221,
-    "text": "Now: B0 · Homes from the CLI",
-    "item": null
+    "text": "Now: B0 · Homes from the CLI"
   },
   {
+    "item": null,
     "t": 1792496411038,
-    "text": "The board is on the plan: its steps are the sidebar, done, now and next",
-    "item": null
+    "text": "The board is on the plan: its steps are the sidebar, done, now and next"
   },
   {
+    "item": "b0",
     "t": 1792496726787,
-    "text": "Each step's panel shows its section of the plan: brief, parts, verifiables, gate",
-    "item": "b0"
+    "text": "Each step's panel shows its section of the plan: brief, parts, verifiables, gate"
   },
   {
+    "item": "b0",
     "t": 1792497013328,
-    "text": "B0: the rule matches all seven projects; switchboard keep; the Keep panel and the skill",
-    "item": "b0"
+    "text": "B0: the rule matches all seven projects; switchboard keep; the Keep panel and the skill"
   },
   {
+    "item": null,
     "t": 1792497187992,
-    "text": "Done: B0 · Homes from the CLI",
-    "item": null
+    "text": "Done: B0 · Homes from the CLI"
   },
   {
+    "item": null,
     "t": 1792497188041,
-    "text": "Now: A5 · The audit's gaps",
-    "item": null
+    "text": "Now: A5 · The audit's gaps"
   },
   {
+    "item": "b-design",
     "t": 1792497747073,
-    "text": "Changed: Start from Flex's prototype, not only its design (v2)",
-    "item": "b-design"
+    "text": "Changed: Start from Flex's prototype, not only its design (v2)"
   },
   {
+    "item": "b-sim",
     "t": 1792497747119,
-    "text": "Changed: An agent simulator, from day one (v2)",
-    "item": "b-sim"
+    "text": "Changed: An agent simulator, from day one (v2)"
   },
   {
+    "item": null,
     "t": 1792498006146,
-    "text": "Retired a-data: superseded by where the board lives (lc-commit)",
-    "item": null
+    "text": "Retired a-data: superseded by where the board lives (lc-commit)"
   },
   {
+    "item": null,
     "t": 1792498006234,
-    "text": "Retired b-order: superseded: the plan's steps are the order",
-    "item": null
+    "text": "Retired b-order: superseded: the plan's steps are the order"
   },
   {
+    "item": null,
     "t": 1792498006372,
-    "text": "Retired v-open: superseded: the overview lives in the sidebar (v-sidebar)",
-    "item": null
+    "text": "Retired v-open: superseded: the overview lives in the sidebar (v-sidebar)"
   },
   {
+    "item": null,
     "t": 1792498006446,
-    "text": "Retired b-design: built: A1 started from Flex's prototype",
-    "item": null
+    "text": "Retired b-design: built: A1 started from Flex's prototype"
   },
   {
+    "item": null,
     "t": 1792498006517,
-    "text": "Retired c-doors: built: the board has Going ahead unless you object",
-    "item": null
+    "text": "Retired c-doors: built: the board has Going ahead unless you object"
   },
   {
+    "item": "v-overview",
     "t": 1792498043738,
-    "text": "Changed: What the overview adds under The plan (v2)",
-    "item": "v-overview"
+    "text": "Changed: What the overview adds under The plan (v2)"
   },
   {
+    "item": null,
     "t": 1792498043803,
-    "text": "Audit: retired 5 superseded or built cards, moved 4 phone cards to B5/B6, the old name out of the cards, v-overview rewritten",
-    "item": null
+    "text": "Audit: retired 5 superseded or built cards, moved 4 phone cards to B5/B6, the old name out of the cards, v-overview rewritten"
   },
   {
+    "item": "v-overview",
     "t": 1792498119505,
-    "text": "Blocked on you: What the overview adds under The plan",
-    "item": "v-overview"
+    "text": "Blocked on you: What the overview adds under The plan"
   },
   {
+    "item": "lc-lifecycle",
     "t": 1792498121434,
-    "text": "Blocked on you: Decided cards: take them off, or keep them as the record?",
-    "item": "lc-lifecycle"
+    "text": "Blocked on you: Decided cards: take them off, or keep them as the record?"
   },
   {
+    "item": "c-reason",
     "t": 1792498323887,
-    "text": "A5: reason filters, Needs you is decisions only, and the Record",
-    "item": "c-reason"
+    "text": "A5: reason filters, Needs you is decisions only, and the Record"
   },
   {
+    "item": "w-name",
     "t": 1792498800455,
-    "text": "Kept: Switchboard already calls its main window \"the board\"",
-    "item": "w-name"
+    "text": "Kept: Switchboard already calls its main window \"the board\""
   },
   {
+    "item": "w-mainname",
     "t": 1792498800513,
-    "text": "Kept: What should Switchboard's main window be called now?",
-    "item": "w-mainname"
+    "text": "Kept: What should Switchboard's main window be called now?"
   },
   {
+    "item": "lc-commit",
     "t": 1792498800570,
-    "text": "Kept: Where does the board live, home or no home?",
-    "item": "lc-commit"
+    "text": "Kept: Where does the board live, home or no home?"
   },
   {
+    "item": "c-reason",
     "t": 1792498800619,
-    "text": "Kept: Every card says why it's there",
-    "item": "c-reason"
+    "text": "Kept: Every card says why it's there"
   },
   {
+    "item": "v-sidebar",
     "t": 1792498800674,
-    "text": "Kept: The sidebar: keep it as it is, and fold the overview into the plan",
-    "item": "v-sidebar"
+    "text": "Kept: The sidebar: keep it as it is, and fold the overview into the plan"
   },
   {
+    "item": "lc-lifecycle",
     "t": 1792498800719,
-    "text": "Kept: Decided cards: take them off, or keep them as the record?",
-    "item": "lc-lifecycle"
+    "text": "Kept: Decided cards: take them off, or keep them as the record?"
   },
   {
+    "item": null,
     "t": 1792498835929,
-    "text": "Done: A5 · The audit's gaps",
-    "item": null
+    "text": "Done: A5 · The audit's gaps"
   },
   {
+    "item": "v-overview",
     "t": 1792498836098,
-    "text": "Kept: What the overview adds under The plan",
-    "item": "v-overview"
+    "text": "Kept: What the overview adds under The plan"
+  },
+  {
+    "item": null,
+    "t": 1792499152703,
+    "text": "Now: B1 · Engine and CLI"
+  },
+  {
+    "item": "a-contract",
+    "t": 1792499152739,
+    "text": "Blocked on you: The board's contract: Flex's as it is, or trimmed for software?"
+  },
+  {
+    "item": null,
+    "t": 1792499633620,
+    "text": "Done: B1 · Engine and CLI"
+  },
+  {
+    "item": "a-contract",
+    "t": 1792499633660,
+    "text": "B1: the board store in sb-core and switchboard board; the Node CLI retired"
   }
 ]

@@ -53,7 +53,7 @@
 <script src="data.js"></script>
 <script>
 (function () {
-  var D = window.FLEX_REVIEW || { items: [], stages: [], project: {} };
+  var D = window.BOARD || window.FLEX_REVIEW || { items: [], stages: [], project: {} };
   var params = new URLSearchParams(location.search), id = params.get("id");
   // Where this is shown (Fuchi's NOTIFY_PLAN P9): "notification" is the inline view, compact with
   // Open in Fuchi; "page" is Fuchi's modal, with the whole card open.

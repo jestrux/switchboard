@@ -163,5 +163,20 @@
     "notes": [],
     "at": 1792498690774,
     "from": "board"
+  },
+  {
+    "id": "a-contract",
+    "title": "The board's contract: Flex's as it is, or trimmed for software?",
+    "step": "b1",
+    "version": 1,
+    "pick": "fork",
+    "labels": [
+      "Fork it: a separate contract for the board"
+    ],
+    "rec": "core",
+    "way": "way",
+    "notes": [],
+    "at": 1792499206506,
+    "from": "board"
   }
 ]

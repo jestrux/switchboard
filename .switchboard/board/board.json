@@ -1,10 +1,9 @@
 {
   "project": {
-    "name": "The board: the plan",
-    "meta": "Switchboard · plans/06-board.md",
-    "intro": "You asked for a way to open a project and get both the big picture and what needs you, working with an agent and paired with Switchboard. <b>Round two</b> adds three things: a walk through <b>Flex's prototype</b> (it has built much of what I proposed), <b>Switchboard's windows</b> (main, project, and a Review window you can tear off), <b>the joys of a Mac app</b> (answering from the menu bar and from notifications, full screen, Spotlight, Quick Look), and <b>Away from the Mac</b>: our Switchboard workflow extended to a Switchboard app on your phone, with ideas from Kazzi and engineering from Fuchi. Start with <b>What Flex built</b>, then <b>Look closer</b>, where the native-or-web question now sits.",
     "dir": "switchboard-review",
-    "stagesLabel": "The plan",
+    "intro": "You asked for a way to open a project and get both the big picture and what needs you, working with an agent and paired with Switchboard. <b>Round two</b> adds three things: a walk through <b>Flex's prototype</b> (it has built much of what I proposed), <b>Switchboard's windows</b> (main, project, and a Review window you can tear off), <b>the joys of a Mac app</b> (answering from the menu bar and from notifications, full screen, Spotlight, Quick Look), and <b>Away from the Mac</b>: our Switchboard workflow extended to a Switchboard app on your phone, with ideas from Kazzi and engineering from Fuchi. Start with <b>What Flex built</b>, then <b>Look closer</b>, where the native-or-web question now sits.",
+    "meta": "Switchboard · plans/06-board.md",
+    "name": "The board: the plan",
     "settled": [
       {
         "id": "settled-per-project",
@@ -47,120 +46,129 @@
         "text": "The inbox inside the board stays <b>Needs you</b>."
       }
     ],
+    "stagesLabel": "The plan",
     "working": null
   },
   "stages": [
     {
-      "id": "a1",
-      "title": "Serve the board",
-      "label": "A1",
       "blurb": "Track A, the stand-in: Flex's page on Vite, reading .switchboard/board/",
+      "doc": "plans/06-board.md#A1",
+      "id": "a1",
+      "label": "A1",
       "state": "done",
-      "doc": "plans/06-board.md#A1"
+      "title": "Serve the board"
     },
     {
-      "id": "a2",
-      "title": "The board CLI",
-      "label": "A2",
       "blurb": "The agent writes the board only through scripts/board",
+      "doc": "plans/06-board.md#A2",
+      "id": "a2",
+      "label": "A2",
       "state": "done",
-      "doc": "plans/06-board.md#A2"
+      "title": "The board CLI"
     },
     {
-      "id": "a3",
-      "title": "Answers come straight back",
-      "label": "A3",
       "blurb": "Send writes the answers; board answers --wait hears them",
+      "doc": "plans/06-board.md#A3",
+      "id": "a3",
+      "label": "A3",
       "state": "done",
-      "doc": "plans/06-board.md#A3"
+      "title": "Answers come straight back"
     },
     {
-      "id": "a4",
-      "title": "Live arrival",
-      "label": "A4",
       "blurb": "The page re-reads the moment a card changes",
+      "doc": "plans/06-board.md#A4",
+      "id": "a4",
+      "label": "A4",
       "state": "done",
-      "doc": "plans/06-board.md#A4"
+      "title": "Live arrival"
     },
     {
-      "id": "p",
-      "title": "The phone",
-      "label": "P",
       "blurb": "Fuchi: pushes, answer inline or in a page, one-tap buttons",
+      "doc": "plans/06-board.md#P",
+      "id": "p",
+      "label": "P",
       "state": "done",
-      "doc": "plans/06-board.md#P"
+      "title": "The phone"
     },
     {
-      "id": "b0",
-      "title": "Homes from the CLI",
-      "label": "B0",
       "blurb": "Suggest a project's home folder; switchboard keep",
+      "doc": "plans/06-board.md#B0",
+      "id": "b0",
+      "label": "B0",
       "state": "done",
-      "doc": "plans/06-board.md#B0"
+      "title": "Homes from the CLI"
     },
     {
-      "id": "a5",
-      "title": "The audit's gaps",
-      "label": "A5",
       "blurb": "Reason labels, the Needs you count, the Record, the overview under The plan",
+      "doc": "plans/06-board.md#A5",
+      "id": "a5",
+      "label": "A5",
       "state": "done",
-      "doc": "plans/06-board.md#A5"
+      "title": "The audit's gaps"
     },
     {
-      "id": "b1",
-      "title": "Engine and CLI",
-      "label": "B1",
       "blurb": "Track B: a board store in sb-core, switchboard board …",
-      "state": "next",
-      "doc": "plans/06-board.md#B1"
+      "doc": "plans/06-board.md#B1",
+      "id": "b1",
+      "label": "B1",
+      "state": "done",
+      "title": "Engine and CLI"
     },
     {
-      "id": "b2",
-      "title": "The board in a project window",
-      "label": "B2",
       "blurb": "SwiftUI board, card bodies in a web view, a pane beside a terminal",
+      "doc": "plans/06-board.md#B2",
+      "id": "b2",
+      "label": "B2",
       "state": "next",
-      "doc": "plans/06-board.md#B2"
+      "title": "The board in a project window"
     },
     {
-      "id": "b3",
-      "title": "Menu bar",
-      "label": "B3",
       "blurb": "The Needs you count, and a popover to answer the next card",
+      "doc": "plans/06-board.md#B3",
+      "id": "b3",
+      "label": "B3",
       "state": "next",
-      "doc": "plans/06-board.md#B3"
+      "title": "Menu bar"
     },
     {
-      "id": "b4",
-      "title": "Notifications",
-      "label": "B4",
       "blurb": "On the Mac, only when an agent is blocked",
+      "doc": "plans/06-board.md#B4",
+      "id": "b4",
+      "label": "B4",
       "state": "next",
-      "doc": "plans/06-board.md#B4"
+      "title": "Notifications"
     },
     {
-      "id": "b5",
-      "title": "Every project",
-      "label": "B5",
       "blurb": "The Boards window, tear-off, agent state on tiles",
+      "doc": "plans/06-board.md#B5",
+      "id": "b5",
+      "label": "B5",
       "state": "next",
-      "doc": "plans/06-board.md#B5"
+      "title": "Every project"
     },
     {
-      "id": "b6",
-      "title": "Away from the Mac",
-      "label": "B6",
       "blurb": "A Switchboard app on the phone, on the same contract",
+      "doc": "plans/06-board.md#B6",
+      "id": "b6",
+      "label": "B6",
       "state": "next",
-      "doc": "plans/06-board.md#B6"
+      "title": "Away from the Mac"
     },
     {
-      "id": "later",
-      "title": "Later",
-      "label": "—",
+      "blurb": "Idle CPU, the Debug build, the uptime clock",
+      "doc": "plans/06-board.md#PF",
+      "id": "pf",
+      "label": "PF",
+      "state": "next",
+      "title": "Profiling Switchboard"
+    },
+    {
       "blurb": "Deferred until Horizon comes onto the board",
       "doc": "plans/06-board.md#Deferred",
-      "state": "later"
+      "id": "later",
+      "label": "—",
+      "state": "later",
+      "title": "Later"
     }
   ]
 }
