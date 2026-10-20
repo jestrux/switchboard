@@ -3,8 +3,9 @@
 **Status: In progress.** A1–A4, P, B0, A5, B1, B2 and B3 are done: `switchboard start switchboard/board/board`
 serves this repo's board on http://localhost:5198, the agent writes it with `scripts/board`,
 answers come straight back from the Mac or the phone, and `switchboard keep` suggests and adopts
-a project's home (this repo is the Switchboard project's home since 2026-10-20). Next: B4,
-notifications on the Mac. Each step's brief, parts, verifiables and gate are under **The steps**.
+a project's home (this repo is the Switchboard project's home since 2026-10-20). B5 (every
+project) is under way; the order from here, set 2026-10-20: B5, then B6 (away from the Mac), then
+back to B4 (notifications on the Mac). Each step's brief, parts, verifiables and gate are under **The steps**.
 
 ## What it is
 
@@ -404,9 +405,14 @@ reply field, like the phone's.
 
 **Parts**
 
-- [ ] The Boards window
-- [ ] Tear-off into its own window
-- [ ] Agent state on tiles
+- [x] The Boards window (Project › Boards, ⌘⇧B; the menu bar's Review All): the projects with a
+  board on the left, blocking first, then by how many need you, each with its agent's working
+  line; the chosen board on the right in review mode, from the first card. At the end of a
+  board's cards, "Next: <project>" (⇥) moves to the next project that needs you
+- [x] Tear-off into its own window: Own Window on the board pane's bar, or Project › Open Board
+  in Own Window; the whole board, as in the pane
+- [ ] Agent state on tiles: waits on two cards asked 2026-10-20, `s-state` (what states, set by
+  the agent) and `lc-signal` (whether Claude Code's hooks add a "waiting" dot)
 
 **Verifiables**
 

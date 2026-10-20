@@ -31,6 +31,19 @@ struct SwitchboardApp: App {
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1320, height: 860)
 
+        // Every project's Needs you, in review mode (plans/06-board.md, B5).
+        Window("Boards", id: "boards") {
+            BoardsView().environmentObject(store)
+        }
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1360, height: 860)
+
+        // A project's board torn off into its own window.
+        WindowGroup("Board", id: "board", for: String.self) { $slug in
+            if let slug { BoardWindow(slug: slug).environmentObject(store) }
+        }
+        .defaultSize(width: 1280, height: 840)
+
         Settings {
             SettingsView()
         }
@@ -127,6 +140,10 @@ struct SwitchboardApp: App {
             .disabled(focus.map { if case .project = $0.context.scope { return false } else { return true } } ?? true)
             Button("Show All Projects") { openWindow(id: "main") }
                 .keyboardShortcut("0", modifiers: [.command])
+            Button("Boards") { openWindow(id: "boards") }
+                .keyboardShortcut("b", modifiers: [.command, .shift])
+            Button("Open Board in Own Window") { if let s = selection { openWindow(id: "board", value: s.project) } }
+                .disabled(selection == nil || BoardCache.shared.data(selection!.project) == nil)
             Divider()
             Button("Edit Config") { if let s = selection { store.editConfig(s.project) } }
                 .keyboardShortcut("e", modifiers: [.command])

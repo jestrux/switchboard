@@ -68,6 +68,7 @@ struct MenuBarBoard: View {
                 TextField("A note for the agent (optional)", text: $note, axis: .vertical).textFieldStyle(.roundedBorder).lineLimit(1...3)
                 HStack {
                     Button("Open in Switchboard") { open(next.slug) }.buttonStyle(.link)
+                    Button("Review All") { review(next.slug) }.buttonStyle(.link)
                     Spacer()
                     if queue.count > 1 {
                         Button("Skip") { skipped.insert(next.slug + "/" + next.card.id); picks = []; note = "" }
@@ -90,6 +91,12 @@ struct MenuBarBoard: View {
         .frame(width: 380)
         .background(p.pane)
         .onAppear { boards.watchAll({ store.projects.map(\.slug) }, engine: store.engine) }
+    }
+
+    private func review(_ slug: String) {
+        NSApp.activate(ignoringOtherApps: true)
+        boards.showBoards = (slug, Date())
+        openWindow(id: "boards")
     }
 
     private func open(_ slug: String) {

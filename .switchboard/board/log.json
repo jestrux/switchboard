@@ -428,5 +428,30 @@
     "item": null,
     "t": 1792507352023,
     "text": "Done: B2 · The board in a project window"
+  },
+  {
+    "item": null,
+    "t": 1792507413077,
+    "text": "Now: B5 · Every project"
+  },
+  {
+    "item": "s-state",
+    "t": 1792507413097,
+    "text": "Changed: Each project shows what its agent is doing (v2)"
+  },
+  {
+    "item": "s-state",
+    "t": 1792507413114,
+    "text": "Asked: Each project shows what its agent is doing"
+  },
+  {
+    "item": "lc-signal",
+    "t": 1792507414325,
+    "text": "Changed: Can Switchboard tell when the agent is waiting on you? (v2)"
+  },
+  {
+    "item": "lc-signal",
+    "t": 1792507414349,
+    "text": "Asked: Can Switchboard tell when the agent is waiting on you?"
   }
 ]

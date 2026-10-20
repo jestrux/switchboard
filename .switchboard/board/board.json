@@ -48,10 +48,9 @@
     ],
     "stagesLabel": "The plan",
     "working": {
-      "item": "lc-home",
-      "since": 1792504582105,
-      "stage": "b2",
-      "text": "B2: the board page in the Mac pane"
+      "since": 1792507415641,
+      "stage": "b5",
+      "text": "B5: the Boards window, every project's Needs you in one place"
     }
   },
   "stages": [
@@ -148,7 +147,7 @@
       "doc": "plans/06-board.md#B5",
       "id": "b5",
       "label": "B5",
-      "state": "next",
+      "state": "now",
       "title": "Every project"
     },
     {

@@ -246,6 +246,7 @@ struct PaneBar: View {
     @EnvironmentObject var context: WindowContext
     @Environment(\.sbTheme) private var theme
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.openWindow) private var openWindow
     let leaf: PaneLeaf
     let tier: PaneTier
     let focused: Bool
@@ -306,6 +307,12 @@ struct PaneBar: View {
                 }
             }
             Spacer(minLength: 4)
+            if let ref, ref.isBoard {
+                // Tear the board off into a window of its own (B5).
+                BarButton("macwindow.on.rectangle", "Own Window", "Open the board in its own window", fg: focused || hovering ? p.text2 : p.text3) {
+                    openWindow(id: "board", value: ref.project)
+                }
+            }
             // The board isn't a command: no start, stop or restart (the split button stays).
             actions(ref: ref?.isBoard == true ? nil : ref, state: state, cmd: cmd, fg: focused || hovering ? p.text2 : p.text3, p: p)
         }

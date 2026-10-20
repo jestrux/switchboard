@@ -1935,6 +1935,13 @@ var SERVED = /^https?:$/.test(location.protocol);
 // the board (window.BOARD) and its updates (__boardIngest), and Send goes through the engine.
 var APP = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.board);
 window.__boardIngest = function (raw) { ingest(raw); };
+// The Boards window (plans/06-board.md, B5) opens a board in review mode, and when its cards are
+// through, offers the next project that needs you; the app names it (BOARD_NEXT) and switches.
+var MODE = window.BOARD_MODE || '', NEXT = window.BOARD_NEXT || '';
+window.__boardNext = function (name) { NEXT = name || ''; if (UI.review) render(); };
+function nextProjectBtn() {
+  return APP && NEXT ? h('button', { type: 'button', class: 'btn', onclick: function () { window.webkit.messageHandlers.board.postMessage({ type: 'next' }); } }, 'Next: ' + NEXT, h('span', { class: 'kbd' }, '⇥')) : null;
+}
 
 function setView(v, stage, sel) {
   UI.review = null;
@@ -2507,7 +2514,7 @@ function reviewView() {
     var left = R.queue.filter(function (id) { return D.byId[id] && isOpen(D.byId[id]); }).length;
     mid.appendChild(h('div', { class: 'center', style: 'flex:1' }, I.sent(), h('span', { class: 'empty-t' }, left ? 'That\'s the last card' : 'You\'ve been through them all'),
       h('span', { style: 'font-size:13px;color:var(--ink-2)' }, left ? left + ' still open: you skipped ' + (left === 1 ? 'it' : 'them') + '.' : 'Send your answers when you\'re ready.'),
-      h('div', { style: 'display:flex;gap:8px' }, sendBtn(), left ? h('button', { type: 'button', class: 'btn', onclick: function () { startReview(); } }, 'Go round again') : null, h('button', { type: 'button', class: 'btn ghost', onclick: function () { UI.review = null; render(); } }, 'Exit'))));
+      h('div', { style: 'display:flex;gap:8px' }, sendBtn(), nextProjectBtn(), left ? h('button', { type: 'button', class: 'btn', onclick: function () { startReview(); } }, 'Go round again') : null, h('button', { type: 'button', class: 'btn ghost', onclick: function () { UI.review = null; render(); } }, 'Exit'))));
     wrap.appendChild(mid);
   } else {
     var media = h('div', { class: 'rv-media', 'data-scroll': 'rvm-' + it.id });
@@ -2841,6 +2848,7 @@ document.addEventListener('keydown', function (e) {
   if (UI.welcome) { if (k === 'r' || k === 'R') { e.preventDefault(); UI.welcome = false; S.welcomed = true; save(); startReview(); } return; }
   if (UI.drawer) { if (k === 's' || k === 'S') { e.preventDefault(); UI.drawer = false; render(); } return; }
   var tgt = e.target, onButton = tgt && (tgt.tagName === 'BUTTON' || tgt.tagName === 'A' || (tgt.tagName === 'INPUT' && /range|checkbox/.test(tgt.type)));
+  if (k === 'Tab' && UI.review && !it && APP && NEXT) { e.preventDefault(); window.webkit.messageHandlers.board.postMessage({ type: 'next' }); return; }
   switch (k) {
     case 'j': case 'J': e.preventDefault(); move(1); return;
     case 'k': case 'K': e.preventDefault(); move(-1); return;
@@ -3261,7 +3269,9 @@ function boot() {
   if (D.film && !totals().open) UI.view = 'film';
   var demo = location.hash === '#demo';
   if (demo) { UI.welcome = false; }
+  if (MODE === 'review') { UI.welcome = false; UI.view = 'inbox'; UI.sel = null; }  // from the first card
   render();
+  if (MODE === 'review') startReview();
   // Served by the board's dev server: it pushes a message whenever .board/ changes, so read then;
   // the slow poll is only a fallback. From a file, poll every 3 s as before.
   var pushed = SERVED && window.EventSource;

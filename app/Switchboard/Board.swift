@@ -45,7 +45,10 @@ struct BoardData {
     var cards: [BoardCard] = []
     var record: [BoardDecision] = []
     var projectDir = "", projectName = ""
+    /// What the agent says it's doing (`switchboard board working`), and since when (seconds).
+    var working = "", workingAt: Double = 0
     var needsYou: Int { cards.filter(\.needsYou).count }
+    var blocking: Int { cards.filter { $0.needsYou && $0.blocking }.count }
 
     init() {}
     init(json: String) {
@@ -56,6 +59,9 @@ struct BoardData {
         }
         let proj = root["project"] as? [String: Any] ?? [:]
         projectDir = proj["dir"] as? String ?? ""; projectName = plain(proj["name"])
+        if let w = proj["working"] as? [String: Any] {
+            working = plain(w["text"]); workingAt = (w["since"] as? Double ?? 0) / 1000
+        }
         steps = (root["stages"] as? [[String: Any]] ?? []).map {
             BoardStep(id: $0["id"] as? String ?? "", label: $0["label"] as? String ?? "", title: plain($0["title"]), state: $0["state"] as? String ?? "")
         }
@@ -92,6 +98,8 @@ final class BoardCache: ObservableObject {
     private var everyProject: (() -> [String])?
     /// Open a project's board in its window (the menu bar's Open in Switchboard).
     @Published var showBoard: (slug: String, at: Date)?
+    /// Bring the Boards window to a project (B5).
+    @Published var showBoards: (slug: String?, at: Date)?
 
     func watchAll(_ projects: @escaping () -> [String], engine: Engine) {
         self.engine = engine
@@ -205,19 +213,26 @@ struct BoardPageView: NSViewRepresentable {
     let project: String
     let json: String
     let engine: Engine
+    /// The Boards window (B5) opens the page in review mode and offers the next project there.
+    var review = false
+    var next: String? = nil
+    var onNext: (() -> Void)? = nil
 
     func makeCoordinator() -> Coordinator { Coordinator(project: project, engine: engine) }
 
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.userContentController.add(context.coordinator, name: "board")
-        config.userContentController.addUserScript(WKUserScript(source: "window.BOARD = \(json.isEmpty ? "null" : json);",
+        let mode = review ? "window.BOARD_MODE = 'review'; window.BOARD_NEXT = \(Self.js(next ?? ""));" : ""
+        config.userContentController.addUserScript(WKUserScript(source: "window.BOARD = \(json.isEmpty ? "null" : json);" + mode,
                                                                 injectionTime: .atDocumentStart, forMainFrameOnly: true))
         let web = WKWebView(frame: .zero, configuration: config)
         web.setValue(false, forKey: "drawsBackground")
         web.navigationDelegate = context.coordinator
         context.coordinator.web = web
         context.coordinator.pushed = json
+        context.coordinator.next = next ?? ""
+        context.coordinator.onNext = onNext
         if let page = Bundle.main.url(forResource: "index", withExtension: "html") {
             web.loadFileURL(page, allowingReadAccessTo: page.deletingLastPathComponent())
         }
@@ -226,6 +241,16 @@ struct BoardPageView: NSViewRepresentable {
 
     func updateNSView(_ web: WKWebView, context: Context) {
         context.coordinator.push(json)
+        context.coordinator.onNext = onNext
+        if review, (next ?? "") != context.coordinator.next {
+            context.coordinator.next = next ?? ""
+            web.evaluateJavaScript("window.__boardNext && window.__boardNext(\(Self.js(next ?? "")));")
+        }
+    }
+
+    /// A string as a JavaScript literal.
+    static func js(_ s: String) -> String {
+        (try? String(data: JSONSerialization.data(withJSONObject: [s]), encoding: .utf8)).flatMap { $0.map { String($0.dropFirst().dropLast()) } } ?? "''"
     }
 
     static func dismantleNSView(_ web: WKWebView, coordinator: Coordinator) {
@@ -238,6 +263,8 @@ struct BoardPageView: NSViewRepresentable {
         weak var web: WKWebView?
         var pushed = ""
         var loaded = false
+        var next = ""
+        var onNext: (() -> Void)?
         init(project: String, engine: Engine) { self.project = project; self.engine = engine }
 
         /// A changed board reaches the open page (the page's own `ingest`, as when it polls).
@@ -254,7 +281,9 @@ struct BoardPageView: NSViewRepresentable {
 
         /// The page's Send: record it through the engine and tell the page how it went.
         func userContentController(_ c: WKUserContentController, didReceive message: WKScriptMessage) {
-            guard let body = message.body as? [String: Any], body["type"] as? String == "send", let send = body["send"],
+            guard let body = message.body as? [String: Any] else { return }
+            if body["type"] as? String == "next" { onNext?(); return }
+            guard body["type"] as? String == "send", let send = body["send"],
                   let data = try? JSONSerialization.data(withJSONObject: send), let json = String(data: data, encoding: .utf8) else { return }
             let ok: Bool
             do { try engine.boardRecordSend(slug: project, sendJson: json); ok = true }
