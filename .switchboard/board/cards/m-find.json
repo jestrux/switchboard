@@ -1,40 +1,40 @@
 {
+  "decision": {
+    "basis": "taste",
+    "multi": true,
+    "options": [
+      {
+        "act": "CoreSpotlight index of cards + decisions",
+        "label": "Spotlight for the Record",
+        "o": "spot",
+        "rec": 1
+      },
+      {
+        "act": "Command palette over cards/phases/decisions",
+        "label": "⌘K across projects",
+        "o": "k",
+        "rec": 1
+      },
+      {
+        "act": "App Intents: open cards, answer, send",
+        "label": "Shortcuts and Siri",
+        "o": "intents"
+      }
+    ],
+    "q": "Finding things",
+    "why": [
+      "<b>The Record in Spotlight.</b> Every decision is indexed (<code>CoreSpotlight</code>), so ⌘Space \"12-hour\" finds the card, what you picked and why, months later. App Intents give Shortcuts and Siri <i>What needs me?</i>, <i>Answer card</i> and <i>Send answers</i>, so a morning Shortcut can read the count aloud. Things, OmniFocus and Bear do the same.",
+      "Inside the app, ⌘K jumps to any card, phase or decision across projects, like Xcode's Open Quickly or Linear's ⌘K."
+    ]
+  },
   "id": "m-find",
-  "stage": "b5",
-  "title": "Spotlight, Shortcuts and ⌘K find any decision",
+  "order": 50,
+  "stage": "later",
   "tags": [
     "Search",
     "The joys of a Mac app"
   ],
+  "title": "Spotlight, Shortcuts and ⌘K find any decision",
   "updated": 1792468800000,
-  "version": 1,
-  "decision": {
-    "q": "Finding things",
-    "multi": true,
-    "options": [
-      {
-        "o": "spot",
-        "label": "Spotlight for the Record",
-        "rec": 1,
-        "act": "CoreSpotlight index of cards + decisions"
-      },
-      {
-        "o": "k",
-        "label": "⌘K across projects",
-        "rec": 1,
-        "act": "Command palette over cards/phases/decisions"
-      },
-      {
-        "o": "intents",
-        "label": "Shortcuts and Siri",
-        "act": "App Intents: open cards, answer, send"
-      }
-    ],
-    "why": [
-      "<b>The Record in Spotlight.</b> Every decision is indexed (<code>CoreSpotlight</code>), so ⌘Space \"12-hour\" finds the card, what you picked and why, months later. App Intents give Shortcuts and Siri <i>What needs me?</i>, <i>Answer card</i> and <i>Send answers</i>, so a morning Shortcut can read the count aloud. Things, OmniFocus and Bear do the same.",
-      "Inside the app, ⌘K jumps to any card, phase or decision across projects, like Xcode's Open Quickly or Linear's ⌘K."
-    ],
-    "basis": "taste"
-  },
-  "order": 50
+  "version": 1
 }

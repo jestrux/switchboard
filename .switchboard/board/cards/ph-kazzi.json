@@ -1,15 +1,4 @@
 {
-  "id": "ph-kazzi",
-  "stage": "b5",
-  "title": "What Kazzi's thinking adds to our workflow",
-  "tags": [
-    "Phone",
-    "Kazzi",
-    "Away from the Mac"
-  ],
-  "updated": 1792468800000,
-  "version": 1,
-  "summary": "Kazzi showed how you think about picking up work. These are the ideas I'd fold into the board, on the Mac first and therefore on the phone too, not a port of Kazzi.",
   "body": {
     "checks": [
       {
@@ -39,35 +28,46 @@
     ]
   },
   "decision": {
-    "q": "Which ideas joon the board?",
+    "basis": "taste",
     "multi": true,
     "options": [
       {
-        "o": "move",
+        "act": "Per-project 'whose move' line (cards / agent state / questions out) on Mac and phone",
         "label": "Whose move: yours, the agent's, someone else's",
-        "rec": 1,
-        "act": "Per-project 'whose move' line (cards / agent state / questions out) on Mac and phone"
+        "o": "move",
+        "rec": 1
       },
       {
-        "o": "clock",
+        "act": "Ages on questions-out and waiting cards measured from the user's last action",
         "label": "The clock counts from your last move",
-        "rec": 1,
-        "act": "Ages on questions-out and waiting cards measured from the user's last action"
+        "o": "clock",
+        "rec": 1
       },
       {
-        "o": "queue",
+        "act": "Send-to-agent queue released at the agent's next idle",
         "label": "Notes to the agent can queue until it's free",
-        "rec": 1,
-        "act": "Send-to-agent queue released at the agent's next idle"
+        "o": "queue",
+        "rec": 1
       },
       {
-        "o": "pickup",
+        "act": "Per-project pickup note beside the since-last-look digest",
         "label": "A note to yourself per project, with its age",
-        "act": "Per-project pickup note beside the since-last-look digest"
+        "o": "pickup"
       }
     ],
-    "basis": "taste"
+    "q": "Which ideas joon the board?"
   },
-  "wide": true,
-  "order": 20
+  "id": "ph-kazzi",
+  "order": 20,
+  "stage": "later",
+  "summary": "Kazzi showed how you think about picking up work. These are the ideas I'd fold into the board, on the Mac first and therefore on the phone too, not a port of Kazzi.",
+  "tags": [
+    "Phone",
+    "Kazzi",
+    "Away from the Mac"
+  ],
+  "title": "What Kazzi's thinking adds to our workflow",
+  "updated": 1792468800000,
+  "version": 1,
+  "wide": true
 }

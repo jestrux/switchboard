@@ -1,33 +1,33 @@
 {
+  "decision": {
+    "basis": "taste",
+    "options": [
+      {
+        "act": "Review mode full-screen Space; Focus filter (badge, notifications, which projects)",
+        "label": "Both",
+        "o": "both",
+        "rec": 1,
+        "then": "Make review mode go full screen, and add a Focus filter for the badge and notifications."
+      },
+      {
+        "label": "Full screen only",
+        "o": "fs"
+      }
+    ],
+    "q": "Full screen and Focus",
+    "why": [
+      "The Boards window in review mode goes full screen into its own Space (⌃⌘F), with the media taking the right half as in Flex. A three-finger swipe away is everything else; swipe back and you're on the same card.",
+      "A Focus filter (<code>SetFocusFilterIntent</code>) lets each Focus choose: during a deep-work Focus, hide the badge and hold the notifications; during a \"The board\" Focus, show only Needs you. Mail and Calendar offer the same filters."
+    ]
+  },
   "id": "m-zone",
-  "stage": "b5",
-  "title": "The zone: full screen, and a board Focus",
+  "order": 30,
+  "stage": "later",
   "tags": [
     "Zone",
     "The joys of a Mac app"
   ],
+  "title": "The zone: full screen, and a board Focus",
   "updated": 1792468800000,
-  "version": 1,
-  "decision": {
-    "q": "Full screen and Focus",
-    "options": [
-      {
-        "o": "both",
-        "label": "Both",
-        "rec": 1,
-        "act": "Review mode full-screen Space; Focus filter (badge, notifications, which projects)",
-        "then": "Make review mode go full screen, and add a Focus filter for the badge and notifications."
-      },
-      {
-        "o": "fs",
-        "label": "Full screen only"
-      }
-    ],
-    "why": [
-      "The Boards window in review mode goes full screen into its own Space (⌃⌘F), with the media taking the right half as in Flex. A three-finger swipe away is everything else; swipe back and you're on the same card.",
-      "A Focus filter (<code>SetFocusFilterIntent</code>) lets each Focus choose: during a deep-work Focus, hide the badge and hold the notifications; during a \"The board\" Focus, show only Needs you. Mail and Calendar offer the same filters."
-    ],
-    "basis": "taste"
-  },
-  "order": 30
+  "version": 1
 }

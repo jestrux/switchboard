@@ -1,37 +1,37 @@
 {
+  "decision": {
+    "basis": "taste",
+    "options": [
+      {
+        "act": "WidgetKit: per-project state + top card with an App Intent button",
+        "label": "Yes, after the menu bar",
+        "o": "later",
+        "rec": 1,
+        "then": "Build a desktop widget after the menu bar: agent states, and the top card with a Go-with-it button."
+      },
+      {
+        "label": "Yes, in the first version",
+        "o": "now"
+      },
+      {
+        "label": "No",
+        "o": "no"
+      }
+    ],
+    "q": "Widget",
+    "why": [
+      "A desktop widget (WidgetKit; interactive since macOS Sonoma) shows each project's agent state and count, plus the top card with a <i>Go with it</i> button that answers it in place through an App Intent. You see it every time a window moves aside. Things and Reminders have interactive widgets like it.",
+      "Recommended after the menu bar, not before: the menu bar is always visible, and a widget is only visible when the desktop is."
+    ]
+  },
   "id": "m-widget",
-  "stage": "b5",
-  "title": "A widget on the desktop",
+  "order": 40,
+  "stage": "later",
   "tags": [
     "Widgets",
     "The joys of a Mac app"
   ],
+  "title": "A widget on the desktop",
   "updated": 1792468800000,
-  "version": 1,
-  "decision": {
-    "q": "Widget",
-    "options": [
-      {
-        "o": "later",
-        "label": "Yes, after the menu bar",
-        "rec": 1,
-        "act": "WidgetKit: per-project state + top card with an App Intent button",
-        "then": "Build a desktop widget after the menu bar: agent states, and the top card with a Go-with-it button."
-      },
-      {
-        "o": "now",
-        "label": "Yes, in the first version"
-      },
-      {
-        "o": "no",
-        "label": "No"
-      }
-    ],
-    "why": [
-      "A desktop widget (WidgetKit; interactive since macOS Sonoma) shows each project's agent state and count, plus the top card with a <i>Go with it</i> button that answers it in place through an App Intent. You see it every time a window moves aside. Things and Reminders have interactive widgets like it.",
-      "Recommended after the menu bar, not before: the menu bar is always visible, and a widget is only visible when the desktop is."
-    ],
-    "basis": "taste"
-  },
-  "order": 40
+  "version": 1
 }

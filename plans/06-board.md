@@ -121,7 +121,9 @@ stand-in runs, one Vite server serves one board; `BOARD_DIR` points it at anothe
 
 In the order they're done, as the board's sidebar shows them. Each step's heading starts with
 its label (A1, P, B0…): the board's step panel shows that section, so the plan is written
-once, here. Parts are ticked as they land.
+once, here. Parts are ticked as they land. Each step names the cards still open on it under
+**Open on the board**, so the panel and the cards match; a card that isn't the step's work moves
+to **Later** and into Deferred.
 
 ### A1 · Serve the board
 
@@ -414,6 +416,8 @@ reply field, like the phone's.
 - [ ] Agent state on tiles: waits on two cards asked 2026-10-20, `s-state` (what states, set by
   the agent) and `lc-signal` (whether Claude Code's hooks add a "waiting" dot)
 
+**Open on the board:** `s-state` and `lc-signal` (agent state on tiles).
+
 **Verifiables**
 
 - Two projects' boards in one window
@@ -422,16 +426,30 @@ reply field, like the phone's.
 
 ### B6 · Away from the Mac
 
-**Brief.** A Switchboard app on the phone, on the same contract. Later; P covers asking and
-answering until then.
+**Brief.** The board reaches the phone wherever it is, not only on the Mac's network, and a
+Switchboard app on the phone works through it with the same contract. Today a push links to a
+card page on the Mac's Vite stand-in (port 5198), which serves one board: Switchboard's. Another
+project's push opens a page that can't find its card (found 2026-10-20, when CityBuild's agent
+started its own server on 5199), and away from the Mac's network nothing on a card loads.
 
 **Parts**
 
-- [ ] Switchboard Mobile on the board's contract
+- [ ] The app serves every project's board: one address for the card page and answers, by
+  project, so a push works for any project and the Vite stand-in is no longer needed for the phone
+- [ ] Away from home (`ph-away`): what carries a card to the phone off the Mac's network, and how
+  its images travel (they're files on the Mac, named in place)
+- [ ] What the phone does (`ph-surfaces`): Needs you and review mode, answerable notifications,
+  the overview with each project's state
+- [ ] Switchboard Mobile on the board's contract (`ph-home`), reusing Fuchi's store client and
+  pairing; the worker's AI stays out of the board (`ph-ai`)
+
+**Open on the board:** `ph-home`, `ph-away`, `ph-surfaces`, `ph-ai`, and `prec-away` (the
+precedents for answering away from the desk). Settle them before building past the first part.
 
 **Verifiables**
 
-- The same board on the phone as on the Mac
+- A push for a second project (CityBuild) opens its card on the phone, images included
+- The same board on the phone as on the Mac, off the Mac's network
 
 **Gate.** A day's decisions made away from the desk.
 
@@ -461,10 +479,7 @@ limits included.
 
 ## Open on the board
 
-Answer these on the board before the step they affect:
-
-- **The contract: Flex's core plus optional fields, or a fork** (`a-contract`). Shapes A2
-  and B1.
+Each step lists its own open cards (above). Decided ones are in the board's Record.
 
 ## Deferred
 
@@ -477,3 +492,11 @@ step **Later** (`board step later later`).
   "from the wishlist" reason label with it.
 - **The sprint review drafts itself** (`a-sprint`): a review drafted from the Record and the
   since-you-last-looked digest at a sprint's end, curated by the agent.
+
+Moved off B5 on 2026-10-20 (good ideas, not what B5 is for); shaped when one is picked up:
+
+- **The zone** (`m-zone`): full screen, and a board Focus.
+- **A desktop widget** (`m-widget`), after the menu bar.
+- **Finding any decision** (`m-find`): Spotlight for the Record, ⌘K across projects.
+- **Kazzi's ideas** (`ph-kazzi`): whose move it is per project, a clock from your last move,
+  notes that queue until the agent is free.
