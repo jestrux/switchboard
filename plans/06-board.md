@@ -270,7 +270,8 @@ set-hero project, whose home is `~/Documents/web/set-hero`, so its board would l
 **Parts**
 
 - [ ] Reason labels on cards, each a filter (decided: decision, look closer, your question
-  answered, changed, from the wishlist, for someone else)
+  answered, changed, from the wishlist, for someone else); "from the wishlist" only in a project that keeps one
+  (a wishlist is prod-app's practice, not every project's)
 - [ ] "For you to see" cards out of the Needs you count
 - [ ] Decided cards into a searchable Record
 - [ ] The overview as part of The plan in the sidebar (decided, `v-sidebar`): since you last

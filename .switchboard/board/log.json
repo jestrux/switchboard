@@ -228,5 +228,15 @@
     "t": 1792497188041,
     "text": "Now: A5 · The audit's gaps",
     "item": null
+  },
+  {
+    "t": 1792497747073,
+    "text": "Changed: Start from Flex's prototype, not only its design (v2)",
+    "item": "b-design"
+  },
+  {
+    "t": 1792497747119,
+    "text": "Changed: An agent simulator, from day one (v2)",
+    "item": "b-sim"
   }
 ]

@@ -6,8 +6,8 @@
     "Design",
     "Look and build"
   ],
-  "updated": 1792468800000,
-  "version": 1,
+  "updated": 1792497747073,
+  "version": 2,
   "decision": {
     "q": "Starting point",
     "options": [
@@ -16,7 +16,7 @@
         "label": "Flex's prototype: its contract, CLI shape and page, generalised",
         "rec": 1,
         "act": "Port flex-review-prototype (contract, CLI verbs, review/index.html) into Switchboard Review; one handoff for overview + Review window + menu bar + widget",
-        "then": "Port Flex's prototype into Switchboard Review, and send one handoff for the overview, the Review window, the menu bar and the widget."
+        "then": "Port Flex's prototype into Switchboard Review, designing what's new in the same language."
       },
       {
         "o": "design",
@@ -29,9 +29,10 @@
     ],
     "why": [
       "<b>Claude Design drew it, and Flex has already built it.</b> The prototype covers review mode, the journey rail, Handled with Undo, the send drawer with what each answer commits the agent to, live arrival, activity, every key, and both themes, all driven by the same data contract and a CLI the agent writes with. Generalise it (phases for stages, software media, the overview and the Record) instead of starting again. The second look adds the film-so-far view, Going ahead unless you object, two-pane activity, two kinds of notification and an agent simulator, all on the same contract.",
-      "Then one Claude Design handoff for what's new: the overview, the Review window across projects, the menu-bar popover and the widget."
+      "What's new (the overview, the Boards window, the menu-bar popover, the widget) is designed in the same language, not handed off."
     ],
     "basis": "evidence"
   },
-  "order": 10
+  "order": 10,
+  "changed": "No Claude Design handoff: that's prod-app's practice"
 }
