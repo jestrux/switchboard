@@ -22,6 +22,7 @@ struct BoardCard: Identifiable, Hashable {
     let id: String, stage: String, title: String, summary: String
     let question: String?, unsure: Bool, blocking: Bool, version: Int
     let basis: String, multi: Bool, notePrompt: String
+    let askedAt: Double, updated: Double, why: String
     let options: [BoardOption]
     /// Answered (a pick for this version is in the Record), from any device.
     let decided: [String]?
@@ -71,6 +72,8 @@ struct BoardData {
                 id: c["id"] as? String ?? "", stage: c["stage"] as? String ?? "", title: plain(c["title"]), summary: plain(c["summary"]),
                 question: d.map { plain($0["q"]) }, unsure: d?["unsure"] != nil, blocking: c["blocking"] as? Bool ?? false, version: version,
                 basis: d?["basis"] as? String ?? "", multi: d?["multi"] as? Bool ?? false, notePrompt: plain(c["notePrompt"]),
+                askedAt: c["askedAt"] as? Double ?? 0, updated: c["updated"] as? Double ?? 0,
+                why: plain((d?["why"] as? [String])?.first ?? (d?["unsure"] as? [String: Any])?["why"]),
                 options: (d?["options"] as? [[String: Any]] ?? []).map {
                     BoardOption(o: "\($0["o"] ?? "")", label: plain($0["label"]), rec: $0["rec"] as? Bool ?? false, then: plain($0["then"]))
                 },
@@ -85,6 +88,31 @@ final class BoardCache: ObservableObject {
     static let shared = BoardCache()
     @Published private(set) var boards: [String: BoardData] = [:]
     private var watching: [String: Int] = [:]
+    /// Every project, for the menu bar's count across them (B3).
+    private var everyProject: (() -> [String])?
+    /// Open a project's board in its window (the menu bar's Open in Switchboard).
+    @Published var showBoard: (slug: String, at: Date)?
+
+    func watchAll(_ projects: @escaping () -> [String], engine: Engine) {
+        self.engine = engine
+        everyProject = projects
+        for slug in projects() { refresh(slug) }
+        if timer == nil {
+            timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+                Task { @MainActor in self?.refreshAll() }
+            }
+        }
+    }
+
+    /// What needs the author across projects, blocking first, then the latest asked.
+    func needsYou() -> [(slug: String, card: BoardCard, data: BoardData)] {
+        boards.flatMap { slug, data in data.cards.filter(\.needsYou).map { (slug: slug, card: $0, data: data) } }
+            .sorted { a, b in
+                if a.card.blocking != b.card.blocking { return a.card.blocking }
+                return max(a.card.askedAt, a.card.updated) > max(b.card.askedAt, b.card.updated)
+            }
+    }
+    var totalNeedsYou: Int { boards.values.reduce(0) { $0 + $1.needsYou } }
     private var timer: Timer?
     weak var engine: Engine?
 
@@ -103,7 +131,7 @@ final class BoardCache: ObservableObject {
     func unwatch(_ slug: String) {
         watching[slug, default: 1] -= 1
         if watching[slug] ?? 0 <= 0 { watching[slug] = nil }
-        if watching.isEmpty { timer?.invalidate(); timer = nil }
+        if watching.isEmpty && everyProject == nil { timer?.invalidate(); timer = nil }
     }
     func refresh(_ slug: String) {
         guard let engine else { return }
@@ -111,7 +139,7 @@ final class BoardCache: ObservableObject {
         if json == boards[slug]?.json { return }
         boards[slug] = json.map(BoardData.init(json:))
     }
-    private func refreshAll() { for slug in watching.keys { refresh(slug) } }
+    private func refreshAll() { for slug in Set(watching.keys).union(everyProject?() ?? []) { refresh(slug) } }
 }
 
 // MARK: - Sidebar row

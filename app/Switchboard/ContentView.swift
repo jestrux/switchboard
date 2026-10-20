@@ -46,6 +46,8 @@ struct ContentView: View {
         .onAppear {
             store.registerWindow(context)
             if context.scope == .all { mainWindowID = context.id }
+            // The menu bar's count across projects (B3) needs every board watched from launch.
+            if context.scope == .all { BoardCache.shared.watchAll({ store.projects.map(\.slug) }, engine: store.engine) }
             context.reconcile(with: store)
             if context.scope == .all {
                 store.offerToKillLeftovers()
@@ -70,6 +72,15 @@ struct ContentView: View {
                 if let c = store.project(slug)?.allCommands.first {
                     context.selection = CommandRef(project: slug, address: c.address)
                 }
+            }
+        }
+        // Open in Switchboard from the menu bar: the board, in the window that shows the project.
+        .onChange(of: BoardCache.shared.showBoard?.at) { _, _ in
+            guard let slug = BoardCache.shared.showBoard?.slug else { return }
+            switch context.scope {
+            case .project(let s) where s == slug: context.selection = .board(slug)
+            case .all where !store.openProjectWindows.contains(slug): context.railProject = slug; context.selection = .board(slug)
+            default: break
             }
         }
         .onDisappear { store.releaseAll(from: context) }

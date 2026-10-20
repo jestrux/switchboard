@@ -1,10 +1,10 @@
 # 6. The board: where an agent hands a project to its author
 
-**Status: In progress.** A1–A4, P, B0, A5, B1 and B2 are done: `switchboard start switchboard/board/board`
+**Status: In progress.** A1–A4, P, B0, A5, B1, B2 and B3 are done: `switchboard start switchboard/board/board`
 serves this repo's board on http://localhost:5198, the agent writes it with `scripts/board`,
 answers come straight back from the Mac or the phone, and `switchboard keep` suggests and adopts
-a project's home (this repo is the Switchboard project's home since 2026-10-20). Next: B3, the
-menu bar. Each step's brief, parts, verifiables and gate are under **The steps**.
+a project's home (this repo is the Switchboard project's home since 2026-10-20). Next: B4,
+notifications on the Mac. Each step's brief, parts, verifiables and gate are under **The steps**.
 
 ## What it is
 
@@ -356,18 +356,24 @@ review mode's Skip and Exit, the rail badge). The keys are built but not yet dri
 ### B3 · Menu bar
 
 **Brief.** The `MenuBarExtra` from [item 3](03-m5-remaining.md#menu-bar-extra), with the Needs
-you count and a popover to answer the next card.
+you count across projects and a popover to answer the next card.
 
 **Parts**
 
-- [ ] The count across projects
-- [ ] A popover with the next card and its buttons
+- [x] The menu bar: Switchboard's template icon and, when anything waits, the Needs you count
+  across every project's board (watched from launch)
+- [x] A popover with the next card across projects, blocking first, then the latest asked: its
+  project, title, summary, my pick and why, the options, "Then I'll …", a note, Send (⌘↵),
+  Skip, and Open in Switchboard (the project's window, on its board)
 
 **Verifiables**
 
-- Screenshots of the popover, light and dark
+- Screenshots of the popover
 
-**Gate.** A card answered from the menu bar.
+**Gate.** Done 2026-10-20: the menu bar read 36, and the popover showed CityBuild's next card
+(another agent already writes CityBuild's board through `switchboard board`; its cards were left
+for the author). Answering from the popover goes through the same `BoardSend` as the pane, which
+was checked in B2; it wasn't used here, since every card in the popover was a real one.
 
 ### B4 · Notifications
 

@@ -34,6 +34,14 @@ struct SwitchboardApp: App {
         Settings {
             SettingsView()
         }
+
+        // What needs you across every project, and the next card to answer (plans/06-board.md, B3).
+        MenuBarExtra {
+            MenuBarBoard().environmentObject(store)
+        } label: {
+            MenuBarLabel()
+        }
+        .menuBarExtraStyle(.window)
     }
 
     @CommandsBuilder
