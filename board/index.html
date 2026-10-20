@@ -175,7 +175,7 @@ svg{flex:0 0 auto}
 .prose{font-size:15px;line-height:25px;max-width:62ch;margin:0;color:var(--ink)}
 .step-doc p{margin:0 0 12px}.step-doc ul{margin:4px 0 16px;padding-left:20px}.step-doc li{margin:3px 0}
 .step-doc li:has(> input[type=checkbox]){list-style:none;margin-left:-20px}.step-doc input[type=checkbox]{margin:0 8px 0 0;accent-color:var(--accent);vertical-align:-2px}
-.step-doc code{font:12.5px var(--mono);background:var(--hover);padding:1px 5px;border-radius:4px}.step-doc a{color:inherit}
+.prose img:not(a img){cursor:zoom-in}.step-doc code{font:12.5px var(--mono);background:var(--hover);padding:1px 5px;border-radius:4px}.step-doc a{color:inherit}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tag{font-size:11px;line-height:18px;padding:0 7px;border-radius:9px;color:var(--ink-3);border:1px solid var(--line)}
 .meta{display:flex;align-items:center;gap:8px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);flex-wrap:wrap}
@@ -2721,10 +2721,28 @@ function drawerView() {
 }
 
 /* ───────────────────────── overlays ───────────────────────── */
-function openLightbox(src, cap) { UI.lightbox = { src: src, cap: cap || '' }; render(); }
-function lightboxView() {
-  return h('div', { class: 'lightbox', role: 'dialog', 'aria-label': 'Full size', onclick: function () { UI.lightbox = null; render(); } }, h('img', { src: UI.lightbox.src, alt: UI.lightbox.cap }), h('span', { class: 'cap' }, plain(UI.lightbox.cap), '  ·  ', h('span', { class: 'kbd', style: 'color:#c9c8d0' }, 'Esc'), ' close'));
+// With `set` (the other images beside it: [{ src, cap }]), ← → step through them.
+function openLightbox(src, cap, set, i) { UI.lightbox = { src: src, cap: cap || '', set: set || null, i: i || 0 }; render(); }
+function lightboxStep(n) {
+  var L = UI.lightbox; if (!L || !L.set || L.set.length < 2) return;
+  L.i = (L.i + n + L.set.length) % L.set.length; L.src = L.set[L.i].src; L.cap = L.set[L.i].cap; render();
 }
+function lightboxView() {
+  var L = UI.lightbox, many = L.set && L.set.length > 1;
+  return h('div', { class: 'lightbox', role: 'dialog', 'aria-label': 'Full size', onclick: function () { UI.lightbox = null; render(); } }, h('img', { src: L.src, alt: L.cap }),
+    h('span', { class: 'cap' }, plain(L.cap), many ? '  ·  ' + (L.i + 1) + ' of ' + L.set.length + '  ·  ' : '  ·  ', many ? h('span', { class: 'kbd', style: 'color:#c9c8d0' }, '← →') : null, many ? ' ' : null, h('span', { class: 'kbd', style: 'color:#c9c8d0' }, 'Esc'), ' close'));
+}
+// An image in a step's plan or in a card's HTML opens full size, with its neighbours (Kinpay's
+// plan shows 120 design screens as thumbnails). Card media has its own frames and handlers.
+document.addEventListener('click', function (e) {
+  var img = e.target && e.target.closest && e.target.closest('.prose img');
+  if (!img || img.closest('a, .frame, .lightbox')) return;
+  var box = img.closest('.prose'), all = Array.prototype.slice.call(box.querySelectorAll('img')).filter(function (x) { return !x.closest('a, .frame'); });
+  var set = all.map(function (x) { return { src: x.getAttribute('src'), cap: x.getAttribute('title') || x.getAttribute('alt') || '' }; });
+  var i = all.indexOf(img);
+  e.preventDefault(); e.stopPropagation();
+  openLightbox(set[i].src, set[i].cap, set, i);
+}, true);
 function helpView() {
   var keys = [['J  K', 'next, previous card'], ['1 – 9', 'pick an option (toggles in a pick-any)'], ['↵', 'take my pick, when I\'m sure (confirms a pick-any)'], ['⇧ ↵', 'take my pick and move to the next card'], ['L', 'look where I\'m unsure'], ['N', 'note, pinned to the playhead or the panel · ⌘↵ saves'], ['E', 'mark seen / handled'], ['U', 'undo the answer'], ['Space', 'play, pause'], [',  .', 'step a frame'], ['[  ]', 'step a bar'], ['←  →', 'previous, next panel'], ['Tab', 'flip A/B (compare in Flip or review; audio keeps its place)'], ['O', SERVED ? 'open this moment in Flex' : 'copy flex show for this moment'], ['P', 'note at Flex\'s playhead (served, Flex on this film)'], ['C  M  X', 'prompt cards: copy all · I\'m making it · not needed'], ['V', 'open the card that just arrived'], ['R', 'review one by one'], ['/', 'search'], ['S', 'send to agent · ⌘↵ sends'], ['Esc', 'close, leave a field']];
   var dl = h('dl', { class: 'keys' });
@@ -2846,6 +2864,7 @@ document.addEventListener('keydown', function (e) {
     if (k === 'Enter' && UI.drawer) { e.preventDefault(); drawerPrimary(); }
     return;
   }
+  if (UI.lightbox && (k === 'ArrowRight' || k === 'ArrowLeft')) { e.preventDefault(); lightboxStep(k === 'ArrowRight' ? 1 : -1); return; }
   if (UI.lightbox || UI.help) return;
   if (UI.welcome) { if (k === 'r' || k === 'R') { e.preventDefault(); UI.welcome = false; S.welcomed = true; save(); startReview(); } return; }
   if (UI.drawer) { if (k === 's' || k === 'S') { e.preventDefault(); UI.drawer = false; render(); } return; }
