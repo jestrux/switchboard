@@ -222,6 +222,7 @@ struct BoardPageView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
+        config.preferences.isElementFullscreenEnabled = true  // a video's full-screen button
         // Served as sbboard://board/, not file://, so a card can show an image where it already is.
         let coordinator = context.coordinator
         config.setURLSchemeHandler(BoardScheme(named: { [weak coordinator] in coordinator?.pushed ?? "" }), forURLScheme: BoardScheme.scheme)

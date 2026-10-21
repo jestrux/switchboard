@@ -1041,7 +1041,13 @@ function videoPlayer(it, src, opts) {
     bp.addEventListener('click', function () { p.toggle(); });
     playB.addEventListener('click', function () { p.toggle(); });
     spd.addEventListener('click', function () { var i = (SPEEDS.indexOf(v.playbackRate) + 1) % SPEEDS.length; v.playbackRate = SPEEDS[i]; spd.textContent = SPEEDS[i] + '×'; });
-    full.addEventListener('click', function () { if (fr.requestFullscreen) fr.requestFullscreen(); });
+    full.addEventListener('click', function () {
+      // The frame (with its controls), or WebKit's prefixed call, or the video's own full screen.
+      var vid = fr.querySelector('video');
+      if (fr.requestFullscreen) fr.requestFullscreen().catch(function () { if (vid && vid.webkitEnterFullscreen) vid.webkitEnterFullscreen(); });
+      else if (fr.webkitRequestFullscreen) fr.webkitRequestFullscreen();
+      else if (vid && vid.webkitEnterFullscreen) vid.webkitEnterFullscreen();
+    });
     scrubber(track, p);
     p.sync = function () {
       var d = p.duration(), f = p.film();
