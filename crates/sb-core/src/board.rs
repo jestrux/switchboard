@@ -323,32 +323,94 @@ impl Board {
 
     /// A step of the plan: its state (done, now, next, later), label, title, blurb and `doc`
     /// (the plan section its panel shows). New steps go at the end, or after `after`.
-    pub fn step(&self, id: &str, state: Option<&str>, fields: &[(&str, &str)], after: Option<&str>) -> Result<Value, String> {
+    /// A step of the plan: its state and its fields (`title`, `label`, `blurb`, `doc`). Only what's
+    /// passed changes, and `""` returns a field to its default. An unknown id is an error unless
+    /// `new` (so a typo doesn't add a step); `after` places a new step, or moves an existing one.
+    /// Returns the step and what changed.
+    pub fn step(&self, id: &str, state: Option<&str>, fields: &[(&str, &str)], after: Option<&str>, new: bool) -> Result<(Value, Vec<String>), String> {
         if let Some(s) = state {
             if !STATES.contains(&s) {
                 return Err("a step is done, now, next or later".into());
             }
         }
-        let mut b = self.board();
-        let stages = obj(&mut b).entry("stages").or_insert(json!([])).as_array_mut().ok_or("stages isn't a list")?;
-        let i = stages.iter().position(|s| s["id"] == id);
-        let mut e = i.map(|i| stages[i].clone()).unwrap_or_else(|| json!({ "id": id, "title": id }));
-        let eo = obj(&mut e);
+        if !id.chars().all(|c| c.is_ascii_alphanumeric() || "._-".contains(c)) || id.is_empty() {
+            return Err(format!("bad step id {id:?}: letters, digits, . _ -"));
+        }
         for (k, v) in fields {
-            eo.insert((*k).into(), json!(v));
-        }
-        if let Some(s) = state {
-            eo.insert("state".into(), json!(s));
-        }
-        match i {
-            Some(i) => stages[i] = e.clone(),
-            None => {
-                let at = after.and_then(|a| stages.iter().position(|s| s["id"] == a)).map(|p| p + 1).unwrap_or(stages.len());
-                stages.insert(at, e.clone());
+            if *k == "doc" && !v.is_empty() {
+                self.check_doc(v)?;
             }
         }
+        let mut b = self.board();
+        let stages = obj(&mut b).entry("stages").or_insert(json!([])).as_array_mut().ok_or("stages isn't a list")?;
+        let ids = |st: &Vec<Value>| st.iter().filter_map(|s| s["id"].as_str().map(String::from)).collect::<Vec<_>>().join(", ");
+        let i = stages.iter().position(|s| s["id"] == id);
+        match (i, new) {
+            (None, false) => return Err(format!("no step {id:?}; steps: {} (--new adds one)", ids(stages))),
+            (Some(_), true) => return Err(format!("step {id:?} exists; leave out --new to change it")),
+            _ => {}
+        }
+        if let Some(a) = after {
+            if a == id || !stages.iter().any(|s| s["id"] == a) {
+                return Err(format!("no step {a:?} to go after; steps: {}", ids(stages)));
+            }
+        }
+        let mut e = i.map(|i| stages[i].clone()).unwrap_or_else(|| json!({ "id": id, "title": id }));
+        let mut changed = vec![];
+        let eo = obj(&mut e);
+        for (k, v) in fields {
+            let was = eo.get(*k).and_then(|x| x.as_str()).map(String::from);
+            if v.is_empty() {
+                if eo.remove(*k).is_some() { changed.push(format!("{k} reset")); }
+            } else if was.as_deref() != Some(*v) {
+                eo.insert((*k).into(), json!(v));
+                changed.push((*k).to_string());
+            }
+        }
+        if let Some(s) = state {
+            if eo.get("state").and_then(|x| x.as_str()) != Some(s) {
+                eo.insert("state".into(), json!(s));
+                changed.push(format!("state {s}"));
+            }
+        }
+        if let Some(i) = i {
+            stages.remove(i);
+        }
+        let at = match after {
+            Some(a) => stages.iter().position(|s| s["id"] == a).map(|p| p + 1).unwrap_or(stages.len()),
+            None => i.unwrap_or(stages.len()),
+        };
+        if i.is_some() && after.is_some() && Some(at) != i {
+            changed.push(format!("moved after {}", after.unwrap_or("")));
+        }
+        stages.insert(at, e.clone());
+        if new {
+            changed.insert(0, "added".into());
+        }
         self.save_board(&b)?;
-        Ok(e)
+        Ok((e, changed))
+    }
+
+    /// A step's `doc` must name a real plan section: the file, from the project's home (or absolute),
+    /// and a heading starting with the anchor. A board with no home can't check a relative path.
+    pub fn check_doc(&self, doc: &str) -> Result<(), String> {
+        let (file, anchor) = doc.split_once('#').map(|(f, a)| (f, Some(a))).unwrap_or((doc, None));
+        if anchor.is_some_and(|a| a.is_empty() || a.contains(char::is_whitespace)) {
+            return Err(format!("--doc {doc:?}: the part after # is a heading's first word, e.g. plans/x.md#M3"));
+        }
+        let home = self.dir.parent().filter(|p| p.ends_with(".switchboard")).and_then(|p| p.parent());
+        let path = if Path::new(file).is_absolute() { PathBuf::from(file) } else {
+            match home { Some(h) => h.join(file), None => return Ok(()) }
+        };
+        if !path.is_file() {
+            return Err(format!("--doc: no file {}", path.display()));
+        }
+        if let Some(a) = anchor {
+            if self.doc_section(doc).is_none() {
+                return Err(format!("--doc: {file} has no heading starting with {a:?}"));
+            }
+        }
+        Ok(())
     }
 
     pub fn remove_step(&self, id: &str) -> Result<(), String> {
@@ -618,7 +680,7 @@ mod tests {
     fn board() -> (tempfile::TempDir, Board) {
         let t = tempfile::tempdir().unwrap();
         let b = Board { dir: t.path().join("board"), app_slug: None };
-        b.step("a1", Some("now"), &[("title", "First")], None).unwrap();
+        b.step("a1", Some("now"), &[("title", "First")], None, true).unwrap();
         (t, b)
     }
 
@@ -683,7 +745,7 @@ mod tests {
     #[test]
     fn update_versions_and_moves_quietly() {
         let (_t, b) = board();
-        b.step("b1", Some("next"), &[], None).unwrap();
+        b.step("b1", Some("next"), &[], None, true).unwrap();
         let c = b.add(json!({ "id": "x", "stage": "a1", "title": "X" }), false, false).unwrap();
         let moved = b.update("x", json!({ "stage": "b1" }), None, false).unwrap();
         assert_eq!(moved["updated"], c["updated"]);
@@ -720,11 +782,38 @@ mod tests {
     }
 
     #[test]
+    fn a_steps_doc_must_name_a_real_section() {
+        let t = tempfile::tempdir().unwrap();
+        let b = Board { dir: t.path().join(".switchboard/board"), app_slug: None };
+        std::fs::create_dir_all(t.path().join("plans")).unwrap();
+        std::fs::write(t.path().join("plans/p.md"), "# Plan\n\n### M3 · Build\n\nText.\n").unwrap();
+        b.step("m3", Some("now"), &[("doc", "plans/p.md#M3")], None, true).unwrap();
+        assert!(b.step("m3", None, &[("doc", "plans/p.md#M4")], None, false).unwrap_err().contains("no heading"));
+        assert!(b.step("m3", None, &[("doc", "plans/q.md#M3")], None, false).unwrap_err().contains("no file"));
+    }
+
+    #[test]
     fn steps_settle_working_and_reads() {
         let (_t, b) = board();
-        b.step("b0", Some("done"), &[("label", "B0")], Some("a1")).unwrap();
+        b.step("b0", Some("done"), &[("label", "B0")], Some("a1"), true).unwrap();
         assert_eq!(b.step_ids(), vec!["a1", "b0"]);
-        assert!(b.step("a1", Some("soon"), &[], None).is_err());
+        assert!(b.step("a1", Some("soon"), &[], None, false).is_err());
+        // A typo is an error, not a new step; --new on an existing one is refused.
+        assert!(b.step("a11", Some("now"), &[], None, false).unwrap_err().contains("--new adds one"));
+        assert!(b.step("a1", None, &[], None, true).unwrap_err().contains("exists"));
+        // Only what's passed changes; "" resets; after moves an existing step.
+        let (s, ch) = b.step("a1", None, &[("blurb", "One line"), ("label", "A1")], None, false).unwrap();
+        assert_eq!((s["blurb"].clone(), s["state"].clone(), ch.clone()), (json!("One line"), json!("now"), vec!["blurb".to_string(), "label".into()]));
+        assert!(b.step("a1", None, &[("blurb", "One line")], None, false).unwrap().1.is_empty());
+        let (s, _) = b.step("a1", None, &[("label", "")], None, false).unwrap();
+        assert!(s.get("label").is_none());
+        let order = |b: &Board| b.board()["stages"].as_array().unwrap().iter().map(|s| s["id"].as_str().unwrap().to_string()).collect::<Vec<_>>();
+        assert_eq!(order(&b), ["a1", "b0"]);
+        assert_eq!(b.step("a1", None, &[], Some("b0"), false).unwrap().1, ["moved after b0"]);
+        assert_eq!(order(&b), ["b0", "a1"]);
+        assert!(b.step("a1", None, &[], Some("zz"), false).is_err());
+        // --doc names a real section (here the board has no home, so only its shape is checked).
+        assert!(b.step("a1", None, &[("doc", "plans/x.md#")], None, false).unwrap_err().contains("heading"));
         b.add(json!({ "id": "x", "stage": "b0", "title": "X" }), false, false).unwrap();
         assert!(b.remove_step("b0").is_err());
         assert_eq!(b.settle("s1", Some("A call"), Some("a1")).unwrap(), "settled-s1");

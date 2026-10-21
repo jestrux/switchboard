@@ -487,7 +487,7 @@ Each step lists its own open cards (above). Decided ones are in the board's Reco
 
 Good to have, shaped later, **when the Horizon project (prod-app) comes onto the board**: both
 are its practices today, so they're designed against it then. On the board they sit under the
-step **Later** (`board step later later`).
+step **Later** (`board step later --new --title Later`, state `later`).
 
 - **The wishlist as a screener** (`c-wish`): ideas, paper cuts and design suggestions that
   aren't in a phase yet, read at each phase's start and gate, promoted or dropped. Brings the

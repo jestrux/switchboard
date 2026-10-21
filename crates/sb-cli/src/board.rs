@@ -75,21 +75,29 @@ pub enum BoardCmd {
         #[arg(long)]
         item: Option<String>,
     },
-    /// A step of the plan, shown in the sidebar: done, now, next or later
+    /// A step of the plan (the sidebar): its state and its fields. Only what you pass changes;
+    /// "" returns a field to its default. `--new` adds a step; `--after` places or moves one
     Step {
         id: String,
+        /// done, now, next or later
         state: Option<String>,
         #[arg(long)]
         title: Option<String>,
+        /// Short label shown before the title, e.g. M3 ("" for the step's number)
         #[arg(long)]
         label: Option<String>,
+        /// One line under the title
         #[arg(long)]
         blurb: Option<String>,
-        /// The plan section its panel shows, e.g. plans/06-board.md#B1
+        /// The plan section its panel shows, e.g. plans/06-board.md#B1 (checked)
         #[arg(long)]
         doc: Option<String>,
+        /// Put it after this step (a new one, or move an existing one)
         #[arg(long)]
         after: Option<String>,
+        /// Add a step that doesn't exist yet
+        #[arg(long, conflicts_with = "remove")]
+        new: bool,
         /// Remove it (only when it has no cards)
         #[arg(long)]
         remove: bool,
@@ -214,7 +222,7 @@ pub fn run(projects_dir: &Path, dir: Option<PathBuf>, cmd: BoardCmd) -> Result<i
             e(b.log(&joined(&text).ok_or_else(|| anyhow!("give the text"))?, item.as_deref()))?;
             println!("logged");
         }
-        BoardCmd::Step { id, state, title, label, blurb, doc, after, remove } => {
+        BoardCmd::Step { id, state, title, label, blurb, doc, after, new, remove } => {
             if remove {
                 e(b.remove_step(&id))?;
                 println!("removed step {id}");
@@ -226,12 +234,18 @@ pub fn run(projects_dir: &Path, dir: Option<PathBuf>, cmd: BoardCmd) -> Result<i
                     fields.push((k, v.as_str()));
                 }
             }
-            let s = e(b.step(&id, state.as_deref(), &fields, after.as_deref()))?;
-            if let Some(st @ ("now" | "done")) = state.as_deref() {
-                let label = s["label"].as_str().map(|l| format!("{l} · ")).unwrap_or_default();
-                e(b.log(&format!("{}: {label}{}", if st == "now" { "Now" } else { "Done" }, board::plain(s["title"].as_str().unwrap_or(&id))), None))?;
+            let (s, changed) = e(b.step(&id, state.as_deref(), &fields, after.as_deref(), new))?;
+            let label = s["label"].as_str().map(|l| format!("{l} · ")).unwrap_or_default();
+            let title = board::plain(s["title"].as_str().unwrap_or(&id));
+            if let Some(st @ ("now" | "done")) = state.as_deref().filter(|st| changed.iter().any(|c| c == &format!("state {st}"))) {
+                e(b.log(&format!("{}: {label}{title}", if st == "now" { "Now" } else { "Done" }), None))?;
             }
-            println!("{id}{}", s["state"].as_str().map(|x| format!(" · {x}")).unwrap_or_default());
+            let edits: Vec<&String> = changed.iter().filter(|c| !c.starts_with("state ")).collect();
+            if !edits.is_empty() {
+                e(b.log(&format!("Step {label}{title}: {}", edits.iter().map(|c| c.as_str()).collect::<Vec<_>>().join(", ")), None))?;
+            }
+            println!("{id}{}{}", s["state"].as_str().map(|x| format!(" · {x}")).unwrap_or_default(),
+                     if changed.is_empty() { " (already so)".to_string() } else { format!(" · {}", changed.join(", ")) });
         }
         BoardCmd::Decide { ids, pick, note } => {
             for id in ids {

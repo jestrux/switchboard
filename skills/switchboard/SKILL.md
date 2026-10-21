@@ -150,7 +150,10 @@ switchboard board add card.json [--ask] [--blocking]   # post a card (or - for s
 switchboard board ask <id> [--blocking]                # "I need this one now": pushes to the phone
 switchboard board update <id> patch.json [--changed "what changed"]
 switchboard board working "what you're doing" [--stage <step>]
-switchboard board step <id> done|now|next|later        # the plan's steps, in the sidebar
+switchboard board step <id> [done|now|next|later] [--title …] [--label …] [--blurb …] [--doc file.md#M3]
+                                                       # a step of the plan, in the sidebar: its state
+                                                       # and its fields (only what you pass changes)
+switchboard board step <id> --new --title … [--after <id>]   # add a step; --after also moves one
 switchboard board kept <id> [--commit <sha>]           # a decision's work is done
 switchboard board decide <id>… [--pick o] [--note …]   # the author decided in chat, not on the board
 switchboard board seen <id>…                           # the author has seen these (cards with no question)
@@ -180,6 +183,11 @@ switchboard board answers --wait                       # keep this running in th
 - **Obvious calls don't get a card:** `switchboard board settle <id> "the call"` lists it as
   going ahead unless the author objects.
 - **`--blocking` only when you truly can't go on** without the answer.
+- **Keep the steps true.** When the plan or the product changes, change the step with `step`
+  (its title, blurb, label, or the plan section `--doc` points at, which is checked). `""` returns
+  a field to its default; an unknown id is an error, not a new step.
+- **One verb per thing:** cards are `add`, `update`, `remove`; steps are `step` (`--new`,
+  `--remove`). Never edit the board's files, including `board.json`.
 - **When the author decides in the conversation**, record it with `decide` (their pick, or the
   recommendation they agreed to), so the Record and What's owed stay true; then `kept` once built.
 - **Read answers as they come** (`answers --wait` returns when the author sends); never read them
