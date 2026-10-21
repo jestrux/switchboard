@@ -232,6 +232,7 @@ struct BoardPageView: NSViewRepresentable {
         let web = WKWebView(frame: .zero, configuration: config)
         web.setValue(false, forKey: "drawsBackground")
         web.navigationDelegate = context.coordinator
+        web.uiDelegate = context.coordinator
         context.coordinator.web = web
         context.coordinator.pushed = json
         context.coordinator.next = next ?? ""
@@ -258,7 +259,7 @@ struct BoardPageView: NSViewRepresentable {
         web.configuration.userContentController.removeScriptMessageHandler(forName: "board")
     }
 
-    final class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate {
         let project: String
         let engine: Engine
         weak var web: WKWebView?
@@ -273,6 +274,37 @@ struct BoardPageView: NSViewRepresentable {
             guard !json.isEmpty, json != pushed else { return }
             pushed = json
             if loaded { web?.evaluateJavaScript("window.__boardIngest && window.__boardIngest(\(json));") }
+        }
+
+        /// Only the board page itself loads here. A web link opens in the default browser, a plan's
+        /// link to another file (@home/…) with that file's app, and a same-page #link stays.
+        func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            guard let url = action.request.url else { return decisionHandler(.cancel) }
+            if url.scheme == BoardScheme.scheme {
+                let path = url.path.removingPercentEncoding ?? url.path
+                if path == "/index.html" || action.navigationType != .linkActivated && !path.hasPrefix("/@home/") {
+                    return decisionHandler(.allow)
+                }
+                if path.hasPrefix("/@home/"), let dir = engine.boardDir(slug: project) {
+                    let board = URL(fileURLWithPath: dir)
+                    let home = board.deletingLastPathComponent().deletingLastPathComponent().standardizedFileURL
+                    let file = home.appendingPathComponent(String(path.dropFirst("/@home/".count))).standardizedFileURL
+                    if board.deletingLastPathComponent().lastPathComponent == ".switchboard",
+                       file.path.hasPrefix(home.path + "/"), FileManager.default.fileExists(atPath: file.path) {
+                        NSWorkspace.shared.open(file)
+                    }
+                }
+                return decisionHandler(.cancel)
+            }
+            if url.scheme == "about" { return decisionHandler(.allow) }
+            NSWorkspace.shared.open(url)
+            decisionHandler(.cancel)
+        }
+
+        /// target="_blank" and window.open: the default browser, not a new web view.
+        func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for action: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+            if let url = action.request.url, url.scheme != BoardScheme.scheme { NSWorkspace.shared.open(url) }
+            return nil
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {

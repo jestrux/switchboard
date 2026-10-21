@@ -709,11 +709,26 @@ function normItem(it, i) {
     visual: !!(body.video || body.image || body.compare.length || body.gallery.length || body.custom)
   };
 }
+// A plan section's relative links (other .md files) point from the plan's folder; the app opens
+// them with their default app (@home/…), and web links in the browser, never inside the board.
+function docLinks(html, doc) {
+  if (!html || !doc || !APP) return html;
+  var dir = String(doc).split('#')[0].split('/').slice(0, -1);
+  var t = document.createElement('template'); t.innerHTML = html;
+  t.content.querySelectorAll('a[href]').forEach(function (a) {
+    var href = a.getAttribute('href');
+    if (/^([a-z][\w+.-]*:|#|\/|~)/i.test(href)) return;
+    var parts = dir.slice();
+    href.split('#')[0].split('/').forEach(function (seg) { if (seg === '..') parts.pop(); else if (seg && seg !== '.') parts.push(seg); });
+    a.setAttribute('href', '@home/' + parts.join('/'));
+  });
+  return t.innerHTML;
+}
 function norm(raw) {
   raw = raw || {};
   var p = raw.project || {};
   // A stage can be a plan step: `state` done | now | next, and a `label` ("A1") shown in place of its number.
-  var stages = toArr(raw.stages).map(function (s, i) { return { id: String(s.id), title: s.title || s.id, blurb: s.blurb || '', n: s.label || i + 1, state: s.state || '', docHtml: s.docHtml || (s.docMd != null && window.marked ? marked.parse(s.docMd) : ''), docError: s.docError || '', parts: s.parts || (s.docMd != null ? { done: (s.docMd.match(/^\s*- \[x\]/gim) || []).length, total: (s.docMd.match(/^\s*- \[[ x]\]/gim) || []).length } : null) }; });
+  var stages = toArr(raw.stages).map(function (s, i) { return { id: String(s.id), title: s.title || s.id, blurb: s.blurb || '', n: s.label || i + 1, state: s.state || '', docHtml: docLinks(s.docHtml || (s.docMd != null && window.marked ? marked.parse(s.docMd) : ''), s.doc), docError: s.docError || '', parts: s.parts || (s.docMd != null ? { done: (s.docMd.match(/^\s*- \[x\]/gim) || []).length, total: (s.docMd.match(/^\s*- \[[ x]\]/gim) || []).length } : null) }; });
   var items = toArr(raw.items).map(normItem);
   items.forEach(function (it) {
     if (!stages.some(function (s) { return s.id === it.stage; })) stages.push({ id: String(it.stage || 'other'), title: it.stage || 'Other', blurb: '', n: stages.length + 1 });
