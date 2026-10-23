@@ -6,6 +6,7 @@ struct SettingsView: View {
     @AppStorage(ThemeSettings.themeKey) private var themeID: SBThemeID = .graphite
     @AppStorage(ThemeSettings.appearanceKey) private var appearance: SBAppearance = .system
     @AppStorage(ThemeSettings.railKey) private var rail = true
+    @AppStorage(Desk.switcherKey) private var productSwitcher = "tabs"
     @State private var openAtLogin = LoginItem.isOn
     @State private var loginProblem: String?
     @Environment(\.colorScheme) private var scheme
@@ -59,6 +60,22 @@ struct SettingsView: View {
                 Spacer()
                 Toggle("", isOn: $rail).labelsHidden().toggleStyle(.switch).tint(p.accent)
             }
+
+            HStack(alignment: .top, spacing: 16) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Products in a company").font(SBType.body).foregroundStyle(p.text)
+                    Text("A company is one icon on the rail; its products are picked in the sidebar, as tabs or from the title. Tabs become the menu past three products.")
+                        .font(SBType.secondary).foregroundStyle(p.text3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+                Picker("", selection: $productSwitcher) {
+                    Text("Tabs").tag("tabs")
+                    Text("Menu").tag("menu")
+                }
+                .labelsHidden().pickerStyle(.segmented).fixedSize()
+            }
+            .padding(.top, 14)
 
             section("Startup", p)
             HStack(alignment: .top, spacing: 16) {

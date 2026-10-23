@@ -60,13 +60,16 @@ a new session should not reopen them without a reason.
   not to relitigate (three themes, project rail on by default, one 36 pt pane bar, dialog
   cards with Keep Both as the conflict default, the key bindings).
 
-- **Companies are a label on a project, set in the app** (2026-10-23). The author thinks in
-  companies → products (SetHero: V1 and Horizon); a project stays one product, with its own home
-  and board. The rail gathers a company's projects under a small label that folds them into one
-  tile (summed counts, a crash dot); products that share a logo carry a short mark ("V1", "HZ";
-  initials by default). Nothing runs at company level, there are no rail folders, and there is no
-  hide: folding covers it. It's personal, so it lives in the app's settings (`Desk.swift`), never in
-  a repo. Names read "SetHero · Horizon" in window titles, the Boards window and the menu bar.
+- **Companies: one icon on the rail, products picked in the sidebar** (2026-10-23). The author
+  thinks in companies → products (SetHero: V1 and Horizon); a project stays one product, with its
+  own home and board. The rail stays icons only, one per company: its tile adds up its products'
+  counts and opens the product last used. The sidebar's header picks the product, as tabs under the
+  company's name (the default) or as the title's menu (Settings › Sidebar › Products in a company;
+  tabs become the menu past three). In a product's own window, picking another opens that product's
+  window. A company is only a label, set from a project's right-click menu (Company ▸): nothing
+  runs at company level. Tried and rejected the same day: a text label on the rail, folding, product
+  marks on tiles, and hiding. It's personal, so it lives in the app's settings (`Desk.swift`), never
+  in a repo. Names read "SetHero · Horizon" in window titles, the Boards window and the menu bar.
 
 ## Engineering
 

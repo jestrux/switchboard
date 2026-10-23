@@ -198,32 +198,22 @@ struct RailView: View {
         let p = look.p
         VStack(spacing: 14) {
             Color.clear.frame(height: 11) // traffic lights row (margin-bottom 14 = the stack gap)
-            // A company's products sit together under its label; the label folds them into one tile.
+            // One icon per company: its products are picked in the sidebar (Desk, ProductPicker).
             ForEach(desk.entries(projects)) { entry in
                 switch entry {
                 case .project(let project):
                     tile(project)
                 case .company(let company, let members):
-                    VStack(spacing: 8) {
-                        Button { withAnimation(SBMotion.railSettle) { desk.toggle(company) } } label: {
-                            HStack(spacing: 2) {
-                                Image(systemName: desk.collapsed.contains(company) ? "chevron.right" : "chevron.down")
-                                    .font(.system(size: 6.5, weight: .bold))
-                                Text(company).font(.system(size: 9, weight: .semibold)).lineLimit(1).truncationMode(.tail)
-                            }
-                            .foregroundStyle(p.text3)
-                            .frame(maxWidth: SBMetrics.railWidth - 8)
-                            .contentShape(Rectangle())
+                    let current = desk.current(company, members: members)
+                    CompanyTile(company: company, members: members, icon: members.first, selected: members.contains { $0.slug == context.railProject })
+                        .onTapGesture { if let current { context.railProject = current.slug } }
+                        .contextMenu { if let current { ProjectMenu(project: current) } }
+                        .draggable(DragPayload.project(members.first?.slug ?? ""))
+                        .reorderTarget(edge: .top) { payload in
+                            guard let slug = DragPayload.parseProject(payload), let first = members.first else { return false }
+                            withAnimation(SBMotion.railSettle) { store.moveProject(slug, toSlotOf: first.slug) }
+                            return true
                         }
-                        .buttonStyle(.plain)
-                        .help(desk.collapsed.contains(company) ? "Show \(company)'s projects" : "Fold \(company) into one tile")
-                        if desk.collapsed.contains(company) {
-                            CompanyTile(company: company, members: members, selected: members.contains { $0.slug == context.railProject })
-                                .onTapGesture { withAnimation(SBMotion.railSettle) { desk.toggle(company) } }
-                        } else {
-                            VStack(spacing: 14) { ForEach(members, id: \.slug) { tile($0) } }
-                        }
-                    }
                 }
             }
             Rectangle().fill(p.line).frame(width: 28, height: 1)
@@ -244,7 +234,7 @@ struct RailView: View {
     }
 
     private func tile(_ project: ProjectInfo) -> some View {
-        RailTile(project: project, selected: context.railProject == project.slug, mark: desk.mark(project, among: projects))
+        RailTile(project: project, selected: context.railProject == project.slug)
             .onTapGesture { context.railProject = project.slug }
             .contextMenu { ProjectMenu(project: project) }
             .draggable(DragPayload.project(project.slug))
@@ -256,8 +246,8 @@ struct RailView: View {
     }
 }
 
-/// A folded company: its first product's logo, with what its products add up to (running,
-/// needing you, a crash). A tap unfolds it.
+/// A company on the rail: one icon, with what its products add up to (running, needing you, a
+/// crash). A tap opens the product last used in it.
 struct CompanyTile: View {
     @EnvironmentObject var store: EngineStore
     @ObservedObject private var boards = BoardCache.shared
@@ -265,6 +255,7 @@ struct CompanyTile: View {
     @Environment(\.colorScheme) private var scheme
     let company: String
     let members: [ProjectInfo]
+    let icon: ProjectInfo?
     let selected: Bool
 
     var body: some View {
@@ -274,13 +265,15 @@ struct CompanyTile: View {
         let crashed = members.contains { store.crashedCount(project: $0.slug) > 0 }
         let needs = members.reduce(0) { $0 + (boards.data($1.slug)?.needsYou ?? 0) }
         ZStack(alignment: .bottomTrailing) {
-            if let first = members.first { ProjectIcon(project: first, size: SBMetrics.railTile, radius: look.s.tileRadius) }
+            if let icon { ProjectIcon(project: icon, size: SBMetrics.railTile, radius: look.s.tileRadius) }
             if running > 0 { RailTile.badge("\(running)", bg: p.running, fg: look.isDark ? Color(hex: 0x0B0C0E) : .white, look: look) }
             if needs > 0 {
                 RailTile.badge("\(needs)", bg: p.accent, fg: p.onAccent, look: look).offset(x: 0, y: -SBMetrics.railTile + 8)
+                    .help("\(needs) on \(company)'s boards need you")
             }
             if crashed {
                 Circle().fill(p.crashed).frame(width: 7, height: 7)
+                    .shadow(color: look.glows ? p.crashed : .clear, radius: 3)
                     .offset(x: needs > 0 ? -SBMetrics.railTile + 4 : 2, y: -SBMetrics.railTile + 6)
             }
         }
@@ -288,10 +281,12 @@ struct CompanyTile: View {
         .onDisappear { members.forEach { boards.unwatch($0.slug) } }
         .padding(4)
         .background {
-            RoundedRectangle(cornerRadius: look.s.tileRadius + 4, style: .continuous)
-                .strokeBorder(selected ? p.accent : p.line, style: StrokeStyle(lineWidth: selected ? 2 : 1, dash: selected ? [] : [3, 2]))
+            if selected {
+                RoundedRectangle(cornerRadius: look.s.tileRadius + 4, style: .continuous).strokeBorder(p.accent, lineWidth: 2)
+            }
         }
         .help("\(company): \(members.map(\.name).joined(separator: ", "))")
+        .animation(SBMotion.railSettle, value: selected)
     }
 }
 
@@ -302,8 +297,6 @@ struct RailTile: View {
     @Environment(\.colorScheme) private var scheme
     let project: ProjectInfo
     let selected: Bool
-    /// A short product mark ("V1", "HZ"), for products that share a logo (Desk).
-    var mark: String? = nil
 
     var body: some View {
         let look = Look(theme: theme, scheme: scheme)
@@ -319,15 +312,6 @@ struct RailTile: View {
                     .frame(width: SBMetrics.railTile, height: SBMetrics.railTile)
             } else {
                 ProjectIcon(project: project, size: SBMetrics.railTile, radius: look.s.tileRadius)
-                    .overlay(alignment: .bottomLeading) {
-                        if let mark {
-                            Text(mark).font(.system(size: 8.5, weight: .heavy)).foregroundStyle(p.text)
-                                .padding(.horizontal, 3.5).frame(minHeight: 14)
-                                .background(p.rail, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 4, style: .continuous).strokeBorder(p.line, lineWidth: 1))
-                                .offset(x: -4, y: 4)
-                        }
-                    }
             }
             if project.error != nil {
                 badge("!", bg: p.error, fg: Color(hex: 0x1A1208), look: look)
@@ -383,6 +367,8 @@ struct BoardProjectHeader: View {
     @Environment(\.sbTheme) private var theme
     @Environment(\.colorScheme) private var scheme
     @Environment(\.openWindow) private var openWindow
+    @ObservedObject private var desk = Desk.shared
+    @AppStorage(Desk.switcherKey) private var style = "tabs"
     let project: ProjectInfo
 
     var body: some View {
@@ -391,15 +377,27 @@ struct BoardProjectHeader: View {
         let crashed = store.crashedCount(project: project.slug)
         let total = project.allCommands.count
         let panes = context.layout.leaves.filter { $0.ref?.project == project.slug }.count
+        let products = desk.products(of: project, in: store.projects)
+        let company = products.isEmpty ? nil : desk.company(project.slug)
+        let tabs = ProductPicker.usesTabs(products.count, style: style)
+        let picker = company.map { ProductPicker(company: $0, products: products, current: project) { prod in
+            context.railProject = prod.slug; desk.remember(prod.slug)
+        } }
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 6) {
-                Text(project.name).font(SBType.sidebarTitle).foregroundStyle(p.text).lineLimit(1).help(project.name)
+                let title = Text(company != nil && tabs ? company! : project.name).font(SBType.sidebarTitle).foregroundStyle(p.text).lineLimit(1)
+                if let picker, !tabs { picker.menuTitle(title) } else { title.help(desk.displayName(project)) }
                 Spacer(minLength: 4)
                 IconButton("macwindow.on.rectangle", help: "Open in New Window (⌘⇧N)") {
                     openWindow(id: "project", value: project.slug)
                 }
                 .foregroundStyle(p.text3)
-                SmallButton(label: "Start all", icon: "play.fill") { store.startAll(project: project.slug) }
+                // With the product menu as the title, Start all is just its icon, so the name has room.
+                if picker != nil && !tabs {
+                    IconButton("play.fill", help: "Start all") { store.startAll(project: project.slug) }.foregroundStyle(p.text3)
+                } else {
+                    SmallButton(label: "Start all", icon: "play.fill") { store.startAll(project: project.slug) }.fixedSize()
+                }
             }
             HStack(spacing: 4) {
                 Text("\(running) of \(total) running").foregroundStyle(p.text3)
@@ -407,7 +405,9 @@ struct BoardProjectHeader: View {
                 if panes > 0 { Text("·").foregroundStyle(p.text4); Text("\(panes) pane\(panes == 1 ? "" : "s")").foregroundStyle(p.text3) }
             }
             .font(SBType.secondary)
+            if let picker, tabs { picker.tabs.padding(.top, 8) }
         }
+        .onAppear { desk.remember(project.slug) }
         .padding(.horizontal, 14)
         // The traffic lights sit over the rail, so this column needs no title-bar allowance.
         .padding(.top, 14)
@@ -423,6 +423,9 @@ struct ProjectWindowHeader: View {
     @Environment(\.sbTheme) private var theme
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
+    @ObservedObject private var desk = Desk.shared
+    @AppStorage(Desk.switcherKey) private var style = "tabs"
     let project: ProjectInfo
     @State private var hovering = false
 
@@ -431,11 +434,19 @@ struct ProjectWindowHeader: View {
         let p = look.p
         let running = store.runningCount(project: project.slug)
         let total = project.allCommands.count
+        let products = desk.products(of: project, in: store.projects)
+        let company = products.isEmpty ? nil : desk.company(project.slug)
+        let tabs = ProductPicker.usesTabs(products.count, style: style)
+        // A product's own window: picking another opens (or brings forward) that product's window.
+        let picker = company.map { ProductPicker(company: $0, products: products, current: project) { prod in
+            if prod.slug != project.slug { openWindow(id: "project", value: prod.slug) }
+        } }
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 ProjectIcon(project: project, size: SBMetrics.projectHeaderIcon, radius: look.s.tileRadius)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(project.name).font(SBType.projectWindowTitle).tracking(-0.4).foregroundStyle(p.text).lineLimit(1).help(project.name)
+                    let title = Text(company != nil && tabs ? company! : project.name).font(SBType.projectWindowTitle).tracking(-0.4).foregroundStyle(p.text).lineLimit(1)
+                    if let picker, !tabs { picker.menuTitle(title) } else { title.help(desk.displayName(project)) }
                     HStack(spacing: 4) {
                         Circle().fill(running > 0 ? p.running : p.stopped).frame(width: 6, height: 6)
                         Text("\(running) running").foregroundStyle(running > 0 ? p.running : p.text3)
@@ -461,6 +472,7 @@ struct ProjectWindowHeader: View {
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
                 .foregroundStyle(p.text3)
             }
+            if let picker, tabs { picker.tabs }
         }
         .padding(.top, 12).padding(.bottom, 12).padding(.leading, 12).padding(.trailing, 10)
         .background(hovering ? p.hover : .clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
