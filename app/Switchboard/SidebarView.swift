@@ -380,20 +380,21 @@ struct BoardProjectHeader: View {
         let products = desk.products(of: project, in: store.projects)
         let company = products.isEmpty ? nil : desk.company(project.slug)
         let tabs = ProductPicker.usesTabs(products.count, style: style)
-        let picker = company.map { ProductPicker(company: $0, products: products, current: project) { prod in
-            context.railProject = prod.slug; desk.remember(prod.slug)
-        } }
+        let pick: (ProjectInfo) -> Void = { prod in context.railProject = prod.slug; desk.remember(prod.slug) }
+        let picker: Bool = company != nil
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 6) {
                 let title = Text(company != nil && tabs ? company! : project.name).font(SBType.sidebarTitle).foregroundStyle(p.text).lineLimit(1)
-                if let picker, !tabs { picker.menuTitle(title) } else { title.help(desk.displayName(project)) }
+                if let company, !tabs {
+                    ProductMenuTitle(company: company, products: products, current: project, pick: pick) { title }
+                } else { title.help(desk.displayName(project)) }
                 Spacer(minLength: 4)
                 IconButton("macwindow.on.rectangle", help: "Open in New Window (⌘⇧N)") {
                     openWindow(id: "project", value: project.slug)
                 }
                 .foregroundStyle(p.text3)
                 // With the product menu as the title, Start all is just its icon, so the name has room.
-                if picker != nil && !tabs {
+                if picker && !tabs {
                     IconButton("play.fill", help: "Start all") { store.startAll(project: project.slug) }.foregroundStyle(p.text3)
                 } else {
                     SmallButton(label: "Start all", icon: "play.fill") { store.startAll(project: project.slug) }.fixedSize()
@@ -405,7 +406,7 @@ struct BoardProjectHeader: View {
                 if panes > 0 { Text("·").foregroundStyle(p.text4); Text("\(panes) pane\(panes == 1 ? "" : "s")").foregroundStyle(p.text3) }
             }
             .font(SBType.secondary)
-            if let picker, tabs { picker.tabs.padding(.top, 8) }
+            if picker, tabs { ProductTabs(products: products, current: project, pick: pick).padding(.top, 8) }
         }
         .onAppear { desk.remember(project.slug) }
         .padding(.horizontal, 14)
@@ -438,15 +439,15 @@ struct ProjectWindowHeader: View {
         let company = products.isEmpty ? nil : desk.company(project.slug)
         let tabs = ProductPicker.usesTabs(products.count, style: style)
         // A product's own window: picking another opens (or brings forward) that product's window.
-        let picker = company.map { ProductPicker(company: $0, products: products, current: project) { prod in
-            if prod.slug != project.slug { openWindow(id: "project", value: prod.slug) }
-        } }
+        let pick: (ProjectInfo) -> Void = { prod in if prod.slug != project.slug { openWindow(id: "project", value: prod.slug) } }
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 ProjectIcon(project: project, size: SBMetrics.projectHeaderIcon, radius: look.s.tileRadius)
                 VStack(alignment: .leading, spacing: 2) {
                     let title = Text(company != nil && tabs ? company! : project.name).font(SBType.projectWindowTitle).tracking(-0.4).foregroundStyle(p.text).lineLimit(1)
-                    if let picker, !tabs { picker.menuTitle(title) } else { title.help(desk.displayName(project)) }
+                    if let company, !tabs {
+                        ProductMenuTitle(company: company, products: products, current: project, pick: pick) { title }
+                    } else { title.help(desk.displayName(project)) }
                     HStack(spacing: 4) {
                         Circle().fill(running > 0 ? p.running : p.stopped).frame(width: 6, height: 6)
                         Text("\(running) running").foregroundStyle(running > 0 ? p.running : p.text3)
@@ -472,7 +473,7 @@ struct ProjectWindowHeader: View {
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
                 .foregroundStyle(p.text3)
             }
-            if let picker, tabs { picker.tabs }
+            if company != nil, tabs { ProductTabs(products: products, current: project, pick: pick) }
         }
         .padding(.top, 12).padding(.bottom, 12).padding(.leading, 12).padding(.trailing, 10)
         .background(hovering ? p.hover : .clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))

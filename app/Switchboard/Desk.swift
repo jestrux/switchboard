@@ -122,36 +122,41 @@ struct DeskMenu: View {
 
 /// Picking a company's product in the sidebar header: tabs (the default, up to three products) or
 /// the title as a menu (Settings, or past three). In All Projects it switches the sidebar; in a
-/// project's own window it opens or focuses that product's window.
-struct ProductPicker: View {
-    @EnvironmentObject var store: EngineStore
+/// project's own window it opens or focuses that product's window. Both are views in the tree
+/// (not values read off a struct), so they get the window's theme and light or dark.
+enum ProductPicker {
+    static func usesTabs(_ count: Int, style: String) -> Bool { style != "menu" && count <= 3 }
+}
+
+/// The tabs row, under the company's name.
+struct ProductTabs: View {
     @ObservedObject private var boards = BoardCache.shared
     @ObservedObject private var desk = Desk.shared
-    @AppStorage(Desk.switcherKey) private var style = "tabs"
     @Environment(\.sbTheme) private var theme
     @Environment(\.colorScheme) private var scheme
-    let company: String
     let products: [ProjectInfo]
     let current: ProjectInfo
     let pick: (ProjectInfo) -> Void
 
-    static func usesTabs(_ count: Int, style: String) -> Bool { style != "menu" && count <= 3 }
-
-    /// The tabs row, under the company's name.
-    var tabs: some View {
+    var body: some View {
         let p = theme.palette(scheme)
-        return HStack(spacing: 2) {
+        HStack(spacing: 2) {
             ForEach(products, id: \.slug) { prod in
                 let on = prod.slug == current.slug
+                let n = boards.data(prod.slug)?.needsYou ?? 0
                 Button { pick(prod) } label: {
                     HStack(spacing: 5) {
                         Text(prod.name).font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                        needs(prod, p)
+                        if n > 0 {
+                            Text("\(n)").font(.system(size: 9.5, weight: .bold)).monospacedDigit()
+                                .foregroundStyle(p.onAccent).padding(.horizontal, 4).frame(minWidth: 14, minHeight: 14)
+                                .background(p.accent, in: Capsule())
+                        }
                     }
                     .foregroundStyle(on ? p.text : p.text2)
                     .frame(maxWidth: .infinity).frame(height: 24)
-                    .background(on ? p.pane : .clear, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    .shadow(color: on ? .black.opacity(0.12) : .clear, radius: 1, y: 1)
+                    .background(on ? p.button : .clear, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .overlay { if on { RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(p.buttonLine) } }
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -161,11 +166,22 @@ struct ProductPicker: View {
         .padding(2)
         .background(p.hover, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
+}
 
-    /// The product's name as a menu, with the company small above it.
-    func menuTitle<T: View>(_ title: T) -> some View {
+/// The product's name as a menu, with the company small above it.
+struct ProductMenuTitle<Title: View>: View {
+    @ObservedObject private var boards = BoardCache.shared
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    let company: String
+    let products: [ProjectInfo]
+    let current: ProjectInfo
+    let pick: (ProjectInfo) -> Void
+    @ViewBuilder let title: () -> Title
+
+    var body: some View {
         let p = theme.palette(scheme)
-        return VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: .leading, spacing: 1) {
             Text(company).font(.system(size: 11, weight: .semibold)).foregroundStyle(p.text3)
             Menu {
                 ForEach(products, id: \.slug) { prod in
@@ -177,7 +193,7 @@ struct ProductPicker: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    title.truncationMode(.tail)
+                    title().truncationMode(.tail)
                     Image(systemName: "chevron.down").font(.system(size: 9, weight: .bold)).foregroundStyle(p.text3)
                 }
                 .contentShape(Rectangle())
@@ -188,16 +204,4 @@ struct ProductPicker: View {
             .help("Switch product in \(company)")
         }
     }
-
-    @ViewBuilder
-    private func needs(_ prod: ProjectInfo, _ p: SBPalette) -> some View {
-        let n = boards.data(prod.slug)?.needsYou ?? 0
-        if n > 0 {
-            Text("\(n)").font(.system(size: 9.5, weight: .bold)).monospacedDigit()
-                .foregroundStyle(p.onAccent).padding(.horizontal, 4).frame(minWidth: 14, minHeight: 14)
-                .background(p.accent, in: Capsule())
-        }
-    }
-
-    var body: some View { tabs }
 }
