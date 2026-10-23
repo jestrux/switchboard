@@ -391,6 +391,32 @@ impl Board {
         Ok((e, changed))
     }
 
+    /// The board's own fields (`name`, `meta`, the line under it, `intro`, shown on a first visit,
+    /// `stagesLabel`, the heading over the steps). Only what's passed changes; `""` resets a field.
+    /// A board without a `dir` (the page's key for what you've read) gets one from its folder.
+    pub fn project_fields(&self, fields: &[(&str, &str)]) -> Result<Vec<String>, String> {
+        let mut b = self.board();
+        let key = self.app_slug.clone().or_else(|| {
+            self.dir.parent().filter(|p| p.ends_with(".switchboard")).and_then(|p| p.parent()).and_then(|h| h.file_name()).map(|n| n.to_string_lossy().into_owned())
+        }).unwrap_or_else(|| "board".into());
+        let proj = obj(obj(&mut b).entry("project").or_insert(json!({})));
+        let mut changed = vec![];
+        if !proj.contains_key("dir") {
+            proj.insert("dir".into(), json!(key));
+        }
+        for (k, v) in fields {
+            let was = proj.get(*k).and_then(|x| x.as_str()).map(String::from);
+            if v.is_empty() {
+                if proj.remove(*k).is_some() { changed.push(format!("{k} reset")); }
+            } else if was.as_deref() != Some(*v) {
+                proj.insert((*k).into(), json!(v));
+                changed.push((*k).to_string());
+            }
+        }
+        self.save_board(&b)?;
+        Ok(changed)
+    }
+
     /// A step's `doc` must name a real plan section: the file, from the project's home (or absolute),
     /// and a heading starting with the anchor. A board with no home can't check a relative path.
     pub fn check_doc(&self, doc: &str) -> Result<(), String> {
@@ -779,6 +805,17 @@ mod tests {
         assert_eq!(snap["record"][0]["notes"][0], "hm");
         assert_eq!(b.sends(false).0.len(), 2);
         assert!(b.answered().contains("x"));
+    }
+
+    #[test]
+    fn the_boards_own_fields() {
+        let t = tempfile::tempdir().unwrap();
+        let b = Board { dir: t.path().join("horizon/.switchboard/board"), app_slug: None };
+        assert_eq!(b.project_fields(&[("name", "Horizon"), ("meta", "prod-app · PLAN.md")]).unwrap(), ["name", "meta"]);
+        assert_eq!(b.board()["project"]["dir"], "horizon");
+        assert!(b.project_fields(&[("name", "Horizon")]).unwrap().is_empty());
+        assert_eq!(b.project_fields(&[("meta", "")]).unwrap(), ["meta reset"]);
+        assert!(b.board()["project"].get("meta").is_none());
     }
 
     #[test]

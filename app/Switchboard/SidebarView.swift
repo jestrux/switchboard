@@ -187,6 +187,7 @@ struct SidebarView: View {
 struct RailView: View {
     @EnvironmentObject var store: EngineStore
     @EnvironmentObject var context: WindowContext
+    @ObservedObject private var desk = Desk.shared
     @Environment(\.sbTheme) private var theme
     @Environment(\.colorScheme) private var scheme
     let projects: [ProjectInfo]
@@ -197,16 +198,33 @@ struct RailView: View {
         let p = look.p
         VStack(spacing: 14) {
             Color.clear.frame(height: 11) // traffic lights row (margin-bottom 14 = the stack gap)
-            ForEach(projects, id: \.slug) { project in
-                RailTile(project: project, selected: context.railProject == project.slug)
-                    .onTapGesture { context.railProject = project.slug }
-                    .contextMenu { ProjectMenu(project: project) }
-                    .draggable(DragPayload.project(project.slug))
-                    .reorderTarget(edge: .top) { payload in
-                        guard let slug = DragPayload.parseProject(payload) else { return false }
-                        withAnimation(SBMotion.railSettle) { store.moveProject(slug, toSlotOf: project.slug) }
-                        return true
+            // A company's products sit together under its label; the label folds them into one tile.
+            ForEach(desk.entries(projects)) { entry in
+                switch entry {
+                case .project(let project):
+                    tile(project)
+                case .company(let company, let members):
+                    VStack(spacing: 8) {
+                        Button { withAnimation(SBMotion.railSettle) { desk.toggle(company) } } label: {
+                            HStack(spacing: 2) {
+                                Image(systemName: desk.collapsed.contains(company) ? "chevron.right" : "chevron.down")
+                                    .font(.system(size: 6.5, weight: .bold))
+                                Text(company).font(.system(size: 9, weight: .semibold)).lineLimit(1).truncationMode(.tail)
+                            }
+                            .foregroundStyle(p.text3)
+                            .frame(maxWidth: SBMetrics.railWidth - 8)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .help(desk.collapsed.contains(company) ? "Show \(company)'s projects" : "Fold \(company) into one tile")
+                        if desk.collapsed.contains(company) {
+                            CompanyTile(company: company, members: members, selected: members.contains { $0.slug == context.railProject })
+                                .onTapGesture { withAnimation(SBMotion.railSettle) { desk.toggle(company) } }
+                        } else {
+                            VStack(spacing: 14) { ForEach(members, id: \.slug) { tile($0) } }
+                        }
                     }
+                }
             }
             Rectangle().fill(p.line).frame(width: 28, height: 1)
             Button { store.addProjectViaPanel() } label: {
@@ -224,6 +242,57 @@ struct RailView: View {
         .frame(maxHeight: .infinity)
         .background(p.rail)
     }
+
+    private func tile(_ project: ProjectInfo) -> some View {
+        RailTile(project: project, selected: context.railProject == project.slug, mark: desk.mark(project, among: projects))
+            .onTapGesture { context.railProject = project.slug }
+            .contextMenu { ProjectMenu(project: project) }
+            .draggable(DragPayload.project(project.slug))
+            .reorderTarget(edge: .top) { payload in
+                guard let slug = DragPayload.parseProject(payload) else { return false }
+                withAnimation(SBMotion.railSettle) { store.moveProject(slug, toSlotOf: project.slug) }
+                return true
+            }
+    }
+}
+
+/// A folded company: its first product's logo, with what its products add up to (running,
+/// needing you, a crash). A tap unfolds it.
+struct CompanyTile: View {
+    @EnvironmentObject var store: EngineStore
+    @ObservedObject private var boards = BoardCache.shared
+    @Environment(\.sbTheme) private var theme
+    @Environment(\.colorScheme) private var scheme
+    let company: String
+    let members: [ProjectInfo]
+    let selected: Bool
+
+    var body: some View {
+        let look = Look(theme: theme, scheme: scheme)
+        let p = look.p
+        let running = members.reduce(0) { $0 + store.runningCount(project: $1.slug) }
+        let crashed = members.contains { store.crashedCount(project: $0.slug) > 0 }
+        let needs = members.reduce(0) { $0 + (boards.data($1.slug)?.needsYou ?? 0) }
+        ZStack(alignment: .bottomTrailing) {
+            if let first = members.first { ProjectIcon(project: first, size: SBMetrics.railTile, radius: look.s.tileRadius) }
+            if running > 0 { RailTile.badge("\(running)", bg: p.running, fg: look.isDark ? Color(hex: 0x0B0C0E) : .white, look: look) }
+            if needs > 0 {
+                RailTile.badge("\(needs)", bg: p.accent, fg: p.onAccent, look: look).offset(x: 0, y: -SBMetrics.railTile + 8)
+            }
+            if crashed {
+                Circle().fill(p.crashed).frame(width: 7, height: 7)
+                    .offset(x: needs > 0 ? -SBMetrics.railTile + 4 : 2, y: -SBMetrics.railTile + 6)
+            }
+        }
+        .onAppear { members.forEach { boards.watch($0.slug, engine: store.engine) } }
+        .onDisappear { members.forEach { boards.unwatch($0.slug) } }
+        .padding(4)
+        .background {
+            RoundedRectangle(cornerRadius: look.s.tileRadius + 4, style: .continuous)
+                .strokeBorder(selected ? p.accent : p.line, style: StrokeStyle(lineWidth: selected ? 2 : 1, dash: selected ? [] : [3, 2]))
+        }
+        .help("\(company): \(members.map(\.name).joined(separator: ", "))")
+    }
 }
 
 struct RailTile: View {
@@ -233,6 +302,8 @@ struct RailTile: View {
     @Environment(\.colorScheme) private var scheme
     let project: ProjectInfo
     let selected: Bool
+    /// A short product mark ("V1", "HZ"), for products that share a logo (Desk).
+    var mark: String? = nil
 
     var body: some View {
         let look = Look(theme: theme, scheme: scheme)
@@ -248,6 +319,15 @@ struct RailTile: View {
                     .frame(width: SBMetrics.railTile, height: SBMetrics.railTile)
             } else {
                 ProjectIcon(project: project, size: SBMetrics.railTile, radius: look.s.tileRadius)
+                    .overlay(alignment: .bottomLeading) {
+                        if let mark {
+                            Text(mark).font(.system(size: 8.5, weight: .heavy)).foregroundStyle(p.text)
+                                .padding(.horizontal, 3.5).frame(minHeight: 14)
+                                .background(p.rail, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: 4, style: .continuous).strokeBorder(p.line, lineWidth: 1))
+                                .offset(x: -4, y: 4)
+                        }
+                    }
             }
             if project.error != nil {
                 badge("!", bg: p.error, fg: Color(hex: 0x1A1208), look: look)
@@ -277,11 +357,13 @@ struct RailTile: View {
                     .strokeBorder(p.accent, lineWidth: 2)
             }
         }
-        .help(project.name)
+        .help(Desk.shared.displayName(project))
         .animation(SBMotion.railSettle, value: selected)
     }
 
-    private func badge(_ text: String, bg: Color, fg: Color, look: Look) -> some View {
+    private func badge(_ text: String, bg: Color, fg: Color, look: Look) -> some View { Self.badge(text, bg: bg, fg: fg, look: look) }
+
+    static func badge(_ text: String, bg: Color, fg: Color, look: Look) -> some View {
         Text(text).font(.system(size: 9, weight: .bold)).monospacedDigit()
             .foregroundStyle(fg)
             .padding(.horizontal, 4).frame(minWidth: 15, minHeight: 15)
@@ -438,6 +520,8 @@ struct ProjectMenu: View {
         }
         Button("Edit Config") { store.editConfig(project.slug) }
         Button("Reveal in Finder") { store.revealInFinder(project.slug) }
+        Divider()
+        DeskMenu(project: project)
         if project.home == nil {
             if project.workingFolders.count > 1 {
                 Menu("Keep Settings in Repo") { HomeFolderMenuItems(project: project) }

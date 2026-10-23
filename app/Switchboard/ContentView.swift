@@ -149,11 +149,11 @@ private struct ThemedShell: View {
 
     private var windowTitle: String {
         if case .project(let slug) = context.scope, let p = store.project(slug) {
-            if let ref = context.selection, let c = store.command(ref) { return "\(c.displayName) – \(p.name)" }
-            return p.name
+            if let ref = context.selection, let c = store.command(ref) { return "\(c.displayName) – \(Desk.shared.displayName(p))" }
+            return Desk.shared.displayName(p)
         }
         guard let ref = context.selection else { return "Switchboard" }
-        let project = store.project(ref.project)?.name ?? ref.project
+        let project = Desk.shared.displayName(slug: ref.project, store: store)
         let name = store.command(ref)?.displayName ?? ref.address
         return "\(name) – \(project)"
     }

@@ -154,6 +154,7 @@ switchboard board step <id> [done|now|next|later] [--title …] [--label …] [-
                                                        # a step of the plan, in the sidebar: its state
                                                        # and its fields (only what you pass changes)
 switchboard board step <id> --new --title … [--after <id>]   # add a step; --after also moves one
+switchboard board project [--name …] [--meta …] [--intro …] [--steps-label …]   # the board's own name and intro
 switchboard board kept <id> [--commit <sha>]           # a decision's work is done
 switchboard board decide <id>… [--pick o] [--note …]   # the author decided in chat, not on the board
 switchboard board seen <id>…                           # the author has seen these (cards with no question)

@@ -69,7 +69,7 @@ private struct BoardsContent: View {
                 if let current {
                     let next = waiting.first { $0.slug != current.slug }
                     BoardPageView(project: current.slug, json: current.data.json, engine: store.engine, review: true,
-                                  next: next.map { store.project($0.slug)?.name ?? $0.slug },
+                                  next: next.map { Desk.shared.displayName(slug: $0.slug, store: store) },
                                   onNext: { if let next { selected = next.slug } })
                         .id(current.slug)  // a fresh page per project, so it opens in review mode
                 } else {
@@ -79,7 +79,7 @@ private struct BoardsContent: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .ignoresSafeArea(edges: .top)
-        .navigationTitle(current.map { "Boards · " + (store.project($0.slug)?.name ?? $0.slug) } ?? "Boards")
+        .navigationTitle(current.map { "Boards · " + Desk.shared.displayName(slug: $0.slug, store: store) } ?? "Boards")
     }
 }
 
@@ -96,7 +96,7 @@ private struct BoardsRow: View {
             if let proj { ProjectIcon(project: proj, size: 22, radius: 5) }
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(proj?.name ?? slug).font(.system(size: 13, weight: selected ? .semibold : .medium))
+                    Text(proj.map { Desk.shared.displayName($0) } ?? slug).font(.system(size: 13, weight: selected ? .semibold : .medium))
                         .foregroundStyle(selected ? p.selectionText : p.text).lineLimit(1)
                     Spacer(minLength: 4)
                     if data.blocking > 0 {
@@ -134,7 +134,7 @@ struct BoardWindow: View {
             .background(WindowMaximizer())
             .environment(\.sbTheme, themeID.theme)
             .preferredColorScheme(appearance.colorScheme)
-            .navigationTitle("Board · " + (store.project(slug)?.name ?? slug))
+            .navigationTitle("Board · " + Desk.shared.displayName(slug: slug, store: store))
             .onAppear { boards.watch(slug, engine: store.engine) }
             .onDisappear { boards.unwatch(slug) }
     }

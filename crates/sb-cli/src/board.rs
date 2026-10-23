@@ -57,6 +57,21 @@ pub enum BoardCmd {
         #[arg(long)]
         remove: bool,
     },
+    /// The board's own name, the line under it, its intro and the heading over its steps. Only what
+    /// you pass changes; "" resets a field
+    Project {
+        #[arg(long)]
+        name: Option<String>,
+        /// One line under the name, e.g. "prod-app · PLAN.md"
+        #[arg(long)]
+        meta: Option<String>,
+        /// Shown on a first visit
+        #[arg(long)]
+        intro: Option<String>,
+        /// The heading over the steps (default "The plan")
+        #[arg(long)]
+        steps_label: Option<String>,
+    },
     /// What the agent is doing now
     Working {
         text: Vec<String>,
@@ -207,6 +222,12 @@ pub fn run(projects_dir: &Path, dir: Option<PathBuf>, cmd: BoardCmd) -> Result<i
                 e(b.settle(&id, Some(&t), stage.as_deref()))?
             };
             println!("{} {key}", if remove { "removed" } else { "going ahead:" });
+        }
+        BoardCmd::Project { name, meta, intro, steps_label } => {
+            let fields: Vec<(&str, &str)> = [("name", &name), ("meta", &meta), ("intro", &intro), ("stagesLabel", &steps_label)]
+                .into_iter().filter_map(|(k, v)| v.as_deref().map(|v| (k, v))).collect();
+            let changed = e(b.project_fields(&fields))?;
+            println!("{}", if changed.is_empty() { "the board already has that".to_string() } else { format!("board: {}", changed.join(", ")) });
         }
         BoardCmd::Working { text, stage, item, progress, clear } => {
             if clear {

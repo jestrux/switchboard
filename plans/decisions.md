@@ -60,6 +60,14 @@ a new session should not reopen them without a reason.
   not to relitigate (three themes, project rail on by default, one 36 pt pane bar, dialog
   cards with Keep Both as the conflict default, the key bindings).
 
+- **Companies are a label on a project, set in the app** (2026-10-23). The author thinks in
+  companies → products (SetHero: V1 and Horizon); a project stays one product, with its own home
+  and board. The rail gathers a company's projects under a small label that folds them into one
+  tile (summed counts, a crash dot); products that share a logo carry a short mark ("V1", "HZ";
+  initials by default). Nothing runs at company level, there are no rail folders, and there is no
+  hide: folding covers it. It's personal, so it lives in the app's settings (`Desk.swift`), never in
+  a repo. Names read "SetHero · Horizon" in window titles, the Boards window and the menu bar.
+
 ## Engineering
 
 - All process logic is in Rust. Swift never spawns a process.

@@ -41,7 +41,7 @@ struct MenuBarBoard: View {
                 let proj = store.project(next.slug)
                 HStack(spacing: 6) {
                     if let proj { ProjectIcon(project: proj, size: 16, radius: 4) }
-                    Text(proj?.name ?? next.slug).font(.system(size: 11, weight: .medium)).foregroundStyle(p.text2)
+                    Text(Desk.shared.displayName(slug: next.slug, store: store)).font(.system(size: 11, weight: .medium)).foregroundStyle(p.text2)
                     if next.card.blocking {
                         Text("Blocking").font(.system(size: 10, weight: .semibold)).foregroundStyle(p.crashed)
                             .padding(.horizontal, 5).frame(height: 15).background(p.crashed.opacity(0.12), in: Capsule())
