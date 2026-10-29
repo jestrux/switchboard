@@ -1,21 +1,27 @@
 ---
 name: switchboard
-description: Run, watch and debug a project's dev servers in the Switchboard Mac app with the `switchboard` command. Start, stop or restart commands, wait until a server is ready, read its output, and set a product up as a Switchboard project. Use when the user mentions Switchboard, or asks to start, run, restart or check a dev server or read its logs, and `switchboard` is installed.
+description: Run, watch and debug a project's dev servers in Switchboard (the Mac app, or its host and terminal window on Linux) with the `switchboard` command. Start, stop or restart commands, wait until a server is ready, read its output, and set a product up as a Switchboard project. Use when the user mentions Switchboard, or asks to start, run, restart or check a dev server or read its logs, and `switchboard` is installed.
 ---
 
 # Switchboard
 
-Switchboard is a Mac app that runs a project's dev commands (servers, workers, watchers,
-one-off tasks) in its own terminals. The author can see every one of them there. The
-`switchboard` command lets you drive that app. Commands you start this way run in the
-app, not in your shell, so they keep running after you finish. The author can watch
-them, and you can read their output later.
+Switchboard runs a project's dev commands (servers, workers, watchers, one-off tasks) in
+its own terminals. The author can see every one of them there. The `switchboard` command
+lets you drive it. Commands you start this way run in Switchboard, not in your shell, so
+they keep running after you finish. The author can watch them, and you can read their
+output later.
 
-Check that it is installed: `command -v switchboard`. If it is missing, run
-`/Applications/Switchboard.app/Contents/Helpers/switchboard setup`. It links the command
-onto the PATH and this skill into `~/.claude/skills`, the same as the app's
-**Switchboard › Install switchboard Command…**. If Switchboard.app is not in
-Applications, ask the author to install it. Do not build the command yourself.
+It runs on two kinds of machine, and every command below works the same on both:
+
+- **macOS:** the Switchboard app hosts the commands. Check with `command -v switchboard`;
+  if it is missing, run `/Applications/Switchboard.app/Contents/Helpers/switchboard setup`,
+  which links the command onto the PATH and this skill into `~/.claude/skills` (the app's
+  **Switchboard › Install switchboard Command…**). If Switchboard.app is not in
+  Applications, ask the author to install it. Do not build the command yourself.
+- **Linux (Omarchy):** there is no app. `switchboard serve` hosts the commands in the
+  background, and the first command that needs it (`start`, `wait`, …) launches it. The
+  author watches in `switchboard ui`, a terminal window (the Omarchy menu's Switchboard
+  entry). See [On Linux](#on-linux) for installing and what differs.
 
 ## Addressing
 
@@ -34,7 +40,7 @@ kinpay/backend/api        one command
 
 ```sh
 switchboard status [<slug>]               # what exists and what runs: status, port, URL
-switchboard start <slug>                  # the autostart commands (launches the app if needed)
+switchboard start <slug>                  # the autostart commands (launches the app, or `serve`, if needed)
 switchboard wait <slug>/<group>/<cmd>     # block until it prints its URL
 switchboard logs <slug>/<group>/<cmd> -n 80
 switchboard restart <slug>/<group>/<cmd>  # after changing its config or env
@@ -57,7 +63,8 @@ switchboard stop <slug>[/<group>[/<cmd>]] # returns once they have exited
   starting, running, exited, crashed, error), `pid`, `port`, `url`, `exit_code`,
   `message` and `needs_restart`.
 - **`open <slug>`** brings the app forward on that project, for when the author wants to
-  look.
+  look. On Linux there is no window to raise; tell the author to open Switchboard from the
+  Omarchy menu (or run `switchboard ui`).
 
 ## Rules
 
@@ -214,6 +221,27 @@ switchboard start <slug> && switchboard wait <slug>/<group>/<server>
 switchboard status <slug>
 ```
 
-Installed projects live in `~/Library/Application Support/Switchboard/Projects/<slug>/`.
-Edit `config.yaml` there; the app reloads it within a second without stopping anything.
-Do not write `.switchboard/` folders into the author's repos unless asked.
+Installed projects live in `~/Library/Application Support/Switchboard/Projects/<slug>/` on
+macOS and `~/.local/share/Switchboard/Projects/<slug>/` on Linux. Edit `config.yaml` there;
+Switchboard reloads it within a second without stopping anything. Do not write
+`.switchboard/` folders into the author's repos unless asked.
+
+## On Linux
+
+- **Installing.** The command is built from the repo: `cargo install --path crates/sb-cli
+  --locked` in `~/Work/switchboard` (it lands in `~/.cargo/bin`). This skill is a link,
+  `~/.claude/skills/switchboard` → `~/Work/switchboard/skills/switchboard`. If either is
+  missing, say so and ask before building.
+- **The host.** `switchboard serve` holds the engine and the commands; quitting the window
+  stops nothing. It logs to `~/.local/share/Switchboard/serve.log`. A systemd user unit
+  (`switchboard.service`) is used when installed, else `start` launches `serve` in the
+  background. Don't kill `serve`: it takes every running command down with it.
+- **The window.** `switchboard ui` shows the projects, groups and commands with their
+  status, and up to four live terminals. Your `start`, `stop` and `restart` show there.
+- **A command's terminal in yours:** `switchboard attach <slug>/<group>/<cmd>` (Ctrl+]
+  detaches and leaves it running). Use it to answer a prompt; use `logs` to read.
+- **Linux differences go in overlays.** A shared `.switchboard/project.yaml` must not change
+  for Linux. Put what differs (paths, `nvm` → `mise`, hidden Xcode builds) in
+  `.switchboard/project.linux.yaml` beside it: groups and commands by id, only the fields
+  that change, `hidden: true` to drop one. `project.local.yaml` does the same for one
+  machine. `switchboard validate <repo folder>` lists the overlays it applied.
