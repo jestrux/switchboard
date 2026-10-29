@@ -159,7 +159,9 @@ Found and fixed on the way (tests for each):
   failure. The status reply now carries `restarting`, and `wait` for ready or running waits
   through a scheduled restart (`crates/sb-cli/tests/restart_tests.rs`).
 
-**Not done, the author's call:** a systemd user unit to start `serve` at login. Writing and
+**Enabled 2026-10-30:** the systemd user unit, `scripts/linux/switchboard.service`, linked by
+`systemctl --user enable ~/Work/switchboard/scripts/linux/switchboard.service` (the author ran
+it; enabling a login service is blocked for the agent). Before that, the plan read: a systemd user unit to start `serve` at login. Writing and
 enabling it was blocked as a persistent change. Without it, the first `switchboard start` after
 login launches the host itself, and nothing restarts it if it dies. A unit would be:
 
@@ -284,9 +286,6 @@ the host, so quitting stops nothing.
 
 ## Open
 
-- Enable the systemd user unit for `serve`: the author agreed (2026-10-30), but enabling a
-  login service is blocked for the agent. The unit is `scripts/linux/switchboard.service`;
-  `systemctl --user enable ~/Work/switchboard/scripts/linux/switchboard.service`.
 - Make `citybuild/e2e/start.sh` portable (relative `ROOT`, `osascript` behind a Darwin check)?
 - Theming: map a project's custom theme onto Herdr, or follow Omarchy's current theme?
 - The Mac build is untested after these changes (shared engine code and the CLI's macOS
