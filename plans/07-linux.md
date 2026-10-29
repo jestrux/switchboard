@@ -55,7 +55,7 @@ nothing done for Linux may change what the Mac reads or what gets pushed.
   (rows customizable, content not), stopped commands can't appear (no pane, no row), and plugins
   only run commands ("native non-terminal plugin UI are not part of plugin v1"). Of the three
   ways forward (a sidebar program inside Herdr, a full-screen terminal app, a GTK4 + VTE
-  window), the author chose the terminal app. `herd` stays as an extra.
+  window), the author chose the terminal app. `herd` was removed on 2026-10-30.
 
 ## Done
 
@@ -202,9 +202,10 @@ engine.
 - Known: anything typed into an attached pane goes to the command, including text pasted or
   typed by mistake. (Seen once when a `herdr pane run` was sent twice to one pane.)
 
-### 3. `switchboard herd <project>` (built 2026-10-29)
+### 3. `switchboard herd <project>` (built 2026-10-29, removed 2026-10-30)
 
-`crates/sb-cli/src/herd.rs`. It starts the project's autostart commands, then builds a Herdr
+Removed once the window became our own terminal app (step 4): nothing used it. It lived in
+`crates/sb-cli/src/herd.rs` (see git history). It started the project's autostart commands, then built a Herdr
 workspace named after the project: a tab per group that has autostart commands, panes in a
 grid (ceil(sqrt n) columns, even shares, Omarchy's `hsl` rule), each running
 `switchboard attach`. If Herdr's server isn't running, it opens `omarchy-launch-terminal-herdr`.
@@ -277,17 +278,17 @@ the host, so quitting stops nothing.
 - **Not ported:** drag to reorder, image previews, OSC 8 hyperlinks, repo notices (Keep
   Settings in Repo, "settings changed · Apply"), adding and deleting projects from the
   window, group icon picking, save terminal as command, light themes, a project in its own
-  window (a second `switchboard ui` shows everything), Settings, and a keybind or Omarchy
-  menu entry.
+  window (a second `switchboard ui` shows everything), and Settings. The Omarchy menu entry and Super+B
+  (`omarchy-launch-or-focus-tui ~/.cargo/bin/switchboard ui`, in `~/.config/omarchy/extensions/`
+  and `~/.config/hypr/bindings.lua`) open it, sized by a window rule in `~/.config/hypr/hyprland.lua`.
 
 ## Open
 
-- Install the systemd user unit for `serve` (step 1)? Blocked as a persistent change; the
-  author's call.
+- Enable the systemd user unit for `serve`: the author agreed (2026-10-30), but enabling a
+  login service is blocked for the agent. The unit is `scripts/linux/switchboard.service`;
+  `systemctl --user enable ~/Work/switchboard/scripts/linux/switchboard.service`.
 - Make `citybuild/e2e/start.sh` portable (relative `ROOT`, `osascript` behind a Darwin check)?
 - Theming: map a project's custom theme onto Herdr, or follow Omarchy's current theme?
-- Update `docs/projects.md` and the feature list with overlays, `serve`, `attach` and `herd`
-  once the author says yes.
 - The Mac build is untested after these changes (shared engine code and the CLI's macOS
   launch path moved behind `cfg`). Run `scripts/package.sh` on the Mac before relying on it.
 - Repos not cloned yet that configs reference: CityBuild `mobile`, Kinpay `Kinimals`,

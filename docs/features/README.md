@@ -31,6 +31,7 @@ source, so reading them directly works just as well.
 | [Importing](10-importing.md) | Dropping a folder, converting Solo's `solo.yml` |
 | [Settings and startup](11-settings-and-startup.md) | The Settings window, open at login, what is remembered per Mac |
 | [The switchboard command](12-cli.md) | Drive the app from a terminal or an agent, the agent skill, and running without the app |
+| [Switchboard on Linux](13-linux.md) | The background host, the window in a terminal, attach, platform overlays |
 
 ## Not built yet
 

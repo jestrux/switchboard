@@ -2,7 +2,6 @@
 
 mod app;
 mod board;
-mod herd;
 mod ui;
 mod paint;
 
@@ -89,9 +88,6 @@ enum Cmd {
     /// The Mac app's window in this terminal: projects, their groups and commands with status,
     /// and the selected command's live terminal. Quitting stops nothing
     Ui,
-    /// Open a project as a Herdr workspace: a tab per group, a pane per command that starts
-    /// with it, each attached to the command Switchboard runs. Run again to focus it
-    Herd { project: String },
     /// Bring the app forward, showing a project
     Open { project: Option<String> },
     /// Write the project's board (plans/06-board.md): cards, asks, the plan's steps, answers
@@ -242,7 +238,6 @@ fn main() {
         Cmd::Restart { project, target } => app::restart(&project, target),
         Cmd::Logs { command, target, tail } => app::logs(&command, target, tail),
         Cmd::Attach { project, target } => app::attach(&project, target),
-        Cmd::Herd { project } => herd::herd(&project),
         Cmd::Ui => ui::run(&projects_dir),
         Cmd::Wait { command, target, until, timeout } => app::wait(&command, target, until, timeout),
         Cmd::Open { project } => app::open(project),

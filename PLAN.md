@@ -33,7 +33,7 @@ Status key: **Next** is the item to pick up now, **Ready** can start any time,
 | 4 | Design handoff gaps | Ready, independent of the rest |
 | 5 | Release | Signed, notarized builds work via `scripts/release.sh`; updates and versioning undecided |
 | 6 | The board: where an agent hands a project to its author | **In progress**: stand-in A1–A4 done, A5 next |
-| 7 | Switchboard on Linux (Omarchy) | **In progress**: overlays, `serve`, `attach`, `herd` and a first `switchboard ui` built; author's look next |
+| 7 | Switchboard on Linux (Omarchy) | **In progress**: overlays, `serve`, `attach` and `switchboard ui` built; in daily use next |
 
 Update this table and the "Next step" line in each plan file as work lands.
 

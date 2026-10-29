@@ -1,0 +1,17 @@
+# The systemd user unit for `switchboard serve` on Linux. Enable it from the repo:
+#   systemctl --user enable ~/Work/switchboard/scripts/linux/switchboard.service
+# It starts at the next login; with nothing serving, `switchboard start` also starts it.
+[Unit]
+Description=Switchboard engine (switchboard serve)
+Documentation=file://%h/Work/switchboard/plans/07-linux.md
+
+[Service]
+ExecStart=%h/.cargo/bin/switchboard serve
+# serve stops every command's process group itself on SIGTERM; only then kill what is left.
+KillMode=mixed
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
