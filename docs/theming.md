@@ -21,7 +21,9 @@ project bring its own colours for its own window.
 
 Settings (⌘,) has two independent controls. **Theme** picks Graphite, Patch Bay or Paper.
 **Appearance** picks System, Light or Dark. System is the default and follows macOS, and
-every theme has both palettes, so nothing is dark-only or light-only. The preview under
+every theme has both palettes, so nothing is dark-only or light-only. On Linux,
+`switchboard ui` draws Graphite's dark palette with each project's custom dark tokens on top;
+it has no Settings window or light mode yet. The preview under
 the controls updates as you change them.
 
 ![Appearance settings](media/themes/settings-dark.png)

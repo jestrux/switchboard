@@ -11,6 +11,7 @@ description: The config format, repo files, terminals, the switchboard command a
 
 - [The config file](#the-config-file)
 - [Versioning a project with its repos](#versioning-a-project-with-its-repos-switchboard)
+- [Platform and machine overlays](#platform-and-machine-overlays)
 - [Terminals](#terminals)
 - [The `switchboard` command](#the-switchboard-command)
 - [The agent skill](#the-agent-skill)
@@ -18,8 +19,9 @@ description: The config format, repo files, terminals, the switchboard command a
 ## The config file
 
 A project is a named group of commands across any folders. It lives in
-`~/Library/Application Support/Switchboard/Projects/<slug>/config.yaml`, next to an
-optional `icon.png`.
+`~/Library/Application Support/Switchboard/Projects/<slug>/config.yaml` on macOS and
+`~/.local/share/Switchboard/Projects/<slug>/config.yaml` on Linux, next to an optional
+`icon.png`.
 
 ```yaml
 version: 1
@@ -55,7 +57,7 @@ groups:
 - Unknown keys are kept. An invalid file shows its errors in the sidebar with Edit Config.
 - `theme:` and `appearance:` are covered in [Theming](theming.md).
 - **Order** in the file is the order in the sidebar. Dragging a group or a command in the
-  app rewrites it. Project order in the rail is per Mac and is not stored in the config.
+  app rewrites it. Project order in the rail is per machine and is not stored in the config.
   Rewriting from the app keeps unknown keys but **drops YAML comments**.
 - **Group icons**: a group gets an icon from its name and commands. Set `icon:` to choose
   one (`frontend`, `backend`, `e2e`, `terminal`, `mobile`, `docs`, `database`, `worker`,
@@ -102,7 +104,7 @@ groups:
   touching the other repo. Inline `commands:` still work and are appended. A missing folder
   or fragment marks that one group unavailable; the rest of the project loads.
 - **New device**: drop any member folder on the sidebar or the Dock icon (or
-  `switchboard import <folder>`). Switchboard finds the `project.yaml`, in that folder or in a sibling
+  `switchboard import <folder>`, the only way on Linux). Switchboard finds the `project.yaml`, in that folder or in a sibling
   repo that lists it, shows which folders resolved, and installs the project. If several
   copies exist, the newest is proposed and the others can be chosen.
 - **Write-back**: the live config stays in Application Support. Once a project has a home
@@ -114,11 +116,49 @@ groups:
 - Fragments are watched: editing a repo's `commands.yaml` updates the sidebar live.
 - `switchboard validate <repo folder>` checks a `project.yaml` and names every fragment it reads.
 
+## Platform and machine overlays
+
+`project.yaml` is shared by every machine, so a difference that holds only on one platform
+(a path, `nvm` against `mise`, an Xcode build that can't run on Linux) goes in an overlay
+beside it instead:
+
+```
+<home>/.switchboard/
+  project.yaml          # shared
+  project.linux.yaml    # applied on Linux (project.macos.yaml on macOS)
+  project.local.yaml    # applied on this machine only; keep it out of git
+```
+
+```yaml
+# project.linux.yaml: only what differs, by group and command id
+commands:
+  claude: { cwd: .. }
+groups:
+  console:
+    commands:
+      dev: { run: 'mise x node@$(cat .nvmrc) -- npm run dev -- --port 5301' }
+  mobile:
+    commands:
+      ios: { hidden: true }
+```
+
+- Order: `project.yaml`, then `project.<os>.yaml`, then `project.local.yaml`. Later wins.
+- A command patch sets any of `run`, `cwd`, `name`, `autostart`, `restart_on_crash` and
+  `env` (merged into the command's), or `hidden: true` to drop it. A group patch sets `cwd`,
+  `from`, `name`, `icon` or `hidden`. An id the project lacks adds a group, or a command when
+  the patch has `run`. Patches reach fragment commands too.
+- Relative paths resolve from the home folder, as in `project.yaml`.
+- Overlays are applied when the project loads and never written back, so a change made in
+  the app can't carry a Linux difference into the shared file.
+- A broken overlay is reported and skipped; the shared config still runs. Unknown keys are
+  errors, so a typo shows. `switchboard validate <repo folder>` lists the overlays it applied.
+
 ## Terminals
 
 ⌘T, a group's hover button or context menu, or the empty-pane picker opens a login shell in
-that group's folder. Terminals are working state for this Mac: they are kept in the
-project's `terminals.yaml` in Application Support, come back after a relaunch with a fresh
+that group's folder (`t` in `switchboard ui` on Linux; `R` renames it, `D` closes it).
+Terminals are working state for this machine: they are kept in the project's
+`terminals.yaml` in the app's support folder, come back after a relaunch with a fresh
 shell, and go away with the project. Right-click one to rename it, close it, or **Save as
 Command…**, which adds a real command to its group (in the group's `commands.yaml` when it
 has one, otherwise in `config.yaml`).
@@ -132,8 +172,15 @@ and the [agent skill](#the-agent-skill) into `~/.claude/skills`. Both are links 
 app, so they update with it. It also lists the skill in `~/.claude/CLAUDE.md` when that
 file exists and does not mention it yet.
 
+On Linux there is no app: build the command from this repo with
+`cargo install --path crates/sb-cli --locked` (it lands in `~/.cargo/bin`), and link the skill
+with `ln -s ~/Work/switchboard/skills/switchboard ~/.claude/skills/switchboard`.
+
 **Drive the app.** These run commands in the app's own terminals, where you can watch
-them. `start`, `restart` and `open` launch the app when it is not running.
+them. `start`, `restart` and `open` launch the app when it is not running. On Linux the
+same commands drive `switchboard serve`, a background host that `start` launches when
+nothing serves (or the `switchboard.service` systemd user unit, when installed); the
+author watches in `switchboard ui`.
 
 ```sh
 switchboard status [kinpay] [--json]       # what runs: status, port, URL per command
@@ -144,7 +191,10 @@ switchboard stop kinpay[/group[/command]]  # waits until they have exited
 switchboard restart kinpay/backend/api
 switchboard logs kinpay/backend/api -n 50  # recent output as plain text, scrollback included
 switchboard wait kinpay/backend/api        # until it prints its URL (--for running | exit)
-switchboard open kinpay                    # bring the app forward on that project
+switchboard open kinpay                    # bring the app forward on that project (macOS)
+switchboard attach kinpay/backend/api      # its live terminal in yours; Ctrl+] detaches
+switchboard ui                             # the window, in a terminal (Linux)
+switchboard serve                          # the host, in the foreground (Linux)
 ```
 
 `wait` exits 0 when the condition is met. It exits 1 when the command crashes, errors or
@@ -183,7 +233,8 @@ others that read `SKILL.md`) to use the `switchboard` command. It covers startin
 project, waiting for it, reading its logs before asking what broke, and setting a product
 up as a project. It ships inside the app and is linked into `~/.claude/skills/switchboard`
 by Install switchboard Command, which also adds a `/switchboard` line to your
-`~/.claude/CLAUDE.md` (a row in its skills table if it has one).
+`~/.claude/CLAUDE.md` (a row in its skills table if it has one). On Linux the link points
+into the repo checkout instead (see [the `switchboard` command](#the-switchboard-command)).
 
 Its `reference/` pages are copies of [projects.md](projects.md),
 [setting-up-a-project.md](setting-up-a-project.md) and [theming.md](theming.md). After

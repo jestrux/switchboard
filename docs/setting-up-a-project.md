@@ -12,7 +12,7 @@ How to turn "help me set up `<product>` at `<folder>`, including its theme" into
 Switchboard project. Written for an agent, and it works as a checklist for a person.
 
 The result is a project in `~/Library/Application Support/Switchboard/Projects/<slug>/`
-with a `config.yaml`, an `icon.png`, and a custom theme that follows the system.
+(`~/.local/share/Switchboard/Projects/<slug>/` on Linux) with a `config.yaml`, an `icon.png`, and a custom theme that follows the system.
 
 ## Ground rules
 
@@ -78,6 +78,9 @@ Two problems have come up every time so far:
   `run: source ~/.nvm/nvm.sh && nvm use && <command>`. Old Grunt apps often need this,
   because `grunt` is installed under one specific Node version. On a project that's already
   set up, fix each command with `switchboard edit-command <slug>/<group>/<cmd> --run "…"`.
+  On a Linux machine without nvm, put `mise x node@$(cat .nvmrc) -- <command>` in the
+  repo's `.switchboard/project.linux.yaml` rather than changing the shared config (see
+  [overlays](projects.md#platform-and-machine-overlays)).
 
 ## 4. Icon
 
@@ -127,7 +130,7 @@ when the automatic one is wrong. Keys: `frontend` `backend` `e2e` `terminal` `mo
 ```sh
 switchboard validate <folder with config.yaml>
 switchboard install <folder with config.yaml>   # skip if you edited the installed config in place
-switchboard start <slug>                        # the autostart commands, in the app
+switchboard start <slug>                        # the autostart commands, in Switchboard
 switchboard wait <slug>/<group>/<command>       # for each server: until it prints its URL
 switchboard status <slug>                       # every command's status, port and URL
 switchboard logs <slug>/<group>/<command>       # read this before guessing why one failed
@@ -140,7 +143,8 @@ Ctrl+C after about 20 seconds.
 - Confirm each autostart command reaches a running state and prints what you expect.
 - Confirm nothing is left on its ports afterwards.
 - Open the project in its own window in the app (`switchboard open <slug>`, then
-  right-click › Open in New Window) and look at it in **both** dark and light. Temporarily
+  right-click › Open in New Window) and look at it in **both** dark and light. On Linux,
+  look at it in `switchboard ui`, which draws the theme's dark palette. Temporarily
   set `appearance: dark` then `light` in the config to check each; put it back to `system`.
 
 ## 8. Report

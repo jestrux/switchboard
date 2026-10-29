@@ -393,18 +393,23 @@ impl App {
 
     // ----- layout and memory ----------------------------------------------------------
 
-    fn save_layout(&self) {
+    /// The layout as saved, for writing only when it changed.
+    fn layout_json(&self) -> String {
         let panes: Vec<Value> = self.panes.iter().map(|t| json!([t.project, t.address])).collect();
         let expanded: serde_json::Map<String, Value> = self.projects.iter().map(|p| (p.slug.clone(), json!(p.expanded.iter().collect::<Vec<_>>()))).collect();
-        let v = json!({
+        json!({
             "panes": panes,
             "focused": self.focused,
             "stacked": self.stacked,
             "project": self.project().slug,
             "sidebar_width": self.sidebar_w,
             "expanded": expanded,
-        });
-        let _ = std::fs::write(layout_path(), v.to_string());
+        })
+        .to_string()
+    }
+
+    fn save_layout(&self) {
+        let _ = std::fs::write(layout_path(), self.layout_json());
     }
 
     /// Open groups as they were left; a project never seen opens the groups that have
@@ -775,7 +780,15 @@ impl App {
     fn event_loop(&mut self, terminal: &mut ratatui::DefaultTerminal) -> Result<()> {
         let mut last_tick = Instant::now();
         let mut last_scan = Instant::now();
+        let mut saved = self.layout_json();
         while !self.quit {
+            // Keep the saved layout current: Super+W closes the terminal under us, with no
+            // clean quit to save it then.
+            let now = self.layout_json();
+            if now != saved {
+                let _ = std::fs::write(layout_path(), &now);
+                saved = now;
+            }
             // Live reload: a saved config or a terminal list shows within about a second.
             if last_scan.elapsed() >= Duration::from_millis(800) {
                 last_scan = Instant::now();
@@ -849,7 +862,9 @@ impl App {
         }
         match k.code {
             KeyCode::Char('q') => self.quit = true,
-            KeyCode::Char('c') if ctrl => self.quit = true,
+            // Ctrl+W (and Ctrl+Q, which `q` already covers) close the window as on a Mac; in a pane they're
+            // the program's (a shell deletes a word with Ctrl+W).
+            KeyCode::Char('c' | 'w') if ctrl => self.quit = true,
             KeyCode::Up | KeyCode::Char('k') => self.move_selection(-1),
             KeyCode::Down | KeyCode::Char('j') => self.move_selection(1),
             KeyCode::Left | KeyCode::Char('h') => {
@@ -1332,7 +1347,7 @@ impl App {
             let hint = match (&self.flash, self.focus) {
                 (Some((m, at)), _) if at.elapsed() < Duration::from_secs(3) => m.clone(),
                 (_, Focus::Terminal) => "typing into the terminal · Ctrl+] back to the list".into(),
-                (_, Focus::Sidebar) => "↑↓ select · Enter type · s start/stop · t terminal · | - split · ? more · q quit".into(),
+                (_, Focus::Sidebar) => "↑↓ select · Enter type · s start/stop · t terminal · | - split · ? more · Ctrl+W close".into(),
             };
             let room = foot.width.saturating_sub(info.chars().count() as u16 + 8) as usize;
             if room > 12 {
