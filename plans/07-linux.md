@@ -47,7 +47,9 @@ nothing done for Linux may change what the Mac reads or what gets pushed.
   commands the engine runs, so crash restarts, status and the agent CLI keep working. The
   rejected "Option A" had `switchboard herd` run each command straight in a Herdr pane: less
   work, but it loses the supervision and the agent side that make Switchboard worth having.
-- **Linux differences go in overlays, never in the shared `project.yaml` (2026-10-29).**
+- **Linux differences go in overlays, never in the shared `project.yaml` (2026-10-29).** The
+  Linux overlays are committed to the product repos (2026-10-30: `citybuild/e2e`, `kinpay`,
+  `otesha/e2e`), so any Linux machine with this folder layout gets them.
 - **The window is our own terminal app, not Herdr (2026-10-30).** Seen in Herdr, the author
   missed the Mac's grouping. Herdr can't show it: its sidebar lists workspaces, tabs and agents
   (rows customizable, content not), stopped commands can't appear (no pane, no row), and plugins
@@ -74,7 +76,7 @@ nothing done for Linux may change what the Mac reads or what gets pushed.
 - `switchboard validate` lists the overlays applied, and now resolves a seed's relative paths
   from its home folder rather than the shell's current folder (it reported false missing
   folders before).
-- Linux overlays written (untracked) for CityBuild (`citybuild/e2e`), Kinpay (`kinpay`) and
+- Linux overlays written for CityBuild (`citybuild/e2e`), Kinpay (`kinpay`) and
   Otesha (`otesha/e2e`). Otesha validates clean; the others only miss repos not cloned yet.
   Node commands use `mise x node@$(cat .nvmrc) -- …`, which relates to "Honour `.nvmrc`" in
   [PLAN.md](../PLAN.md#not-scheduled).
@@ -280,8 +282,6 @@ the host, so quitting stops nothing.
 
 ## Open
 
-- Commit the `project.linux.yaml` overlays to the product repos, or rename them to
-  `project.local.yaml` and ignore them? (Asked 2026-10-29, not answered.)
 - Install the systemd user unit for `serve` (step 1)? Blocked as a persistent change; the
   author's call.
 - Make `citybuild/e2e/start.sh` portable (relative `ROOT`, `osascript` behind a Darwin check)?
