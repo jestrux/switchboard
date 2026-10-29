@@ -22,7 +22,7 @@ anyhow = "1"
 portable-pty = "0.9"
 vt100 = "0.16"
 notify = "8"
-nix = { version = "0.31", features = ["signal", "process"] }
+nix = { version = "0.31", features = ["signal", "process", "user"] }
 libc = "0.2"
 dirs = "7"
 clap = { version = "4", features = ["derive", "env"] }

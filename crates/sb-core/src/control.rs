@@ -44,6 +44,37 @@ pub enum Request {
     /// A folder: keep the project's settings in that repo (`.switchboard/project.yaml`), as
     /// the app's Keep Settings in Repo does. Only on the author's say-so.
     Keep { project: String, folder: Option<String> },
+    /// Stream one command's terminal. After the reply line the connection carries its output
+    /// as raw bytes (server to client) and input and size frames (client to server; see
+    /// `frame`), until either side closes it. The terminal is sized to `cols`×`rows` first.
+    Attach { project: String, address: String, cols: u16, rows: u16 },
+    /// A login shell in a group's folder (ungrouped: the project's home), started at once.
+    /// Kept per machine in the project's `terminals.yaml`; replies with its address.
+    NewTerminal { project: String, group: Option<String> },
+    /// End a terminal's shell and forget it.
+    CloseTerminal { project: String, address: String },
+    RenameTerminal { project: String, address: String, name: String },
+}
+
+/// Client-to-server frames on an attached connection: one kind byte, a big-endian `u32`
+/// length, then the payload.
+pub const FRAME_INPUT: u8 = 0;
+/// Payload: columns then rows, each a big-endian `u16`.
+pub const FRAME_RESIZE: u8 = 1;
+
+/// One frame, ready to write.
+pub fn frame(kind: u8, payload: &[u8]) -> Vec<u8> {
+    let mut f = Vec::with_capacity(5 + payload.len());
+    f.push(kind);
+    f.extend_from_slice(&(payload.len() as u32).to_be_bytes());
+    f.extend_from_slice(payload);
+    f
+}
+
+pub fn resize_frame(cols: u16, rows: u16) -> Vec<u8> {
+    let mut p = cols.to_be_bytes().to_vec();
+    p.extend_from_slice(&rows.to_be_bytes());
+    frame(FRAME_RESIZE, &p)
 }
 
 /// What the app does with requests the engine cannot answer alone.
@@ -101,14 +132,27 @@ pub fn serve(engine: &Arc<Engine>, path: &Path, handler: Option<Arc<dyn ControlH
 
 fn connection(conn: UnixStream, engine: Weak<Engine>, handler: Option<Arc<dyn ControlHandler>>) {
     let Ok(mut out) = conn.try_clone() else { return };
-    for line in BufReader::new(conn).lines() {
-        let Ok(line) = line else { break };
+    let mut reader = BufReader::new(conn);
+    let mut line = String::new();
+    loop {
+        line.clear();
+        match reader.read_line(&mut line) {
+            Ok(0) | Err(_) => break,
+            Ok(_) => {}
+        }
         if line.trim().is_empty() {
             continue;
         }
         let reply = match (serde_json::from_str::<Request>(&line), engine.upgrade()) {
             (_, None) => fail("Switchboard is shutting down"),
             (Err(e), _) => fail(&format!("bad request: {e}")),
+            // Streams until the client leaves; the connection is done after that.
+            (Ok(Request::Attach { project, address, cols, rows }), Some(engine)) => {
+                let weak = Arc::downgrade(&engine);
+                drop(engine);
+                attach(weak, &project, &address, (cols, rows), reader, out);
+                return;
+            }
             (Ok(req), Some(engine)) => handle(&engine, handler.as_deref(), req),
         };
         if writeln!(out, "{reply}").is_err() {
@@ -144,7 +188,31 @@ fn fail(msg: &str) -> Value {
     json!({ "ok": false, "error": msg })
 }
 
+/// The project a request names, if any.
+fn named_project(req: &Request) -> Option<&str> {
+    match req {
+        Request::Ping => None,
+        Request::Status { project } | Request::Open { project } => project.as_deref(),
+        Request::Start { project, .. }
+        | Request::Stop { project, .. }
+        | Request::Restart { project, .. }
+        | Request::Logs { project, .. }
+        | Request::Keep { project, .. }
+        | Request::Attach { project, .. }
+        | Request::NewTerminal { project, .. }
+        | Request::CloseTerminal { project, .. }
+        | Request::RenameTerminal { project, .. } => Some(project),
+    }
+}
+
 fn handle(engine: &Arc<Engine>, handler: Option<&dyn ControlHandler>, req: Request) -> Value {
+    // A project installed a moment ago (`switchboard import` then `start`) can beat the file
+    // watcher's quiet period; read the Projects folder again before calling it unknown.
+    if let Some(p) = named_project(&req) {
+        if engine.project(p).is_none() {
+            engine.reload();
+        }
+    }
     let result = match req {
         Request::Ping => Ok(json!({
             "app": "Switchboard",
@@ -172,6 +240,13 @@ fn handle(engine: &Arc<Engine>, handler: Option<&dyn ControlHandler>, req: Reque
             }
         }
         Request::Keep { project, folder } => keep(engine, &project, folder.as_deref()),
+        Request::Attach { .. } => Err("attach takes over its connection; it is not handled here".to_string()),
+        Request::NewTerminal { project, group } => engine
+            .add_terminal(&project, group.as_deref())
+            .map(|address| json!({ "address": address }))
+            .map_err(|e| e.to_string()),
+        Request::CloseTerminal { project, address } => engine.remove_terminal(&project, &address).map(|_| json!({})).map_err(|e| e.to_string()),
+        Request::RenameTerminal { project, address, name } => engine.rename_terminal(&project, &address, &name).map(|_| json!({})).map_err(|e| e.to_string()),
     };
     match result {
         Ok(Value::Object(mut map)) => {
@@ -354,6 +429,8 @@ fn state_json(s: &CommandState) -> Value {
         "port": s.port,
         "url": s.url,
         "needs_restart": s.needs_restart,
+        // A crash restart is scheduled: the command is coming back, not finished.
+        "restarting": s.restart_at.is_some(),
         "started_at": secs(s.started_at),
         "ended_at": secs(s.ended_at),
     })
@@ -409,4 +486,167 @@ pub fn wait_for_server(path: &Path, timeout: Duration) -> Option<Client> {
         }
         std::thread::sleep(Duration::from_millis(150));
     }
+}
+
+// ----- attach ----------------------------------------------------------------
+
+/// What the writer thread of an attached connection sends.
+enum Outgoing {
+    Bytes(Vec<u8>),
+    /// A new run began: size its terminal to the viewer before its output goes out.
+    Fit,
+}
+
+/// Stream one command's terminal over `out`, reading input and size frames from `reader`.
+/// Survives restarts: output is matched by command, not by session.
+fn attach(engine: Weak<Engine>, slug: &str, address: &str, size: (u16, u16), mut reader: BufReader<UnixStream>, mut out: UnixStream) {
+    let Some(e) = engine.upgrade() else { return };
+    if e.project(slug).is_none() {
+        e.reload();
+    }
+    let cmd = commands_for(&e, slug, Some(address), true).and_then(|cmds| {
+        cmds.into_iter().find(|c| c.address == address).ok_or_else(|| format!("{address:?} is a group; name one command"))
+    });
+    let cmd = match cmd {
+        Ok(c) => c,
+        Err(err) => {
+            let _ = writeln!(out, "{}", fail(&err));
+            return;
+        }
+    };
+    let key = CommandKey::new(slug, address);
+    let size = Arc::new(std::sync::Mutex::new(size));
+    {
+        let (c, r) = *size.lock().unwrap();
+        e.resize(&key, c, r);
+    }
+
+    // Engine events arrive on its reader threads, so the listener only queues; a slow viewer
+    // must never hold the engine up.
+    let (tx, rx) = std::sync::mpsc::channel::<Outgoing>();
+    let watched = key.clone();
+    let listener = e.subscribe(Arc::new(move |ev: &crate::engine::Event| match ev {
+        crate::engine::Event::Output { key, bytes } if *key == watched => {
+            let _ = tx.send(Outgoing::Bytes(bytes.clone()));
+        }
+        crate::engine::Event::Status { key, state } if *key == watched => {
+            if state.status == Status::Starting {
+                let _ = tx.send(Outgoing::Fit);
+                // The app's run separator, so one run reads apart from the last.
+                let _ = tx.send(Outgoing::Bytes(note(&format!("started {}", local_clock())).into_bytes()));
+            }
+            if let Some(n) = attach_note(state) {
+                let _ = tx.send(Outgoing::Bytes(n.into_bytes()));
+            }
+        }
+        _ => {}
+    }));
+
+    let state = e.state_of(&key);
+    let reply = json!({ "ok": true, "data": { "name": cmd.display_name, "state": state_json(&state) } });
+    let mut opening = format!("{reply}\n").into_bytes();
+    // What it printed so far, as the app's terminal views replay it.
+    opening.extend(e.raw_tail(&key));
+    if !state.is_alive() {
+        opening.extend(attach_note(&state).unwrap_or_else(|| note("stopped · Enter starts it")).into_bytes());
+    }
+    drop(e);
+    if out.write_all(&opening).is_err() {
+        if let Some(e) = engine.upgrade() {
+            e.unsubscribe(listener);
+        }
+        return;
+    }
+
+    let writer = {
+        let (engine, key, size) = (engine.clone(), key.clone(), Arc::clone(&size));
+        let Ok(mut w) = out.try_clone() else { return };
+        std::thread::spawn(move || {
+            let mut fit = false;
+            for msg in rx {
+                match msg {
+                    Outgoing::Fit => fit = true,
+                    Outgoing::Bytes(b) => {
+                        // The new session exists once it has printed; size it then.
+                        if fit {
+                            if let Some(e) = engine.upgrade() {
+                                let (c, r) = *size.lock().unwrap();
+                                e.resize(&key, c, r);
+                            }
+                            fit = false;
+                        }
+                        if w.write_all(&b).is_err() {
+                            break;
+                        }
+                    }
+                }
+            }
+            // The viewer went away: make the frame reader below stop too.
+            let _ = w.shutdown(std::net::Shutdown::Both);
+        })
+    };
+
+    let mut header = [0u8; 5];
+    while std::io::Read::read_exact(&mut reader, &mut header).is_ok() {
+        let len = u32::from_be_bytes([header[1], header[2], header[3], header[4]]) as usize;
+        if len > 1 << 20 {
+            break;
+        }
+        let mut payload = vec![0u8; len];
+        if std::io::Read::read_exact(&mut reader, &mut payload).is_err() {
+            break;
+        }
+        let Some(e) = engine.upgrade() else { break };
+        match header[0] {
+            FRAME_INPUT => {
+                // Not running: Enter starts it, as the note says.
+                if e.write_input(&key, &payload).is_err() && payload.contains(&b'\r') {
+                    let _ = e.start(&key);
+                }
+            }
+            FRAME_RESIZE if len == 4 => {
+                let (c, r) = (u16::from_be_bytes([payload[0], payload[1]]), u16::from_be_bytes([payload[2], payload[3]]));
+                if c > 0 && r > 0 {
+                    *size.lock().unwrap() = (c, r);
+                    e.resize(&key, c, r);
+                }
+            }
+            _ => {}
+        }
+    }
+    if let Some(e) = engine.upgrade() {
+        // Dropping the listener drops the queue's sender, which ends the writer.
+        e.unsubscribe(listener);
+    }
+    let _ = out.shutdown(std::net::Shutdown::Both);
+    let _ = writer.join();
+}
+
+/// A dim line between runs, so a viewer sees what happened without a status bar.
+fn attach_note(state: &CommandState) -> Option<String> {
+    let restart = state.restart_at.is_some();
+    let text = match state.status {
+        Status::Starting | Status::Running => return None,
+        Status::Crashed if restart => state.message.clone().unwrap_or_else(|| "crashed, restarting".into()),
+        Status::Crashed => match state.exit_code {
+            Some(c) => format!("crashed with exit code {c} · Enter starts it again"),
+            None => "crashed · Enter starts it again".into(),
+        },
+        Status::Exited => "finished · Enter runs it again".into(),
+        Status::Stopped => "stopped · Enter starts it".into(),
+        Status::Error => format!("{} · Enter tries again", state.message.clone().unwrap_or_else(|| "could not start".into())),
+    };
+    Some(note(&text))
+}
+
+/// HH:MM:SS in local time.
+fn local_clock() -> String {
+    let now = unsafe { libc::time(std::ptr::null_mut()) };
+    let mut tm: libc::tm = unsafe { std::mem::zeroed() };
+    unsafe { libc::localtime_r(&now, &mut tm) };
+    format!("{:02}:{:02}:{:02}", tm.tm_hour, tm.tm_min, tm.tm_sec)
+}
+
+fn note(text: &str) -> String {
+    format!("\r\n\x1b[0;2m── {text} ──\x1b[0m\r\n")
 }

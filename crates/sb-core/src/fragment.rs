@@ -127,18 +127,43 @@ pub struct Composed {
     /// fragment folder, overrides applied). `from`/`overrides` are kept for reference.
     pub config: ProjectConfig,
     pub problems: Vec<GroupProblem>,
-    /// Fragment files that were read (or should exist), for the file watcher.
+    /// Fragment and overlay files that were read (or could exist), for the file watcher.
     pub sources: Vec<PathBuf>,
+    /// Overlay files that were applied (`project.<os>.yaml`, `project.local.yaml`), in order.
+    pub overlays: Vec<PathBuf>,
 }
 
 impl ProjectConfig {
-    /// Expand `from:` groups using their folders' fragments. `base` resolves relative
-    /// `from:` paths when `home` is unset (the folder holding this config).
+    /// Expand `from:` groups using their folders' fragments, and apply the home folder's
+    /// overlays (see `overlay`). `base` resolves relative `from:` paths when `home` is
+    /// unset (the folder holding this config).
     pub fn compose(&self, base: &Path) -> Composed {
         let mut out = self.clone();
         let mut problems = Vec::new();
         let mut sources = Vec::new();
         let from_base = from_base(self, base);
+        let mut overlays = Vec::new();
+        let mut applied = Vec::new();
+        for path in crate::overlay::paths_in(&from_base) {
+            sources.push(path.clone());
+            if !path.is_file() {
+                continue;
+            }
+            match crate::overlay::Overlay::load(&path) {
+                Ok(o) => {
+                    overlays.push(o);
+                    applied.push(path);
+                }
+                // A broken overlay is skipped, not fatal: the shared config still runs.
+                Err(e) => problems.push(GroupProblem {
+                    group: path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default(),
+                    message: e.to_string(),
+                }),
+            }
+        }
+        for o in &overlays {
+            o.apply_groups(&mut out, &from_base);
+        }
         for group in &mut out.groups {
             let Some(from) = &group.from else { continue };
             let folder = resolve_folder(from, &from_base);
@@ -191,7 +216,10 @@ impl ProjectConfig {
                 Err(e) => problems.push(GroupProblem { group: group.id.clone(), message: e.to_string() }),
             }
         }
-        Composed { config: out, problems, sources }
+        for o in &overlays {
+            o.apply_commands(&mut out, &from_base);
+        }
+        Composed { config: out, problems, sources, overlays: applied }
     }
 }
 

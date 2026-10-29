@@ -9,6 +9,7 @@ pub mod board;
 pub mod fragment;
 pub mod home;
 pub mod icons;
+pub mod overlay;
 pub mod pidfile;
 pub mod ports;
 pub mod project;

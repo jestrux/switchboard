@@ -7,7 +7,11 @@ use sb_core::control::{self, Client, Request};
 use serde_json::Value;
 use std::time::{Duration, Instant};
 
+#[cfg(target_os = "macos")]
 const BUNDLE_ID: &str = "dev.waky.switchboard";
+/// The systemd user unit that runs `switchboard serve`, when installed.
+#[cfg(not(target_os = "macos"))]
+pub const SERVICE: &str = "switchboard.service";
 
 /// `kinpay`, `kinpay/backend` or `kinpay/backend/migrate`, plus an optional separate target.
 pub fn split_target(arg: &str, target: Option<String>) -> (String, Option<String>) {
@@ -15,6 +19,73 @@ pub fn split_target(arg: &str, target: Option<String>) -> (String, Option<String
         Some((p, rest)) if !rest.is_empty() => (p.to_string(), Some(rest.to_string())),
         _ => (arg.trim_end_matches('/').to_string(), target),
     }
+}
+
+/// A clean environment, so the host does not inherit the caller's (an agent session's
+/// variables would leak into every command it runs).
+fn clean_env(cmd: &mut std::process::Command) {
+    cmd.env_clear();
+    for var in ["HOME", "USER", "LOGNAME", "SWITCHBOARD_HOME"] {
+        if let Ok(v) = std::env::var(var) {
+            cmd.env(var, v);
+        }
+    }
+    cmd.env("PATH", "/usr/bin:/bin:/usr/sbin:/sbin");
+}
+
+/// Start whatever hosts the engine: the app on macOS.
+#[cfg(target_os = "macos")]
+fn launch_host(front: bool) -> Result<()> {
+    let mut open = std::process::Command::new("/usr/bin/open");
+    clean_env(&mut open);
+    if !front {
+        open.arg("-g");
+    }
+    let ok = open.args(["-b", BUNDLE_ID]).status().map(|s| s.success()).unwrap_or(false);
+    if !ok {
+        bail!("Switchboard.app is not installed (no app with bundle id {BUNDLE_ID})");
+    }
+    Ok(())
+}
+
+/// Start whatever hosts the engine: elsewhere there is no app, so `switchboard serve`, through
+/// the systemd user unit when one is installed, else in the background with its output in
+/// `serve.log` in the app folder.
+#[cfg(not(target_os = "macos"))]
+fn launch_host(_front: bool) -> Result<()> {
+    use std::os::unix::process::CommandExt;
+    use std::process::{Command, Stdio};
+    let systemd = Command::new("systemctl")
+        .args(["--user", "cat", SERVICE])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false);
+    if systemd {
+        let ok = Command::new("systemctl").args(["--user", "start", SERVICE]).status().map(|s| s.success()).unwrap_or(false);
+        if !ok {
+            bail!("systemctl --user start {SERVICE} failed; see journalctl --user -u {SERVICE}");
+        }
+        return Ok(());
+    }
+    let exe = std::env::current_exe()?;
+    let log_path = sb_core::project::app_support_dir().join("serve.log");
+    if let Some(dir) = log_path.parent() {
+        std::fs::create_dir_all(dir)?;
+    }
+    let log = std::fs::OpenOptions::new().create(true).append(true).open(&log_path)?;
+    let mut serve = Command::new(exe);
+    clean_env(&mut serve);
+    serve
+        .arg("serve")
+        .stdin(Stdio::null())
+        .stdout(log.try_clone()?)
+        .stderr(log)
+        // Its own process group, so the caller's Ctrl+C or exit does not take it down.
+        .process_group(0)
+        .spawn()?;
+    Ok(())
 }
 
 /// Connect to the app. With `launch`, start it (in the background unless `front`) when it
@@ -30,26 +101,15 @@ pub fn connect(launch: bool, front: bool) -> Result<Option<Client>> {
         return Ok(None);
     }
     eprintln!("{} starting Switchboard", "switchboard:".dimmed());
-    // A clean environment, so the app does not inherit the caller's (an agent session's
-    // variables would leak into every command it runs).
-    let mut open = std::process::Command::new("/usr/bin/open");
-    open.env_clear();
-    for var in ["HOME", "USER", "LOGNAME", "SWITCHBOARD_HOME"] {
-        if let Ok(v) = std::env::var(var) {
-            open.env(var, v);
-        }
-    }
-    open.env("PATH", "/usr/bin:/bin:/usr/sbin:/sbin");
-    if !front {
-        open.arg("-g");
-    }
-    let ok = open.args(["-b", BUNDLE_ID]).status().map(|s| s.success()).unwrap_or(false);
-    if !ok {
-        bail!("Switchboard.app is not installed (no app with bundle id {BUNDLE_ID})");
-    }
+    launch_host(front)?;
     control::wait_for_server(&sock, Duration::from_secs(20))
         .map(Some)
         .ok_or_else(|| anyhow!("Switchboard did not answer at {} within 20 s", sock.display()))
+}
+
+/// A client for the running host, launching it when `launch` is set.
+pub fn client(launch: bool) -> Result<Client> {
+    need(connect(launch, false)?)
 }
 
 fn need(client: Option<Client>) -> Result<Client> {
@@ -212,6 +272,8 @@ pub fn wait(arg: &str, target: Option<String>, until: WaitFor, timeout: u64) -> 
                 println!("{} {name}", "done".green());
                 return Ok(0);
             }
+            // Crashed with a restart scheduled: waiting for it to be up means waiting through it.
+            (WaitFor::Ready | WaitFor::Running, "crashed") if c["restarting"] == true => {}
             (WaitFor::Exit, "crashed") => {
                 failed(&mut client, &project, &address, &c);
                 return Ok(code.map(|c| c as i32).filter(|c| *c != 0).unwrap_or(1));
@@ -317,5 +379,125 @@ pub fn open(project: Option<String>) -> Result<i32> {
     let project = project.map(|p| split_target(&p, None).0);
     let mut client = need(connect(true, true)?)?;
     call(&mut client, Request::Open { project })?;
+    Ok(0)
+}
+
+// ----- attach ----------------------------------------------------------------------
+
+/// Ctrl+]: leave the command running and go back to the shell.
+const DETACH: u8 = 0x1d;
+
+struct RawMode;
+impl Drop for RawMode {
+    fn drop(&mut self) {
+        let _ = crossterm::terminal::disable_raw_mode();
+    }
+}
+
+/// This terminal becomes the command's terminal: its output, your keystrokes, this window's
+/// size. Ctrl+] detaches; the command keeps running under Switchboard.
+pub fn attach(arg: &str, target: Option<String>) -> Result<i32> {
+    use std::io::{Read, Write};
+    use std::os::unix::net::UnixStream;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::{Arc, Mutex};
+
+    let (project, address) = split_target(arg, target);
+    let address = address.ok_or_else(|| anyhow!("name a command, e.g. {project}/backend/api"))?;
+    // Make sure something serves the socket (launching it if needed), then take a connection
+    // of our own: once attached it carries raw bytes, not the client's JSON lines.
+    need(connect(true, false)?)?;
+    let mut stream = UnixStream::connect(control::socket_path())?;
+    let (cols, rows) = crossterm::terminal::size().unwrap_or((80, 24));
+    let req = Request::Attach { project: project.clone(), address: address.clone(), cols, rows };
+    writeln!(stream, "{}", serde_json::to_string(&req)?)?;
+
+    // The reply line, read a byte at a time so none of the output after it is swallowed.
+    let mut line = Vec::new();
+    let mut byte = [0u8; 1];
+    loop {
+        if stream.read(&mut byte)? == 0 {
+            bail!("Switchboard closed the connection");
+        }
+        if byte[0] == b'\n' {
+            break;
+        }
+        line.push(byte[0]);
+    }
+    let reply: Value = serde_json::from_slice(&line)?;
+    if reply["ok"] != true {
+        bail!("{}", reply["error"].as_str().unwrap_or("attach failed"));
+    }
+    let name = reply["data"]["name"].as_str().unwrap_or(&address).to_string();
+
+    let mut stdout = std::io::stdout();
+    // The pane or window title, for Herdr's tab and pane labels.
+    write!(stdout, "\x1b]2;{project} · {name}\x07")?;
+    stdout.flush()?;
+    let raw = crossterm::tty::IsTty::is_tty(&std::io::stdin())
+        .then(|| crossterm::terminal::enable_raw_mode().ok().map(|_| RawMode))
+        .flatten();
+
+    let writer = Arc::new(Mutex::new(stream.try_clone()?));
+    let detached = Arc::new(AtomicBool::new(false));
+    {
+        let (writer, detached, stream) = (Arc::clone(&writer), Arc::clone(&detached), stream.try_clone()?);
+        std::thread::spawn(move || {
+            let mut stdin = std::io::stdin();
+            let mut buf = [0u8; 4096];
+            while let Ok(n) = stdin.read(&mut buf) {
+                if n == 0 {
+                    break;
+                }
+                let chunk = &buf[..n];
+                let (send, leave) = match chunk.iter().position(|b| *b == DETACH) {
+                    Some(i) => (&chunk[..i], true),
+                    None => (chunk, false),
+                };
+                if !send.is_empty() && writer.lock().unwrap().write_all(&control::frame(control::FRAME_INPUT, send)).is_err() {
+                    break;
+                }
+                if leave {
+                    detached.store(true, Ordering::SeqCst);
+                    let _ = stream.shutdown(std::net::Shutdown::Both);
+                    break;
+                }
+            }
+        });
+    }
+    {
+        let (writer, detached) = (Arc::clone(&writer), Arc::clone(&detached));
+        std::thread::spawn(move || {
+            let mut last = (cols, rows);
+            while !detached.load(Ordering::SeqCst) {
+                std::thread::sleep(Duration::from_millis(200));
+                let now = crossterm::terminal::size().unwrap_or(last);
+                if now != last {
+                    last = now;
+                    if writer.lock().unwrap().write_all(&control::resize_frame(now.0, now.1)).is_err() {
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    let mut buf = [0u8; 16384];
+    loop {
+        match stream.read(&mut buf) {
+            Ok(0) | Err(_) => break,
+            Ok(n) => {
+                if stdout.write_all(&buf[..n]).and_then(|_| stdout.flush()).is_err() {
+                    break;
+                }
+            }
+        }
+    }
+    drop(raw);
+    if detached.load(Ordering::SeqCst) {
+        println!("\r\n{} {project}/{address} keeps running · `switchboard attach {project}/{address}` comes back", "detached:".dimmed());
+    } else {
+        println!("\r\n{} Switchboard stopped serving", "detached:".dimmed());
+    }
     Ok(0)
 }

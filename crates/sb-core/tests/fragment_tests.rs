@@ -63,7 +63,7 @@ fn from_groups_compose_fragments_with_overrides() {
     assert_eq!(composed.problems[0].group, "tools");
     assert!(composed.problems[0].message.contains("Folder not found"));
     assert!(c.group("tools").unwrap().commands.is_empty());
-    assert_eq!(composed.sources.len(), 3);
+    assert_eq!(composed.sources.iter().filter(|s| s.ends_with("commands.yaml")).count(), 3);
 }
 
 #[test]

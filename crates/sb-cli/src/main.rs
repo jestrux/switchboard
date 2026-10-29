@@ -2,6 +2,8 @@
 
 mod app;
 mod board;
+mod herd;
+mod ui;
 mod paint;
 
 use anyhow::{anyhow, bail, Result};
@@ -77,6 +79,19 @@ enum Cmd {
         #[arg(long, default_value_t = 120)]
         timeout: u64,
     },
+    /// Become a command's terminal: its live output, your keystrokes, this window's size.
+    /// Ctrl+] detaches and leaves it running. Enter starts it when it is not running
+    Attach {
+        /// `project/group/command`, or the project with the command as a second argument
+        project: String,
+        target: Option<String>,
+    },
+    /// The Mac app's window in this terminal: projects, their groups and commands with status,
+    /// and the selected command's live terminal. Quitting stops nothing
+    Ui,
+    /// Open a project as a Herdr workspace: a tab per group, a pane per command that starts
+    /// with it, each attached to the command Switchboard runs. Run again to focus it
+    Herd { project: String },
     /// Bring the app forward, showing a project
     Open { project: Option<String> },
     /// Write the project's board (plans/06-board.md): cards, asks, the plan's steps, answers
@@ -207,6 +222,10 @@ enum Cmd {
     },
     /// Kill sessions left behind by a crashed app or CLI
     Cleanup,
+    /// Host the engine without the app: the control socket the other commands talk to, in the
+    /// foreground until Ctrl+C or SIGTERM, which stop everything it started. What runs
+    /// `switchboard start` on Linux; `start` launches it in the background when it is not running
+    Serve,
     /// Link this command onto your PATH and the agent skill into ~/.claude/skills, as the
     /// app's Install switchboard Command does. Run the copy inside Switchboard.app:
     /// /Applications/Switchboard.app/Contents/Helpers/switchboard setup
@@ -222,6 +241,9 @@ fn main() {
         Cmd::Stop { project, target } => app::stop(&project, target),
         Cmd::Restart { project, target } => app::restart(&project, target),
         Cmd::Logs { command, target, tail } => app::logs(&command, target, tail),
+        Cmd::Attach { project, target } => app::attach(&project, target),
+        Cmd::Herd { project } => herd::herd(&project),
+        Cmd::Ui => ui::run(&projects_dir),
         Cmd::Wait { command, target, until, timeout } => app::wait(&command, target, until, timeout),
         Cmd::Open { project } => app::open(project),
         Cmd::Board { dir, cmd } => board::run(&projects_dir, dir, cmd),
@@ -242,6 +264,7 @@ fn main() {
         Cmd::Import { path, replace, keep_both } => import(&projects_dir, &path, replace, keep_both),
         Cmd::ImportSolo { paths, dry_run, replace, keep_both } => import_solo(&projects_dir, &paths, dry_run, replace, keep_both),
         Cmd::Cleanup => cleanup(&projects_dir),
+        Cmd::Serve => serve(&projects_dir),
         Cmd::Setup => setup(),
     };
     match code {
@@ -452,13 +475,22 @@ fn validate(path: &Path) -> Result<i32> {
             } else {
                 file.parent().map(Path::to_path_buf).unwrap_or_default()
             };
+            // Check a seed as it installs, with group folders resolved from its home.
+            let raw = if is_seed {
+                sb_core::fragment::ProjectSeed { updated: None, config: raw }.to_config(&base)
+            } else {
+                raw
+            };
             let composed = raw.compose(&base);
             let cfg = composed.config;
             for pr in &composed.problems {
                 println!("  {} group {}: {}", "warning".yellow(), pr.group, pr.message);
             }
+            for o in &composed.overlays {
+                println!("  {} {}", "overlay".dimmed(), sb_core::config::collapse_tilde(o));
+            }
             for src in &composed.sources {
-                if src.is_file() {
+                if src.is_file() && !composed.overlays.contains(src) {
                     println!("  {} {}", "fragment".dimmed(), sb_core::config::collapse_tilde(src));
                 }
             }
@@ -623,6 +655,44 @@ fn cleanup(projects_dir: &Path) -> Result<i32> {
         println!("killing {}:{} (pid {})", e.project, e.address, e.pid);
     }
     engine.kill_leftovers();
+    Ok(0)
+}
+
+// ----- serve ----------------------------------------------------------------------
+
+/// What the Mac app does at launch and quit, without the UI: the engine, its file watcher
+/// and the control socket, then stop everything on the way out.
+fn serve(projects_dir: &Path) -> Result<i32> {
+    let engine = Engine::new(projects_dir);
+    // Sessions left by a host that died without stopping them. Unattended there is no one
+    // to ask, as the app does, and they would hold the ports their commands need.
+    let leftovers = engine.leftover_sessions();
+    if !leftovers.is_empty() {
+        for e in &leftovers {
+            println!("killing leftover {}:{} (pid {})", e.project, e.address, e.pid);
+        }
+        engine.kill_leftovers();
+    }
+    if let Err(e) = engine.watch() {
+        eprintln!("{} file watcher: {e}", "warning".yellow());
+    }
+    let sock = sb_core::control::socket_path();
+    let server = sb_core::control::serve(&engine, &sock, None).map_err(|e| anyhow!(e))?;
+    install_signal_handlers();
+    println!(
+        "serving {} on {} (Ctrl+C stops everything)",
+        sb_core::config::collapse_tilde(engine.projects_dir()),
+        sb_core::config::collapse_tilde(&sock)
+    );
+    while !INTERRUPTED.load(Ordering::SeqCst) {
+        std::thread::sleep(Duration::from_millis(200));
+    }
+    // Stop answering first, so nothing starts while everything stops.
+    drop(server);
+    if engine.any_alive() {
+        println!("stopping…");
+        engine.stop_everything_blocking();
+    }
     Ok(0)
 }
 

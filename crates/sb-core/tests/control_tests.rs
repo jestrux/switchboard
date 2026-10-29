@@ -278,3 +278,128 @@ fn setup_finds_the_bundle_from_its_own_command_and_knows_when_it_is_installed() 
     let e = tools::bundled_from(&loose).unwrap_err();
     assert!(e.contains("Contents/Helpers/switchboard setup"), "{e}");
 }
+
+#[test]
+fn a_project_installed_after_launch_is_found_without_waiting_for_the_watcher() {
+    isolate();
+    let tmp = tempfile::tempdir().unwrap();
+    let projects = tmp.path().join("Projects");
+    std::fs::create_dir_all(&projects).unwrap();
+    // No watch(): only the reload on an unknown name can find it.
+    let engine = Engine::new(&projects);
+    let sock = tmp.path().join("late.sock");
+    let _server = control::serve(&engine, &sock, None).unwrap();
+    let mut client = Client::connect(&sock).unwrap();
+
+    write_project(&projects, "late", &DEMO.replace("Demo", "Late"));
+    let reply = client.call(&Request::Start { project: "late".into(), target: Some("g/once".into()) }).unwrap();
+    assert_eq!(reply["ok"], true, "{reply}");
+
+    let err = client.call(&Request::Start { project: "nope".into(), target: None }).unwrap_err();
+    assert!(err.contains("unknown project"), "a name that really isn't there is still an error: {err}");
+}
+
+/// Read from `s` until `needle` shows up (or time runs out); returns everything read.
+fn read_until(s: &mut std::os::unix::net::UnixStream, needle: &str) -> String {
+    use std::io::Read;
+    s.set_read_timeout(Some(Duration::from_millis(200))).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    let mut got = Vec::new();
+    let mut buf = [0u8; 4096];
+    while Instant::now() < deadline {
+        match s.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => got.extend_from_slice(&buf[..n]),
+            Err(_) => {}
+        }
+        if String::from_utf8_lossy(&got).contains(needle) {
+            break;
+        }
+    }
+    String::from_utf8_lossy(&got).into_owned()
+}
+
+#[test]
+fn attach_streams_a_terminal_both_ways_and_survives_a_detach() {
+    use std::io::Write;
+    isolate();
+    let tmp = tempfile::tempdir().unwrap();
+    let projects = tmp.path().join("Projects");
+    write_project(&projects, "att", "version: 1\nname: Att\ngroups:\n  - id: g\n    cwd: /tmp\n    commands:\n      - id: echo\n        run: cat\n        autostart: false\n");
+    let engine = Engine::new(&projects);
+    let sock = tmp.path().join("att.sock");
+    let _server = control::serve(&engine, &sock, None).unwrap();
+    let key = sb_core::session::CommandKey::new("att", "g/echo");
+
+    let mut s = std::os::unix::net::UnixStream::connect(&sock).unwrap();
+    let req = serde_json::to_string(&Request::Attach { project: "att".into(), address: "g/echo".into(), cols: 90, rows: 30 }).unwrap();
+    writeln!(s, "{req}").unwrap();
+    let opening = read_until(&mut s, "Enter starts it");
+    assert!(opening.starts_with("{\"data\":") || opening.starts_with("{\"ok\":true"), "reply line first: {opening}");
+    assert!(opening.contains("Enter starts it"), "a stopped command says how to start it: {opening}");
+
+    // Enter on a stopped command starts it.
+    s.write_all(&control::frame(control::FRAME_INPUT, b"\r")).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while !engine.state_of(&key).is_alive() {
+        assert!(Instant::now() < deadline, "Enter did not start it");
+        std::thread::sleep(Duration::from_millis(50));
+    }
+
+    // Keystrokes reach it and its output comes back.
+    s.write_all(&control::frame(control::FRAME_INPUT, b"hello from the pane\r")).unwrap();
+    let echoed = read_until(&mut s, "hello from the pane");
+    assert!(echoed.contains("hello from the pane"), "{echoed}");
+
+    // The viewer's size reaches its terminal.
+    s.write_all(&control::resize_frame(101, 33)).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while engine.session(&key).map(|x| x.size()) != Some((101, 33)) {
+        assert!(Instant::now() < deadline, "resize did not reach the session: {:?}", engine.session(&key).map(|x| x.size()));
+        std::thread::sleep(Duration::from_millis(50));
+    }
+
+    // Leaving doesn't stop it, and a second viewer gets what it printed so far.
+    drop(s);
+    std::thread::sleep(Duration::from_millis(200));
+    assert!(engine.state_of(&key).is_alive(), "detaching must leave the command running");
+    let mut again = std::os::unix::net::UnixStream::connect(&sock).unwrap();
+    writeln!(again, "{req}").unwrap();
+    let replay = read_until(&mut again, "hello from the pane");
+    assert!(replay.contains("hello from the pane"), "a new viewer sees the earlier output: {replay}");
+
+    engine.stop_everything_blocking();
+}
+
+#[test]
+fn terminals_open_rename_and_close_through_the_socket() {
+    isolate();
+    let tmp = tempfile::tempdir().unwrap();
+    let projects = tmp.path().join("Projects");
+    write_project(&projects, "term", "version: 1\nname: Term\ngroups:\n  - id: g\n    cwd: /tmp\n    commands:\n      - id: idle\n        run: sleep 30\n        autostart: false\n");
+    let engine = Engine::new(&projects);
+    let sock = tmp.path().join("term.sock");
+    let _server = control::serve(&engine, &sock, None).unwrap();
+    let mut client = Client::connect(&sock).unwrap();
+
+    let reply = client.call(&Request::NewTerminal { project: "term".into(), group: Some("g".into()) }).unwrap();
+    let address = reply["address"].as_str().unwrap().to_string();
+    let key = sb_core::session::CommandKey::new("term", &address);
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while !engine.state_of(&key).is_alive() {
+        assert!(Instant::now() < deadline, "the terminal's shell did not start");
+        std::thread::sleep(Duration::from_millis(50));
+    }
+    let named = |c: &mut Client| -> Option<String> {
+        let st = c.call(&Request::Status { project: Some("term".into()) }).unwrap();
+        st["projects"][0]["commands"].as_array().unwrap().iter().find(|c| c["address"] == address.as_str()).and_then(|c| c["name"].as_str().map(String::from))
+    };
+    assert!(named(&mut client).is_some(), "the terminal is listed in the project");
+
+    client.call(&Request::RenameTerminal { project: "term".into(), address: address.clone(), name: "migrations".into() }).unwrap();
+    assert_eq!(named(&mut client).as_deref(), Some("g / migrations"));
+
+    client.call(&Request::CloseTerminal { project: "term".into(), address: address.clone() }).unwrap();
+    assert!(!engine.state_of(&key).is_alive(), "closing ends the shell");
+    assert!(named(&mut client).is_none(), "and forgets it");
+}

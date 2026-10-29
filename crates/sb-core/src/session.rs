@@ -128,12 +128,22 @@ pub struct Session {
     observer: Arc<dyn SessionObserver>,
 }
 
-/// The user's login shell, falling back to `/bin/zsh`.
+/// The user's login shell: `$SHELL`, else the account's shell from the user database (a
+/// systemd service or a cleaned environment has no `$SHELL`), else `/bin/zsh`, else `/bin/sh`.
 pub fn login_shell() -> String {
+    let usable = |s: &String| !s.is_empty() && std::path::Path::new(s).exists();
     std::env::var("SHELL")
         .ok()
-        .filter(|s| !s.is_empty() && std::path::Path::new(s).exists())
-        .unwrap_or_else(|| "/bin/zsh".to_string())
+        .filter(usable)
+        .or_else(|| {
+            nix::unistd::User::from_uid(nix::unistd::getuid())
+                .ok()
+                .flatten()
+                .map(|u| u.shell.to_string_lossy().into_owned())
+                .filter(usable)
+        })
+        .or_else(|| Some("/bin/zsh".to_string()).filter(usable))
+        .unwrap_or_else(|| "/bin/sh".to_string())
 }
 
 impl Session {
